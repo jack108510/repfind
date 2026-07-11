@@ -1017,9 +1017,13 @@ const PLATFORMS = {
   '1688':  { label: '1688',    class: 'platform-1688' },
 };
 
+// ─── Webhook config ───
+const WEBHOOK_URL = 'https://n8n.wildeautomations.com/webhook/repfind-chat';
+
 let searchHistory = [];
 let currentPlatform = 'all';
 let isSearching = false;
+let chatHistory = []; // conversation context for AI
 
 // ─── DOM refs ───
 const mainInput = document.getElementById('searchInput');
@@ -1055,6 +1059,8 @@ function newSearch() {
   mainInput.focus();
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('show');
+  chatHistory = []; // reset conversation
+  document.getElementById('chatInner').innerHTML = ''; // clear messages
 }
 
 function quickSearch(q) { mainInput.value = q; doSearch(); }
@@ -1065,20 +1071,19 @@ function getQuery() {
 // ════════════════════════════════════════════════
 // SEARCH FLOW
 // ════════════════════════════════════════════════
-function doSearch(fromDocked) {
+async function doSearch(fromDocked) {
   if (isSearching) return;
   const query = getQuery();
   if (!query) return;
   isSearching = true;
 
-  // Transition
+  // Transition from welcome to chat view
   document.getElementById('welcome').classList.add('hide');
   document.getElementById('chatArea').classList.add('show');
   document.getElementById('dockedInput').classList.add('show');
   document.getElementById('topbar').classList.add('show');
 
   const inner = document.getElementById('chatInner');
-  inner.innerHTML = '';
 
   // User query bubble
   const userBubble = document.createElement('div');
@@ -1086,7 +1091,7 @@ function doSearch(fromDocked) {
   userBubble.innerHTML = `<span>${escapeHtml(query)}</span>`;
   inner.appendChild(userBubble);
 
-  // Loading steps
+  // Loading indicator
   const loadingDiv = document.createElement('div');
   loadingDiv.className = 'ai-response';
   loadingDiv.id = 'loadingSection';
@@ -1099,15 +1104,7 @@ function doSearch(fromDocked) {
       <div class="step-list" id="stepList">
         <div class="step-item active" data-step="0" style="animation-delay:0s">
           <div class="step-check spinner-mini" id="check0"></div>
-          <span>Searching Weidian...</span>
-        </div>
-        <div class="step-item" data-step="1" style="animation-delay:0.1s;opacity:0.3">
-          <div class="step-check" id="check1"></div>
-          <span>Searching Taobao &amp; 1688...</span>
-        </div>
-        <div class="step-item" data-step="2" style="animation-delay:0.2s;opacity:0.3">
-          <div class="step-check" id="check2"></div>
-          <span>Analyzing prices &amp; seller reputation...</span>
+          <span>Thinking...</span>
         </div>
       </div>
     </div>
@@ -1121,26 +1118,53 @@ function doSearch(fromDocked) {
   mainSend.disabled = true;
   dockedSend.disabled = true;
 
-  // ─── Animate steps ───
-  const steps = [
-    { delay: 500, step: 0 },
-    { delay: 1000, step: 1 },
-    { delay: 1600, step: 2 },
-  ];
+  // ─── Call the AI webhook ───
+  try {
+    const response = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: query,
+        history: chatHistory.slice(-10)
+      })
+    });
 
-  steps.forEach(({ delay, step }) => {
-    setTimeout(() => updateStep(step), delay);
-  });
+    const ai = await response.json();
 
-  // Complete
-  setTimeout(() => {
+    // Update conversation history
+    chatHistory.push({ role: 'user', content: query });
+    chatHistory.push({ role: 'assistant', content: ai.reply });
+
+    // Remove loading
     document.getElementById('loadingSection').remove();
-    renderResponse(query, inner);
+
+    if (ai.action === 'search' && ai.search_query) {
+      // AI says search — show results with the refined query
+      renderSearchResponse(ai, inner);
+    } else {
+      // Clarify — conversational reply with chips
+      renderChatResponse(ai, inner);
+    }
+
     addHistory(query);
-    isSearching = false;
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebarOverlay').classList.remove('show');
-  }, 2400);
+  } catch (err) {
+    console.error('Webhook error:', err);
+    document.getElementById('loadingSection').remove();
+    const errDiv = document.createElement('div');
+    errDiv.className = 'ai-response';
+    errDiv.innerHTML = `
+      <div class="verdict-header">
+        <div class="avatar">r</div>
+        <span class="bot-name">repfind <span class="badge">AI</span></span>
+      </div>
+      <div class="verdict-text">Connection issue. Try again?</div>
+    `;
+    inner.appendChild(errDiv);
+  }
+
+  isSearching = false;
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
 }
 
 function updateStep(step) {
@@ -1167,9 +1191,41 @@ function updateStep(step) {
 }
 
 // ════════════════════════════════════════════════
-// RENDER RESPONSE
+// RENDER — CONVERSATIONAL (clarify)
 // ════════════════════════════════════════════════
-function renderResponse(query, container) {
+function renderChatResponse(ai, container) {
+  const responseDiv = document.createElement('div');
+  responseDiv.className = 'ai-response';
+
+  const chipsHTML = (ai.chips && ai.chips.length)
+    ? `<div class="follow-ups" style="display:block;margin-top:12px">
+         <div class="follow-up-chips" id="chatChips-${Date.now()}">
+           ${ai.chips.map(c => `<div class="follow-up-chip" onclick="quickSearch('${escapeAttr(c)}')">${escapeHtml(c)}</div>`).join('')}
+         </div>
+       </div>`
+    : '';
+
+  responseDiv.innerHTML = `
+    <div class="verdict-header">
+      <div class="avatar">r</div>
+      <span class="bot-name">repfind <span class="badge">AI</span></span>
+    </div>
+    <div class="verdict-text" id="verdictText-${Date.now()}"></div>
+    ${chipsHTML}
+  `;
+  container.appendChild(responseDiv);
+
+  // Stream the reply text
+  const textEl = responseDiv.querySelector('.verdict-text');
+  streamText(textEl, ai.reply, () => scrollToBottom());
+  scrollToBottom();
+}
+
+// ════════════════════════════════════════════════
+// RENDER — SEARCH RESULTS (after AI confirms)
+// ════════════════════════════════════════════════
+function renderSearchResponse(ai, container) {
+  const query = ai.search_query;
   const results = generateResults(query);
   const verdict = generateVerdict(query, results);
 
@@ -1223,9 +1279,9 @@ function renderResponse(query, container) {
   `;
   container.appendChild(responseDiv);
 
-  // Stream verdict text
-  streamText(document.getElementById('verdictText'), verdict.verdict, () => {
-    // Stats cascade in
+  // Stream the AI reply first, then results
+  streamText(document.getElementById('verdictText'), ai.reply, () => {
+    // Show search stats after reply
     showStats(verdict.stats);
     setTimeout(() => {
       document.getElementById('actionBar').style.display = 'flex';
