@@ -6,39 +6,61 @@
   <title>repfind — find the best reps, fast</title>
   <meta name="description" content="Search across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy. Send straight to your agent.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #212121;
-      --bg-sidebar: #171717;
-      --surface: #2F2F2F;
-      --surface-hover: #383838;
-      --border: #3E3E3E;
-      --text: #ECECEC;
-      --text-muted: #9B9B9B;
-      --text-dim: #6B6B6B;
+      /* ChatGPT-inspired dark palette */
+      --bg: #1A1A1A;
+      --bg-deep: #131313;
+      --bg-sidebar: #0F0F0F;
+      --surface: #242424;
+      --surface-2: #2E2E2E;
+      --surface-hover: #343434;
+      --border: #2A2A2A;
+      --border-light: #383838;
+      --text: #F5F5F5;
+      --text-secondary: #C5C5C5;
+      --text-muted: #888888;
+      --text-dim: #5A5A5A;
       --accent: #C84B2F;
       --accent-light: #E8624A;
-      --accent-dim: rgba(200, 75, 47, 0.12);
-      --green: #4ADE80;
-      --yellow: #FACC15;
-      --red: #EF4444;
-      --radius: 12px;
-      --radius-sm: 8px;
+      --accent-dim: rgba(200, 75, 47, 0.10);
+      --accent-subtle: rgba(200, 75, 47, 0.06);
+      --green: #34D399;
+      --yellow: #FBBF24;
+      --red: #F87171;
+      --blue: #60A5FA;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --radius-xs: 6px;
       --radius-pill: 100px;
       --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
     }
 
-    html { scroll-behavior: smooth; }
+    /* ─── FONT RENDERING ─── */
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: var(--font);
       background: var(--bg);
       color: var(--text);
-      line-height: 1.5;
+      line-height: 1.6;
       min-height: 100vh;
       overflow-x: hidden;
+      font-feature-settings: 'cv02','cv03','cv04','cv11';
+      letter-spacing: -0.011em;
     }
 
     a { color: inherit; text-decoration: none; }
@@ -53,71 +75,93 @@
       border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      padding: 12px;
+      padding: 10px;
       z-index: 100;
       transition: transform var(--transition);
     }
     .sidebar-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 8px;
-      margin-bottom: 16px;
+      gap: 8px;
+      padding: 6px 8px;
+      margin-bottom: 18px;
     }
+    .sidebar-logo {
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+    .sidebar-logo .find { color: var(--accent); }
     .new-search-btn {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       background: transparent;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 10px 14px;
-      color: var(--text);
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      color: var(--text-secondary);
       font-size: 0.875rem;
-      font-weight: 500;
+      font-weight: 450;
       cursor: pointer;
-      transition: background var(--transition);
+      transition: all var(--transition);
       width: 100%;
       text-align: left;
     }
-    .new-search-btn:hover { background: var(--surface); }
-    .sidebar-history {
-      flex: 1;
-      overflow-y: auto;
-      margin-top: 16px;
+    .new-search-btn:hover {
+      background: var(--surface);
+      color: var(--text);
+    }
+    .new-search-btn svg {
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+    .sidebar-section {
+      margin-top: 20px;
     }
     .history-label {
       font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-dim);
       font-weight: 600;
-      padding: 8px;
-      margin-bottom: 4px;
+      color: var(--text-dim);
+      padding: 4px 12px 6px;
+      letter-spacing: 0.02em;
     }
     .history-item {
-      display: block;
-      padding: 9px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
       border-radius: var(--radius-sm);
-      font-size: 0.85rem;
+      font-size: 0.83rem;
       color: var(--text-muted);
       cursor: pointer;
-      transition: background var(--transition);
+      transition: all var(--transition);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .history-item:hover { background: var(--surface); color: var(--text); }
-    .history-item.active { background: var(--surface); color: var(--text); }
+    .history-item:hover {
+      background: var(--surface);
+      color: var(--text);
+    }
+    .history-item svg {
+      opacity: 0.4;
+      flex-shrink: 0;
+    }
     .sidebar-footer {
-      padding: 8px;
+      margin-top: auto;
+      padding: 12px 8px 4px;
       border-top: 1px solid var(--border);
     }
-    .sidebar-footer-text {
+    .sidebar-footer-link {
+      display: block;
       font-size: 0.75rem;
       color: var(--text-dim);
-      padding: 4px 8px;
+      padding: 6px 12px;
+      border-radius: var(--radius-xs);
+      transition: color var(--transition);
     }
+    .sidebar-footer-link:hover { color: var(--text-muted); }
 
     /* ─── MAIN ─── */
     .main {
@@ -128,23 +172,49 @@
       transition: margin var(--transition);
     }
 
-    /* ─── TOP BAR (visible after search) ─── */
+    /* ─── TOP BAR ─── */
     .topbar {
       display: none;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 24px;
+      padding: 10px 24px;
       border-bottom: 1px solid var(--border);
+      background: rgba(26, 26, 26, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      position: sticky;
+      top: 0;
+      z-index: 40;
     }
     .topbar.show { display: flex; }
     .topbar-logo {
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: 900;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.04em;
     }
     .topbar-logo .find { color: var(--accent); }
+    .topbar-right {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .topbar-btn {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: var(--radius-xs);
+      transition: all var(--transition);
+      font-weight: 500;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+    }
+    .topbar-btn:hover {
+      color: var(--text);
+      background: var(--surface);
+    }
 
-    /* ─── WELCOME (centered, pre-search) ─── */
+    /* ─── WELCOME ─── */
     .welcome {
       flex: 1;
       display: flex;
@@ -152,43 +222,45 @@
       align-items: center;
       justify-content: center;
       padding: 40px 24px;
-      transition: opacity 0.3s;
+      min-height: calc(100vh - 50px);
     }
-    .welcome.hide {
-      display: none;
+    .welcome.hide { display: none; }
+    .welcome-logo {
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      margin-bottom: 12px;
     }
-    .welcome h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      margin-bottom: 8px;
-    }
-    .welcome h1 .find { color: var(--accent); }
-    .welcome p {
+    .welcome-logo .find { color: var(--accent); }
+    .welcome-tagline {
       font-size: 1rem;
       color: var(--text-muted);
-      margin-bottom: 36px;
+      margin-bottom: 40px;
+      max-width: 420px;
+      text-align: center;
+      line-height: 1.5;
     }
 
-    /* ─── SEARCH BOX (the prompt) ─── */
+    /* ─── PROMPT ─── */
     .prompt-container {
       width: 100%;
-      max-width: 720px;
+      max-width: 700px;
       margin: 0 auto;
     }
     .prompt-box {
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-pill);
-      padding: 6px 6px 6px 20px;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      padding: 8px 8px 8px 18px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       transition: border-color var(--transition), box-shadow var(--transition);
+      box-shadow: var(--shadow-sm);
     }
     .prompt-box:focus-within {
       border-color: var(--text-dim);
-      box-shadow: 0 0 0 1px var(--text-dim);
+      box-shadow: 0 0 0 1px var(--text-dim), var(--shadow-md);
     }
     .prompt-box input {
       flex: 1;
@@ -202,8 +274,8 @@
     }
     .prompt-box input::placeholder { color: var(--text-dim); }
     .send-btn {
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       border: none;
       background: var(--text);
@@ -214,80 +286,77 @@
       cursor: pointer;
       flex-shrink: 0;
       transition: all var(--transition);
-      font-size: 1.1rem;
-      font-weight: 700;
     }
     .send-btn:disabled {
-      background: var(--border);
+      background: var(--border-light);
       color: var(--text-dim);
       cursor: not-allowed;
     }
     .send-btn:not(:disabled):hover {
       background: var(--accent);
       color: white;
+      transform: scale(1.05);
     }
 
     /* ─── SUGGESTIONS ─── */
     .suggestions {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
       justify-content: center;
-      margin-top: 20px;
+      margin-top: 16px;
     }
     .suggestion {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.83rem;
-      padding: 10px 16px;
+      font-size: 0.82rem;
+      padding: 9px 14px;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text-muted);
+      border-radius: var(--radius-pill);
+      color: var(--text-secondary);
       cursor: pointer;
       transition: all var(--transition);
+      font-weight: 450;
     }
     .suggestion:hover {
-      background: var(--surface-hover);
-      border-color: var(--text-dim);
+      background: var(--surface-2);
+      border-color: var(--border-light);
       color: var(--text);
+      transform: translateY(-1px);
     }
-    .suggestion-icon { font-size: 1rem; }
+    .suggestion-icon {
+      font-size: 0.95rem;
+    }
 
-    /* ─── CHAT AREA (post-search) ─── */
+    /* ─── CHAT AREA ─── */
     .chat-area {
       flex: 1;
       overflow-y: auto;
-      padding: 24px 24px 160px;
+      padding: 24px 24px 200px;
       display: none;
     }
     .chat-area.show { display: block; }
-
     .chat-inner {
       max-width: 720px;
       margin: 0 auto;
     }
 
-    /* ─── USER QUERY BUBBLE ─── */
+    /* ─── QUERY BUBBLE ─── */
     .query-bubble {
       display: flex;
       justify-content: flex-end;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       animation: fadeInUp 0.3s ease;
     }
     .query-bubble span {
-      background: var(--surface);
-      padding: 10px 18px;
+      background: var(--surface-2);
+      padding: 10px 16px;
       border-radius: var(--radius-pill);
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-weight: 500;
       max-width: 80%;
-    }
-
-    /* ─── AI RESPONSE ─── */
-    .ai-response {
-      animation: fadeInUp 0.4s ease;
     }
 
     @keyframes fadeInUp {
@@ -295,27 +364,100 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ─── TYPING INDICATOR ─── */
-    .typing {
-      display: flex;
-      gap: 4px;
-      padding: 16px 0;
-    }
-    .typing span {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--text-dim);
-      animation: typingBounce 1.2s infinite;
-    }
-    .typing span:nth-child(2) { animation-delay: 0.15s; }
-    .typing span:nth-child(3) { animation-delay: 0.3s; }
-    @keyframes typingBounce {
-      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-      30% { transform: translateY(-6px); opacity: 1; }
-    }
+    /* ─── AI RESPONSE ─── */
+    .ai-response { animation: fadeInUp 0.4s ease; }
 
-    /* ─── AI VERDICT (chat-style) ─── */
+    /* ─── TYPING / LOADING STEPS ─── */
+    .loading-steps {
+      padding: 4px 0 8px;
+    }
+    .loading-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #9B3A24);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 900;
+      color: white;
+      flex-shrink: 0;
+    }
+    .bot-name {
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .bot-name .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: var(--accent-dim);
+      color: var(--accent-light);
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .step-list {
+      padding-left: 34px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      animation: fadeInUp 0.3s ease backwards;
+    }
+    .step-check {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
+    .step-check.done {
+      background: var(--green);
+      border-color: var(--green);
+    }
+    .step-check.done svg {
+      opacity: 1;
+    }
+    .step-check svg {
+      width: 8px;
+      height: 8px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .step-check.spinner-mini {
+      border: 1.5px solid var(--border-light);
+      border-top-color: var(--accent);
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .step-item.done { color: var(--text-muted); }
+    .step-item.active { color: var(--text-secondary); }
+
+    /* ─── VERDICT ─── */
     .verdict-block {
       margin-bottom: 20px;
     }
@@ -323,101 +465,205 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 12px;
-    }
-    .verdict-avatar {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
-      font-weight: 900;
-      color: white;
-      flex-shrink: 0;
-    }
-    .verdict-name {
-      font-size: 0.85rem;
-      font-weight: 700;
+      margin-bottom: 14px;
     }
     .verdict-text {
-      font-size: 0.95rem;
+      font-size: 0.94rem;
       line-height: 1.7;
       color: var(--text);
-      padding-left: 36px;
+      padding-left: 34px;
+      letter-spacing: -0.005em;
     }
     .verdict-text strong { font-weight: 700; }
+    .cursor-blink {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: var(--accent);
+      vertical-align: text-bottom;
+      animation: blink 0.8s step-end infinite;
+      margin-left: 1px;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ─── ACTION BAR ─── */
+    .action-bar {
+      display: flex;
+      gap: 4px;
+      padding-left: 34px;
+      margin-top: 14px;
+      opacity: 0;
+      animation: fadeIn 0.4s ease 0.2s forwards;
+    }
+    @keyframes fadeIn { to { opacity: 1; } }
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 5px 10px;
+      border-radius: var(--radius-xs);
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .action-btn:hover {
+      background: var(--surface);
+      color: var(--text-secondary);
+    }
+    .action-btn svg {
+      opacity: 0.7;
+    }
+
+    /* ─── PROVENANCE ─── */
+    .provenance {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-left: 34px;
+      margin-top: 10px;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+    .provenance .dot-sep {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      opacity: 0.5;
+    }
 
     /* ─── STAT PILLS ─── */
     .stat-pills {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      padding-left: 36px;
-      margin-top: 14px;
+      padding-left: 34px;
+      margin-top: 16px;
     }
     .stat-pill {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius-pill);
-      padding: 6px 14px;
-      font-size: 0.82rem;
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      transition: border-color var(--transition);
+    }
+    .stat-pill:hover {
+      border-color: var(--border-light);
+    }
+    .stat-pill-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-xs);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+    .stat-pill-icon.price { background: var(--accent-dim); color: var(--accent-light); }
+    .stat-pill-icon.range { background: rgba(96,165,250,0.1); color: var(--blue); }
+    .stat-pill-icon.legit { background: rgba(52,211,153,0.1); color: var(--green); }
+    .stat-pill-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .stat-pill-label {
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
       font-weight: 600;
     }
-    .stat-pill .stat-label {
-      color: var(--text-dim);
-      font-weight: 500;
-      font-size: 0.78rem;
+    .stat-pill-value {
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
     }
-    .stat-pill .stat-val.accent { color: var(--accent-light); }
-    .stat-pill .stat-val.green { color: var(--green); }
-    .stat-pill .stat-val.yellow { color: var(--yellow); }
-    .stat-pill .dot {
-      width: 6px; height: 6px; border-radius: 50%;
+    .stat-pill-value.accent { color: var(--accent-light); }
+    .stat-pill-value.green { color: var(--green); }
+    .stat-pill-value.yellow { color: var(--yellow); }
+    .stat-pill-sub {
+      font-size: 0.68rem;
+      color: var(--text-dim);
     }
 
     /* ─── RESULTS ─── */
+    .results-section {
+      padding-left: 34px;
+      margin-top: 28px;
+    }
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
     .results-label {
-      font-size: 0.8rem;
+      font-size: 0.76rem;
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: var(--text-dim);
       font-weight: 600;
-      padding-left: 36px;
-      margin: 28px 0 14px;
+    }
+    .inline-filters {
+      display: flex;
+      gap: 4px;
+    }
+    .inline-filter {
+      font-size: 0.76rem;
+      padding: 4px 10px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--radius-xs);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all var(--transition);
+      font-weight: 500;
+    }
+    .inline-filter.active {
+      background: var(--surface);
+      color: var(--text);
+    }
+    .inline-filter:hover:not(.active) {
+      color: var(--text-secondary);
     }
     .results-list {
       display: grid;
-      gap: 10px;
-      padding-left: 36px;
+      gap: 8px;
     }
+
+    /* ─── RESULT CARD ─── */
     .result-card {
       display: flex;
       gap: 14px;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: var(--radius-sm);
       padding: 14px;
-      transition: border-color var(--transition), background var(--transition);
+      transition: all var(--transition);
       animation: cardIn 0.35s ease backwards;
+      cursor: pointer;
     }
     @keyframes cardIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
     .result-card:hover {
-      border-color: var(--text-dim);
-      background: var(--surface-hover);
+      border-color: var(--border-light);
+      background: var(--surface-2);
     }
     .result-img {
-      width: 72px;
-      height: 72px;
-      border-radius: var(--radius-sm);
+      width: 68px;
+      height: 68px;
+      border-radius: var(--radius-xs);
       background: var(--border);
       flex-shrink: 0;
       object-fit: cover;
@@ -436,15 +682,16 @@
     }
     .result-info { min-width: 0; }
     .result-name {
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       font-weight: 600;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
+      letter-spacing: -0.01em;
     }
     .result-seller {
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       color: var(--text-dim);
     }
     .result-meta {
@@ -454,41 +701,42 @@
       margin-top: 4px;
     }
     .platform-badge {
-      font-size: 0.62rem;
+      font-size: 0.6rem;
       font-weight: 700;
       text-transform: uppercase;
       padding: 2px 6px;
       border-radius: 4px;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.05em;
     }
-    .platform-weidian { background: #1A2B3D; color: #6BAED6; }
-    .platform-taobao { background: #2D1A1A; color: #E8715A; }
-    .platform-1688 { background: #1A231A; color: #6BAA6B; }
+    .platform-weidian { background: #162D40; color: #6BAED6; }
+    .platform-taobao  { background: #2D1818; color: #E8715A; }
+    .platform-1688    { background: #182018; color: #6BAA6B; }
+
     .result-price {
       text-align: right;
       flex-shrink: 0;
     }
     .price-main {
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-weight: 800;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.03em;
     }
     .price-cny {
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       color: var(--text-dim);
     }
     .result-actions {
       display: flex;
       gap: 6px;
-      margin-top: 8px;
+      margin-top: 10px;
     }
     .agent-btn {
       flex: 1;
-      font-size: 0.75rem;
+      font-size: 0.73rem;
       font-weight: 600;
       padding: 6px 0;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      border: 1px solid var(--border-light);
       background: transparent;
       color: var(--text-muted);
       cursor: pointer;
@@ -500,77 +748,86 @@
       border-color: var(--accent);
       color: white;
     }
+
+    /* ─── QUALITY ─── */
     .quality {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 600;
     }
     .quality-dot {
-      width: 6px;
-      height: 6px;
+      width: 6px; height: 6px;
       border-radius: 50%;
     }
-    .quality-good .quality-dot { background: var(--green); }
+    .quality-good .quality-dot { background: var(--green); box-shadow: 0 0 6px rgba(52,211,153,0.4); }
     .quality-ok .quality-dot { background: var(--yellow); }
     .quality-risky .quality-dot { background: var(--red); }
     .quality-good { color: var(--green); }
     .quality-ok { color: var(--yellow); }
     .quality-risky { color: var(--red); }
 
-    /* ─── PLATFORM FILTERS (inline, subtle) ─── */
-    .inline-filters {
-      display: flex;
-      gap: 6px;
-      padding-left: 36px;
-      margin-bottom: 14px;
+    /* ─── FOLLOW-UPS ─── */
+    .follow-ups {
+      padding-left: 34px;
+      margin-top: 28px;
     }
-    .inline-filter {
+    .follow-up-label {
       font-size: 0.76rem;
-      padding: 5px 12px;
-      background: transparent;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .follow-up-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .follow-up-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      padding: 8px 14px;
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-pill);
-      color: var(--text-muted);
+      color: var(--text-secondary);
       cursor: pointer;
       transition: all var(--transition);
-      font-weight: 500;
+      font-weight: 450;
     }
-    .inline-filter.active {
-      background: var(--surface);
-      border-color: var(--text-dim);
-      color: var(--text);
-    }
-    .inline-filter:hover:not(.active) {
+    .follow-up-chip:hover {
+      background: var(--surface-2);
+      border-color: var(--border-light);
       color: var(--text);
     }
 
-    /* ─── DOCKED INPUT (bottom, after search) ─── */
+    /* ─── DOCKED INPUT ─── */
     .docked-input {
       position: fixed;
       bottom: 0;
       left: 260px;
       right: 0;
       padding: 16px 24px 20px;
-      background: linear-gradient(to top, var(--bg) 60%, transparent);
+      background: linear-gradient(to top, var(--bg) 50%, transparent);
       display: none;
       z-index: 50;
     }
     .docked-input.show { display: flex; }
-    .docked-input .prompt-box {
+    .docked-input-inner {
       max-width: 720px;
       margin: 0 auto;
+      width: 100%;
     }
-
-    /* ─── DISCLAIMER ─── */
     .disclaimer {
       text-align: center;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       color: var(--text-dim);
       padding: 8px 0 0;
-      max-width: 720px;
-      margin: 0 auto;
     }
 
     /* ─── MOBILE ─── */
@@ -578,42 +835,83 @@
       display: none;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px;
+      padding: 10px 16px;
       border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 40;
     }
     .menu-btn {
       background: transparent;
       border: none;
       color: var(--text);
-      font-size: 1.3rem;
       cursor: pointer;
+      padding: 4px;
+      display: flex;
     }
     .sidebar-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.6);
       z-index: 99;
+      backdrop-filter: blur(2px);
     }
     .sidebar-overlay.show { display: block; }
 
     @media (max-width: 768px) {
-      .sidebar {
-        transform: translateX(-100%);
-      }
-      .sidebar.open {
-        transform: translateX(0);
-      }
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
       .main { margin-left: 0; }
       .docked-input { left: 0; }
       .mobile-header { display: flex; }
-      .welcome h1 { font-size: 1.6rem; }
-      .prompt-container { max-width: calc(100% - 32px); }
-      .results-list, .inline-filters, .verdict-text, .stat-pills, .results-label {
+      .welcome-logo { font-size: 1.8rem; }
+      .welcome { padding: 24px 16px; }
+      .prompt-container { max-width: 100%; }
+      .verdict-text, .stat-pills, .action-bar, .provenance, .results-section, .follow-ups {
         padding-left: 0;
       }
-      .result-card { flex-direction: row; }
-      .result-img { width: 60px; height: 60px; }
+      .result-img { width: 56px; height: 56px; }
+    }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--surface-2);
+      border: 1px solid var(--border-light);
+      color: var(--text);
+      padding: 10px 20px;
+      border-radius: var(--radius-pill);
+      font-size: 0.83rem;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      opacity: 0;
+      transition: all var(--transition);
+      z-index: 200;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ─── GLOW ANIMATION ─── */
+    .pulse-glow {
+      animation: pulseGlow 2s ease-in-out infinite;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 var(--accent-dim); }
+      50% { box-shadow: 0 0 0 4px transparent; }
     }
   </style>
 </head>
@@ -622,19 +920,21 @@
 <!-- ─── SIDEBAR ─── -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <a href="/" class="logo" style="font-size:1.2rem;font-weight:900;letter-spacing:-0.03em;">
-      rep<span style="color:var(--accent)">find</span>
-    </a>
+    <span class="sidebar-logo">rep<span class="find">find</span></span>
   </div>
   <button class="new-search-btn" onclick="newSearch()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
     New search
   </button>
-  <div class="sidebar-history" id="historyList">
+  <div class="sidebar-section" id="historySection" style="flex:1;overflow-y:auto;">
     <div class="history-label">Recent</div>
+    <div id="historyList">
+      <div class="history-item" style="opacity:0.5;cursor:default;">No searches yet</div>
+    </div>
   </div>
   <div class="sidebar-footer">
-    <div class="sidebar-footer-text">The discovery layer for reps</div>
+    <a class="sidebar-footer-link" href="#agents">How it works</a>
+    <a class="sidebar-footer-link" href="#agents">Agents</a>
   </div>
 </aside>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
@@ -643,28 +943,31 @@
 <div class="main">
   <!-- Mobile header -->
   <div class="mobile-header">
-    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+    <button class="menu-btn" onclick="toggleSidebar()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+    </button>
     <span class="topbar-logo">rep<span class="find" style="color:var(--accent)">find</span></span>
-    <div style="width:28px"></div>
+    <div style="width:22px"></div>
   </div>
 
-  <!-- Top bar (post-search) -->
+  <!-- Top bar -->
   <div class="topbar" id="topbar">
     <span class="topbar-logo">rep<span class="find">find</span></span>
-    <div style="display:flex;gap:16px">
-      <a href="#" style="font-size:0.8rem;color:var(--text-muted)" onclick="alert('Coming soon')">Agents</a>
+    <div class="topbar-right">
+      <button class="topbar-btn" onclick="alert('Coming soon')">Agents</button>
+      <button class="topbar-btn" onclick="alert('Coming soon')">About</button>
     </div>
   </div>
 
-  <!-- Welcome (centered) -->
+  <!-- Welcome -->
   <div class="welcome" id="welcome">
-    <h1>rep<span class="find">find</span></h1>
-    <p>Find reps across Weidian, Taobao &amp; 1688. AI verdicts on price and legitimacy.</p>
+    <div class="welcome-logo">rep<span class="find">find</span></div>
+    <p class="welcome-tagline">Search across Weidian, Taobao &amp; 1688. AI verdicts on price, quality, and legitimacy.</p>
     <div class="prompt-container">
       <div class="prompt-box">
-        <input type="text" id="searchInput" placeholder="Search for any rep — e.g. Travis Scott AF1...">
+        <input type="text" id="searchInput" placeholder="Search for any rep — e.g. Travis Scott AF1..." autofocus>
         <button class="send-btn" id="sendBtn" onclick="doSearch()" disabled>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
       </div>
       <div class="suggestions">
@@ -676,20 +979,18 @@
     </div>
   </div>
 
-  <!-- Chat area (post-search) -->
+  <!-- Chat area -->
   <div class="chat-area" id="chatArea">
-    <div class="chat-inner" id="chatInner">
-      <!-- filled by JS -->
-    </div>
+    <div class="chat-inner" id="chatInner"></div>
   </div>
 
-  <!-- Docked input (post-search, bottom) -->
+  <!-- Docked input -->
   <div class="docked-input" id="dockedInput">
-    <div style="width:100%">
+    <div class="docked-input-inner">
       <div class="prompt-box">
         <input type="text" id="dockedSearchInput" placeholder="Search another rep...">
         <button class="send-btn" id="dockedSendBtn" onclick="doSearch(true)" disabled>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
       </div>
       <div class="disclaimer">repfind is a discovery tool. Not affiliated with any agent or platform.</div>
@@ -697,9 +998,12 @@
   </div>
 </div>
 
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 <script>
 // ════════════════════════════════════════════════
-// repfind — ChatGPT-style
+// repfind — Premium AI Search UX
 // ════════════════════════════════════════════════
 
 const AGENTS = {
@@ -707,7 +1011,6 @@ const AGENTS = {
   cnfans:  { name: 'CNFans' },
   oopbuy:  { name: 'Oopbuy' },
 };
-
 const PLATFORMS = {
   weidian: { label: 'Weidian', class: 'platform-weidian' },
   taobao:  { label: 'Taobao',  class: 'platform-taobao' },
@@ -716,29 +1019,33 @@ const PLATFORMS = {
 
 let searchHistory = [];
 let currentPlatform = 'all';
+let isSearching = false;
 
-// ─── Input enable/disable ───
+// ─── DOM refs ───
 const mainInput = document.getElementById('searchInput');
 const mainSend = document.getElementById('sendBtn');
-const dockedInput = document.getElementById('dockedSearchInput');
+const dockedInputEl = document.getElementById('dockedSearchInput');
 const dockedSend = document.getElementById('dockedSendBtn');
 
-mainInput.addEventListener('input', () => {
-  mainSend.disabled = !mainInput.value.trim();
-});
-dockedInput.addEventListener('input', () => {
-  dockedSend.disabled = !dockedInput.value.trim();
-});
+mainInput.addEventListener('input', () => mainSend.disabled = !mainInput.value.trim());
+dockedInputEl.addEventListener('input', () => dockedSend.disabled = !dockedInputEl.value.trim());
 mainInput.addEventListener('keydown', e => { if (e.key === 'Enter' && mainInput.value.trim()) doSearch(); });
-dockedInput.addEventListener('keydown', e => { if (e.key === 'Enter' && dockedInput.value.trim()) doSearch(true); });
+dockedInputEl.addEventListener('keydown', e => { if (e.key === 'Enter' && dockedInputEl.value.trim()) doSearch(true); });
 
-// ─── Sidebar toggle (mobile) ───
+// ─── Toast ───
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ─── Sidebar ───
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('sidebarOverlay').classList.toggle('show');
 }
 
-// ─── New search (reset to welcome) ───
 function newSearch() {
   document.getElementById('welcome').classList.remove('hide');
   document.getElementById('chatArea').classList.remove('show');
@@ -750,115 +1057,189 @@ function newSearch() {
   document.getElementById('sidebarOverlay').classList.remove('show');
 }
 
-// ─── Search entry points ───
-function quickSearch(query) {
-  mainInput.value = query;
-  doSearch();
-}
+function quickSearch(q) { mainInput.value = q; doSearch(); }
 function getQuery() {
-  if (dockedInput.value.trim()) return dockedInput.value.trim();
-  return mainInput.value.trim();
+  return (dockedInputEl.value.trim()) || mainInput.value.trim();
 }
 
-// ─── Main search flow ───
-function doSearch(fromDocked = false) {
+// ════════════════════════════════════════════════
+// SEARCH FLOW
+// ════════════════════════════════════════════════
+function doSearch(fromDocked) {
+  if (isSearching) return;
   const query = getQuery();
   if (!query) return;
+  isSearching = true;
 
-  // Transition: welcome → chat
+  // Transition
   document.getElementById('welcome').classList.add('hide');
   document.getElementById('chatArea').classList.add('show');
   document.getElementById('dockedInput').classList.add('show');
   document.getElementById('topbar').classList.add('show');
 
-  // Clear previous
   const inner = document.getElementById('chatInner');
   inner.innerHTML = '';
 
-  // Add user query bubble
+  // User query bubble
   const userBubble = document.createElement('div');
   userBubble.className = 'query-bubble';
   userBubble.innerHTML = `<span>${escapeHtml(query)}</span>`;
   inner.appendChild(userBubble);
 
-  // Add typing indicator
-  const typing = document.createElement('div');
-  typing.className = 'ai-response';
-  typing.id = 'typingIndicator';
-  typing.innerHTML = `
-    <div class="verdict-header">
-      <div class="verdict-avatar">r</div>
-      <span class="verdict-name">repfind</span>
+  // Loading steps
+  const loadingDiv = document.createElement('div');
+  loadingDiv.className = 'ai-response';
+  loadingDiv.id = 'loadingSection';
+  loadingDiv.innerHTML = `
+    <div class="loading-header">
+      <div class="avatar">r</div>
+      <span class="bot-name">repfind <span class="badge">AI</span></span>
     </div>
-    <div class="typing" style="padding-left:36px"><span></span><span></span><span></span></div>
+    <div class="loading-steps">
+      <div class="step-list" id="stepList">
+        <div class="step-item active" data-step="0" style="animation-delay:0s">
+          <div class="step-check spinner-mini" id="check0"></div>
+          <span>Searching Weidian...</span>
+        </div>
+        <div class="step-item" data-step="1" style="animation-delay:0.1s;opacity:0.3">
+          <div class="step-check" id="check1"></div>
+          <span>Searching Taobao &amp; 1688...</span>
+        </div>
+        <div class="step-item" data-step="2" style="animation-delay:0.2s;opacity:0.3">
+          <div class="step-check" id="check2"></div>
+          <span>Analyzing prices &amp; seller reputation...</span>
+        </div>
+      </div>
+    </div>
   `;
-  inner.appendChild(typing);
-
-  // Scroll to bottom
+  inner.appendChild(loadingDiv);
   scrollToBottom();
 
   // Clear inputs
-  dockedInput.value = '';
+  dockedInputEl.value = '';
   mainInput.value = '';
   mainSend.disabled = true;
   dockedSend.disabled = true;
 
-  // Simulate API delay then render
+  // ─── Animate steps ───
+  const steps = [
+    { delay: 500, step: 0 },
+    { delay: 1000, step: 1 },
+    { delay: 1600, step: 2 },
+  ];
+
+  steps.forEach(({ delay, step }) => {
+    setTimeout(() => updateStep(step), delay);
+  });
+
+  // Complete
   setTimeout(() => {
-    document.getElementById('typingIndicator').remove();
+    document.getElementById('loadingSection').remove();
     renderResponse(query, inner);
-    // Add to history
     addHistory(query);
+    isSearching = false;
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.remove('show');
-  }, 900 + Math.random() * 400);
+  }, 2400);
 }
 
-// ─── Render AI response ───
+function updateStep(step) {
+  const stepEl = document.querySelector(`[data-step="${step}"]`);
+  const checkEl = document.getElementById(`check${step}`);
+  if (!stepEl || !checkEl) return;
+
+  // Mark previous as done
+  if (step > 0) {
+    const prevEl = document.querySelector(`[data-step="${step - 1}"]`);
+    const prevCheck = document.getElementById(`check${step - 1}`);
+    if (prevEl) { prevEl.classList.remove('active'); prevEl.classList.add('done'); prevEl.style.opacity = '0.5'; }
+    if (prevCheck) {
+      prevCheck.classList.remove('spinner-mini');
+      prevCheck.classList.add('done');
+      prevCheck.innerHTML = '<svg viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.5"><path d="M2 6l3 3 5-6"/></svg>';
+    }
+  }
+
+  // Activate current
+  stepEl.classList.add('active');
+  stepEl.style.opacity = '1';
+  checkEl.classList.add('spinner-mini');
+}
+
+// ════════════════════════════════════════════════
+// RENDER RESPONSE
+// ════════════════════════════════════════════════
 function renderResponse(query, container) {
   const results = generateResults(query);
   const verdict = generateVerdict(query, results);
 
   const responseDiv = document.createElement('div');
   responseDiv.className = 'ai-response';
-  responseDiv.id = 'aiResponse';
-
-  // Verdict text (streamed)
-  const verdictHTML = `
+  responseDiv.innerHTML = `
     <div class="verdict-header">
-      <div class="verdict-avatar">r</div>
-      <span class="verdict-name">repfind</span>
+      <div class="avatar">r</div>
+      <span class="bot-name">repfind <span class="badge">AI</span></span>
     </div>
     <div class="verdict-text" id="verdictText"></div>
-    <div class="stat-pills" id="statPills"></div>
-    <div class="inline-filters" id="inlineFilters">
-      <button class="inline-filter active" data-platform="all">All</button>
-      <button class="inline-filter" data-platform="weidian">Weidian</button>
-      <button class="inline-filter" data-platform="taobao">Taobao</button>
-      <button class="inline-filter" data-platform="1688">1688</button>
+    <div class="stat-pills" id="statPills" style="display:none"></div>
+    <div class="action-bar" id="actionBar" style="display:none">
+      <button class="action-btn" onclick="copyVerdict()" title="Copy verdict">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        Copy
+      </button>
+      <button class="action-btn" onclick="regenerateSearch()" title="Search again">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        Refresh
+      </button>
+      <button class="action-btn" onclick="showToast('Link copied to clipboard')" title="Share">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        Share
+      </button>
     </div>
-    <div class="results-label">${results.length} results</div>
-    <div class="results-list" id="resultsList"></div>
+    <div class="provenance" id="provenance" style="display:none">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <span>Sourced from <strong style="color:var(--text-muted)">${results.length} sellers</strong></span>
+      <span class="dot-sep"></span>
+      <span>${new Set(results.map(r => r.platform)).size} platforms</span>
+      <span class="dot-sep"></span>
+      <span>Updated just now</span>
+    </div>
+    <div class="results-section" id="resultsSection" style="display:none">
+      <div class="results-header">
+        <span class="results-label">${results.length} results</span>
+        <div class="inline-filters">
+          <button class="inline-filter active" data-platform="all">All</button>
+          <button class="inline-filter" data-platform="weidian">Weidian</button>
+          <button class="inline-filter" data-platform="taobao">Taobao</button>
+          <button class="inline-filter" data-platform="1688">1688</button>
+        </div>
+      </div>
+      <div class="results-list" id="resultsList"></div>
+    </div>
+    <div class="follow-ups" id="followUps" style="display:none">
+      <div class="follow-up-label">Related searches</div>
+      <div class="follow-up-chips" id="followUpChips"></div>
+    </div>
   `;
-  responseDiv.innerHTML = verdictHTML;
   container.appendChild(responseDiv);
 
   // Stream verdict text
   streamText(document.getElementById('verdictText'), verdict.verdict, () => {
-    // After text done, show stats
+    // Stats cascade in
     showStats(verdict.stats);
-    // Then stagger results
-    renderResults(results);
-    // Wire filters
-    wireFilters();
+    setTimeout(() => {
+      document.getElementById('actionBar').style.display = 'flex';
+      document.getElementById('provenance').style.display = 'flex';
+      renderResults(results);
+      wireFilters();
+      renderFollowUps(query);
+      scrollToBottom();
+    }, 300);
   });
-
-  scrollToBottom();
 }
 
-// ─── Stream text (typewriter effect) ───
+// ─── Stream text ───
 function streamText(el, html, callback) {
-  // Parse HTML into tokens (tags + chars)
   const tokens = [];
   let i = 0;
   while (i < html.length) {
@@ -890,42 +1271,40 @@ function streamText(el, html, callback) {
     } else {
       displayed += token.text;
       idx++;
-      el.innerHTML = displayed + '<span style="opacity:0.5;animation:blink 0.8s infinite">▋</span>';
-      // Add blink keyframe if not present
-      if (!document.getElementById('blinkStyle')) {
-        const s = document.createElement('style');
-        s.id = 'blinkStyle';
-        s.textContent = '@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}';
-        document.head.appendChild(s);
-      }
-      setTimeout(tick, 12 + Math.random() * 20);
+      el.innerHTML = displayed + '<span class="cursor-blink"></span>';
+      setTimeout(tick, 15 + Math.random() * 25);
     }
     scrollToBottom();
   }
   tick();
 }
 
-// ─── Show stat pills ───
+// ─── Stats ───
 function showStats(stats) {
   const el = document.getElementById('statPills');
   if (!el) return;
   el.innerHTML = stats.map((s, i) => {
-    const dotClass = s.class === 'green' ? 'background:var(--green)' :
-                     s.class === 'yellow' ? 'background:var(--yellow)' :
-                     s.class === 'accent' ? 'background:var(--accent)' : '';
-    return `<div class="stat-pill" style="animation:cardIn 0.3s ease backwards;animation-delay:${i*0.1}s">
-      <div class="dot" style="${dotClass}"></div>
-      <span class="stat-label">${s.label}</span>
-      <span class="stat-val ${s.class}">${s.value}</span>
-      ${s.sub ? `<span style="color:var(--text-dim);font-size:0.72rem">${s.sub}</span>` : ''}
+    const iconClass = s.label.toLowerCase().includes('price') ? 'price' :
+                      s.label.toLowerCase().includes('range') ? 'range' : 'legit';
+    const icon = iconClass === 'price' ? '¥' : iconClass === 'range' ? '↔' : '✓';
+    return `<div class="stat-pill" style="animation:cardIn 0.3s ease backwards;animation-delay:${i*0.12}s">
+      <div class="stat-pill-icon ${iconClass}">${icon}</div>
+      <div class="stat-pill-content">
+        <span class="stat-pill-label">${s.label}</span>
+        <span class="stat-pill-value ${s.class}">${s.value}</span>
+        ${s.sub ? `<span class="stat-pill-sub">${s.sub}</span>` : ''}
+      </div>
     </div>`;
   }).join('');
+  el.style.display = 'flex';
 }
 
-// ─── Render result cards ───
+// ─── Results ───
 function renderResults(results) {
   const list = document.getElementById('resultsList');
-  if (!list) return;
+  const section = document.getElementById('resultsSection');
+  if (!list || !section) return;
+  section.style.display = 'block';
   list.innerHTML = '';
   results.forEach((r, i) => {
     const card = document.createElement('div');
@@ -939,18 +1318,15 @@ function renderResults(results) {
 }
 
 function renderCardHTML(r) {
-  const qualityClass = r.quality === 'good' ? 'quality-good' :
-                       r.quality === 'ok'   ? 'quality-ok'   : 'quality-risky';
-  const qualityLabel = r.quality === 'good' ? 'Legit' :
-                       r.quality === 'ok'   ? 'OK' : 'Risky';
+  const qClass = r.quality === 'good' ? 'quality-good' : r.quality === 'ok' ? 'quality-ok' : 'quality-risky';
+  const qLabel = r.quality === 'good' ? 'Legit' : r.quality === 'ok' ? 'OK' : 'Risky';
   const plat = PLATFORMS[r.platform];
   const agentBtns = Object.entries(AGENTS).map(([key, agent]) =>
-    `<button class="agent-btn" onclick="sendToAgent('${key}', '${r.id}', this)">${agent.name}</button>`
+    `<button class="agent-btn" onclick="event.stopPropagation();sendToAgent('${key}', '${r.id}', this)">${agent.name}</button>`
   ).join('');
 
   return `
-    <img class="result-img" src="${r.img}" alt="${escapeAttr(r.name)}" loading="lazy"
-         onerror="this.style.opacity=0">
+    <img class="result-img" src="${r.img}" alt="${escapeAttr(r.name)}" loading="lazy" onerror="this.style.opacity=0">
     <div class="result-body">
       <div class="result-top">
         <div class="result-info">
@@ -958,7 +1334,7 @@ function renderCardHTML(r) {
           <div class="result-seller">${escapeHtml(r.seller)} · ⭐ ${r.rating} · ${r.sales.toLocaleString()} sold</div>
           <div class="result-meta">
             <span class="platform-badge ${plat.class}">${plat.label}</span>
-            <span class="quality ${qualityClass}"><span class="quality-dot"></span>${qualityLabel}</span>
+            <span class="quality ${qClass}"><span class="quality-dot"></span>${qLabel}</span>
           </div>
         </div>
         <div class="result-price">
@@ -980,6 +1356,7 @@ function sendToAgent(agentKey, resultId, btn) {
   btn.style.color = 'white';
   setTimeout(() => {
     btn.textContent = '✓ Copied';
+    showToast(`Product link copied for ${AGENTS[agentKey].name}`);
     setTimeout(() => {
       btn.textContent = original;
       btn.style.cssText = '';
@@ -987,7 +1364,40 @@ function sendToAgent(agentKey, resultId, btn) {
   }, 500);
 }
 
-// ─── Platform filters ───
+// ─── Copy verdict ───
+function copyVerdict() {
+  const text = document.getElementById('verdictText').textContent.trim();
+  navigator.clipboard?.writeText(text);
+  showToast('Verdict copied');
+}
+
+// ─── Regenerate ───
+function regenerateSearch() {
+  const last = searchHistory[0];
+  if (last) {
+    mainInput.value = last;
+    doSearch();
+  }
+}
+
+// ─── Follow-ups ───
+function renderFollowUps(query) {
+  const el = document.getElementById('followUpChips');
+  const section = document.getElementById('followUps');
+  if (!el || !section) return;
+  const suggestions = [
+    `${query} QC review`,
+    `${query} best batch`,
+    `${query} vs retail`,
+    `Cheap ${query}`,
+  ];
+  el.innerHTML = suggestions.map(s =>
+    `<div class="follow-up-chip" onclick="quickSearch('${escapeAttr(s)}')">${escapeHtml(s)}</div>`
+  ).join('');
+  section.style.display = 'block';
+}
+
+// ─── Filters ───
 function wireFilters() {
   document.querySelectorAll('.inline-filter').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1007,16 +1417,20 @@ function applyFilter(platform) {
 // ─── History ───
 function addHistory(query) {
   if (searchHistory[0] === query) return;
-  searchHistory = [query, ...searchHistory.filter(q => q !== query)].slice(0, 12);
+  searchHistory = [query, ...searchHistory.filter(q => q !== query)].slice(0, 10);
   renderHistory();
 }
 function renderHistory() {
   const el = document.getElementById('historyList');
-  el.innerHTML = '<div class="history-label">Recent</div>';
+  if (searchHistory.length === 0) {
+    el.innerHTML = '<div class="history-item" style="opacity:0.5;cursor:default;">No searches yet</div>';
+    return;
+  }
+  el.innerHTML = '';
   searchHistory.forEach(q => {
     const item = document.createElement('div');
     item.className = 'history-item';
-    item.textContent = q;
+    item.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><span>${escapeHtml(q)}</span>`;
     item.onclick = () => { mainInput.value = q; doSearch(); };
     el.appendChild(item);
   });
@@ -1025,19 +1439,17 @@ function renderHistory() {
 // ─── Utils ───
 function scrollToBottom() {
   const area = document.getElementById('chatArea');
-  if (area) area.scrollTop = area.scrollHeight;
+  if (area) area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
 }
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
 }
-function escapeAttr(str) {
-  return escapeHtml(str).replace(/"/g, '&quot;');
-}
+function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
 
 // ════════════════════════════════════════════════
-// Mock data (same as before)
+// MOCK DATA
 // ════════════════════════════════════════════════
 function generateResults(query) {
   const seed = query.toLowerCase();
@@ -1048,7 +1460,7 @@ function generateResults(query) {
     { name: 'Fashion Hub 潮流馆', rating: 4.3, sales: 950, rep: 'ok', platform: 'taobao' },
     { name: 'Bargain Deals 88', rating: 3.9, sales: 450, rep: 'risky', platform: 'taobao' },
     { name: 'Wholesale Supply 鹏程', rating: 4.5, sales: 5200, rep: 'good', platform: '1688' },
-    { name: 'QuickShip Store', rating: 4.1, sales: 680, rep: 'ok', platform: 'weidian' },
+    {0: 'QuickShip Store', rating: 4.1, sales: 680, rep: 'ok', platform: 'weidian'},
   ];
   return sellers.map((s, i) => {
     const variance = 0.7 + (i * 0.12) + (Math.sin(seed.length + i) * 0.1);
@@ -1057,7 +1469,7 @@ function generateResults(query) {
     return {
       id: `${s.platform}-${i}-${Date.now()}`,
       name: `${query.charAt(0).toUpperCase() + query.slice(1)} — Batch ${['A','B','C','D','E','F'][i]}`,
-      seller: s.name,
+      seller: s.name || s[0],
       rating: s.rating,
       sales: s.sales,
       platform: s.platform,
@@ -1076,33 +1488,28 @@ function generateVerdict(query, results) {
   const goodCount = results.filter(r => r.quality === 'good').length;
   const okCount = results.filter(r => r.quality === 'ok').length;
   const riskyCount = results.filter(r => r.quality === 'risky').length;
+  const avgUSD = (avg / 7.25).toFixed(2);
 
-  let verdict, confidence;
+  let verdict;
   if (goodCount >= 3) {
-    verdict = `<strong>${goodCount} sellers</strong> look legit with solid ratings and real sales volume. The market for "${escapeHtml(query)}" is healthy — plenty of options.`;
-    confidence = 'high';
+    verdict = `Found <strong>${goodCount} legit sellers</strong> with solid ratings and real sales volume. The market for "${escapeHtml(query)}" is healthy — avg price is <strong>¥${avg} ($${avgUSD})</strong> and you've got plenty of options.`;
   } else if (goodCount >= 1) {
-    verdict = `Mixed bag. <strong>${goodCount} sellers</strong> look trustworthy, ${okCount + riskyCount} are questionable. Stick to the green-rated ones below.`;
-    confidence = 'medium';
+    verdict = `Mixed results. <strong>${goodCount} sellers</strong> look trustworthy, ${okCount + riskyCount} are questionable. Avg price is <strong>¥${avg} ($${avgUSD})</strong> — stick to the green-rated ones below.`;
   } else {
-    verdict = `Most results for "${escapeHtml(query)}" look risky. Low sales, poor ratings. Proceed with caution — check QC pics before committing.`;
-    confidence = 'low';
+    verdict = `Most results for "${escapeHtml(query)}" look risky. Low sales, poor ratings. Avg price is <strong>¥${avg} ($${avgUSD})</strong>. Proceed with caution — check QC pics before committing.`;
   }
 
-  const avgUSD = (avg / 7.25).toFixed(2);
   return {
     verdict,
     stats: [
       { label: 'Avg Price', value: `¥${avg}`, sub: `$${avgUSD}`, class: 'accent' },
-      { label: 'Range', value: `¥${min}–${max}`, class: '' },
-      { label: 'Legit', value: `${goodCount}/${results.length}`, class: goodCount >= 3 ? 'green' : goodCount >= 1 ? 'yellow' : '' },
+      { label: 'Price Range', value: `¥${min}–${max}`, class: '' },
+      { label: 'Legit Sellers', value: `${goodCount}/${results.length}`, class: goodCount >= 3 ? 'green' : goodCount >= 1 ? 'yellow' : '' },
     ],
   };
 }
 
-// Focus input on load
 mainInput.focus();
 </script>
-
 </body>
 </html>
