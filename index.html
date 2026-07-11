@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>repfind — find the best reps, fast</title>
+  <meta name="description" content="Search across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy. Send straight to your agent.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0E0E10;
+      --surface: #18181B;
+      --surface-hover: #1F1F23;
+      --border: #2A2A2E;
+      --text: #FAFAFA;
+      --text-muted: #8B8B92;
+      --text-dim: #5C5C63;
+      --accent: #C84B2F;
+      --accent-light: #E8624A;
+      --accent-dim: rgba(200, 75, 47, 0.12);
+      --green: #4ADE80;
+      --yellow: #FACC15;
+      --red: #EF4444;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ─── NAV ─── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+    .logo .find { color: var(--accent); }
+    .nav-right { display: flex; gap: 24px; align-items: center; }
+    .nav-right a { font-size: 0.85rem; color: var(--text-muted); transition: color .15s; font-weight: 500; }
+    .nav-right a:hover { color: var(--text); }
+
+    /* ─── HERO ─── */
+    .hero {
+      text-align: center;
+      padding: 80px 24px 40px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 7vw, 4rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      margin-bottom: 16px;
+    }
+    .hero h1 .find { color: var(--accent); }
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ─── SEARCH ─── */
+    .search-wrap {
+      max-width: 680px;
+      margin: 36px auto 0;
+      padding: 0 24px;
+    }
+    .search-box {
+      display: flex;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px;
+      transition: border-color .15s;
+    }
+    .search-box:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .search-box input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 1rem;
+      font-family: inherit;
+      padding: 10px 14px;
+    }
+    .search-box input::placeholder { color: var(--text-dim); }
+    .search-box button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 10px 28px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .search-box button:hover { background: var(--accent-light); }
+    .search-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      justify-content: center;
+    }
+    .tag {
+      font-size: 0.8rem;
+      padding: 6px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .tag:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    /* ─── FILTERS ─── */
+    .filters {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 0 24px;
+      margin-top: 24px;
+    }
+    .filter-btn {
+      font-size: 0.82rem;
+      padding: 7px 16px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all .15s;
+      font-family: inherit;
+      font-weight: 500;
+    }
+    .filter-btn.active {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--accent-light);
+    }
+    .filter-btn:hover:not(.active) {
+      color: var(--text);
+      border-color: var(--text-dim);
+    }
+
+    /* ─── RESULTS AREA ─── */
+    .results-area {
+      max-width: 1000px;
+      margin: 40px auto 80px;
+      padding: 0 24px;
+    }
+
+    /* ─── AI VERDICT BUBBLE ─── */
+    .ai-verdict {
+      background: linear-gradient(135deg, var(--surface) 0%, #1A1517 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 28px;
+      display: none;
+      animation: verdictIn .3s ease;
+    }
+    @keyframes verdictIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .ai-verdict.show { display: block; }
+    .ai-verdict-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .ai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-dim);
+      color: var(--accent-light);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .ai-badge::before { content: "✦"; }
+    .ai-verdict-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .ai-verdict-body {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+    .ai-verdict-body strong { color: var(--text); font-weight: 600; }
+    .ai-stats {
+      display: flex;
+      gap: 32px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .ai-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .ai-stat-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+    .ai-stat-value {
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .ai-stat-value.accent { color: var(--accent-light); }
+    .ai-stat-value.green { color: var(--green); }
+    .ai-stat-value.yellow { color: var(--yellow); }
+
+    /* ─── RESULT CARDS ─── */
+    .results-grid {
+      display: grid;
+      gap: 12px;
+    }
+    .result-card {
+      display: flex;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      transition: border-color .15s, background .15s;
+    }
+    .result-card:hover {
+      border-color: var(--text-dim);
+      background: var(--surface-hover);
+    }
+    .result-img {
+      width: 88px;
+      height: 88px;
+      border-radius: var(--radius-sm);
+      background: var(--border);
+      flex-shrink: 0;
+      object-fit: cover;
+    }
+    .result-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-width: 0;
+    }
+    .result-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .result-info { min-width: 0; }
+    .result-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+    .result-seller {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+    .result-meta {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 4px;
+    }
+    .platform-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+    .platform-weidian { background: #1A2B3D; color: #6BAED6; }
+    .platform-taobao { background: #2D1A1A; color: #E8715A; }
+    .platform-1688 { background: #1A231A; color: #6BAA6B; }
+
+    .result-price {
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .price-main {
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .price-cny {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .result-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .agent-btn {
+      flex: 1;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 7px 0;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all .15s;
+      font-family: inherit;
+      text-align: center;
+    }
+    .agent-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    /* ─── QUALITY INDICATOR ─── */
+    .quality {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .quality-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+    .quality-good .quality-dot { background: var(--green); }
+    .quality-ok .quality-dot { background: var(--yellow); }
+    .quality-risky .quality-dot { background: var(--red); }
+    .quality-good { color: var(--green); }
+    .quality-ok { color: var(--yellow); }
+    .quality-risky { color: var(--red); }
+
+    /* ─── LOADING ─── */
+    .loading { text-align: center; padding: 60px 0; color: var(--text-dim); display: none; }
+    .loading.show { display: block; }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── EMPTY STATE ─── */
+    .empty-state {
+      text-align: center;
+      padding: 80px 24px;
+      color: var(--text-dim);
+    }
+    .empty-state h3 {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 24px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+    }
+    footer a { color: var(--text-muted); }
+
+    @media (max-width: 600px) {
+      .nav-right { display: none; }
+      .hero { padding: 50px 20px 30px; }
+      .result-card { flex-direction: column; }
+      .result-img { width: 100%; height: 180px; }
+      .ai-stats { gap: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">rep<span class="find">find</span></a>
+  <div class="nav-right">
+    <a href="#how">How it works</a>
+    <a href="#agents">Agents</a>
+    <a href="#" onclick="alert('Coming soon — join the waitlist.')">Sign in</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <h1>rep<span class="find">find</span></h1>
+  <p>Search across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy — sent straight to your agent.</p>
+</section>
+
+<div class="search-wrap">
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search for reps — e.g. Travis Scott, Lululemon, New Balance 9060..." autofocus>
+    <button onclick="doSearch()">Search</button>
+  </div>
+  <div class="search-tags">
+    <span class="tag" onclick="quickSearch('Travis Scott AF1')">Travis Scott AF1</span>
+    <span class="tag" onclick="quickSearch('Lululemon Define Jacket')">Lululemon</span>
+    <span class="tag" onclick="quickSearch('New Balance 9060')">NB 9060</span>
+    <span class="tag" onclick="quickSearch('Carhartt WIP Detroit')">Carhartt</span>
+    <span class="tag" onclick="quickSearch('Oakley OTT')">Oakley OTT</span>
+  </div>
+</div>
+
+<div class="filters">
+  <button class="filter-btn active" data-platform="all">All Platforms</button>
+  <button class="filter-btn" data-platform="weidian">Weidian</button>
+  <button class="filter-btn" data-platform="taobao">Taobao</button>
+  <button class="filter-btn" data-platform="1688">1688</button>
+</div>
+
+<div class="results-area">
+  <!-- AI Verdict -->
+  <div class="ai-verdict" id="aiVerdict">
+    <!-- filled by JS -->
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p>Searching across platforms...</p>
+  </div>
+
+  <!-- Results -->
+  <div class="results-grid" id="resultsGrid"></div>
+
+  <!-- Empty State -->
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <h3>No results yet</h3>
+    <p>Search above to find reps across platforms.</p>
+  </div>
+</div>
+
+<footer>
+  <p>rep<span style="color:var(--accent)">find</span> — the discovery layer for reps. Not affiliated with any agent or platform.</p>
+</footer>
+
+<script>
+// ════════════════════════════════════════════════
+// repfind — Core Logic
+// ════════════════════════════════════════════════
+
+const AGENTS = {
+  kakobuy: { name: 'KakoBuy', url: 'https://www.kakobuy.com/product/', color: '#4A90D9' },
+  cnfans:  { name: 'CNFans',  url: 'https://www.cnfans.com/product/', color: '#E8B33A' },
+  oopbuy:  { name: 'Oopbuy',  url: 'https://www.oopbuy.com/item/', color: '#50C878' },
+};
+
+// Platform badge colors
+const PLATFORMS = {
+  weidian: { label: 'Weidian', class: 'platform-weidian' },
+  taobao:  { label: 'Taobao',  class: 'platform-taobao' },
+  '1688':  { label: '1688',    class: 'platform-1688' },
+};
+
+// ─── Mock data generator (prototype) ───
+function generateResults(query) {
+  // In production this hits actual platform APIs / scrapers
+  const seed = query.toLowerCase();
+  const basePrice = 50 + (seed.length % 10) * 8;
+
+  const sellers = [
+    { name: 'TopLux Store', rating: 4.8, sales: 3200, rep: 'good', platform: 'weidian' },
+    { name: 'Factory Direct 厂家直销', rating: 4.6, sales: 1800, rep: 'good', platform: 'weidian' },
+    { name: 'Fashion Hub 潮流馆', rating: 4.3, sales: 950, rep: 'ok', platform: 'taobao' },
+    { name: 'Bargain Deals 88', rating: 3.9, sales: 450, rep: 'risky', platform: 'taobao' },
+    { name: ' Wholesale Supply 鹏程', rating: 4.5, sales: 5200, rep: 'good', platform: '1688' },
+    { name: 'QuickShip Store', rating: 4.1, sales: 680, rep: 'ok', platform: 'weidian' },
+  ];
+
+  return sellers.map((s, i) => {
+    const variance = 0.7 + (i * 0.12) + (Math.sin(seed.length + i) * 0.1);
+    const priceCNY = Math.round((basePrice * variance) / 5) * 5;
+    const priceUSD = (priceCNY / 7.25).toFixed(2);
+    return {
+      id: `${s.platform}-${i}-${Date.now()}`,
+      name: `${query.charAt(0).toUpperCase() + query.slice(1)} — Batch ${['A', 'B', 'C', 'D', 'E', 'F'][i]}`,
+      seller: s.name,
+      rating: s.rating,
+      sales: s.sales,
+      platform: s.platform,
+      priceCNY,
+      priceUSD,
+      quality: s.rep,
+      img: `https://picsum.photos/seed/${encodeURIComponent(seed + i)}/120/120`,
+    };
+  });
+}
+
+// ─── AI Verdict Generator ───
+function generateVerdict(query, results) {
+  const prices = results.map(r => r.priceCNY);
+  const avg = Math.round(prices.reduce((a,b) => a+b, 0) / prices.length);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+
+  const goodCount = results.filter(r => r.quality === 'good').length;
+  const okCount = results.filter(r => r.quality === 'ok').length;
+  const riskyCount = results.filter(r => r.quality === 'risky').length;
+
+  let verdict, confidence;
+  if (goodCount >= 3) {
+    verdict = `<strong>${goodCount} sellers</strong> look legit with solid ratings and real sales volume. The market for "${query}" is healthy — plenty of options.`;
+    confidence = 'high';
+  } else if (goodCount >= 1) {
+    verdict = `Mixed bag. <strong>${goodCount} sellers</strong> look trustworthy, ${okCount + riskyCount} are questionable. Stick to the green-rated ones below.`;
+    confidence = 'medium';
+  } else {
+    verdict = `⚠️ Most results for "${query}" look risky. Low sales, poor ratings. Proceed with caution — check QC pics before committing.`;
+    confidence = 'low';
+  }
+
+  const avgUSD = (avg / 7.25).toFixed(2);
+
+  return {
+    title: `Found ${results.length} results for "${query}"`,
+    verdict,
+    stats: [
+      { label: 'Avg Price', value: `¥${avg}`, sub: `$${avgUSD}`, class: 'accent' },
+      { label: 'Price Range', value: `¥${min}–${max}`, class: '' },
+      { label: 'Legit Sellers', value: `${goodCount}/${results.length}`, class: goodCount >= 3 ? 'green' : goodCount >= 1 ? 'yellow' : '' },
+    ],
+    confidence,
+  };
+}
+
+// ─── Render AI Verdict ───
+function renderVerdict(v) {
+  const el = document.getElementById('aiVerdict');
+  const statsHTML = v.stats.map(s => `
+    <div class="ai-stat">
+      <span class="ai-stat-label">${s.label}</span>
+      <span class="ai-stat-value ${s.class}">${s.value}</span>
+      ${s.sub ? `<span class="price-cny">${s.sub}</span>` : ''}
+    </div>
+  `).join('');
+
+  el.innerHTML = `
+    <div class="ai-verdict-header">
+      <span class="ai-badge">AI Verdict</span>
+      <span class="ai-verdict-title">${v.title}</span>
+    </div>
+    <div class="ai-verdict-body">${v.verdict}</div>
+    <div class="ai-stats">${statsHTML}</div>
+  `;
+  el.classList.add('show');
+}
+
+// ─── Render Result Card ───
+function renderCard(r) {
+  const qualityClass = r.quality === 'good' ? 'quality-good' :
+                       r.quality === 'ok'   ? 'quality-ok'   : 'quality-risky';
+  const qualityLabel = r.quality === 'good' ? 'Legit' :
+                       r.quality === 'ok'   ? 'OK' : 'Risky';
+  const plat = PLATFORMS[r.platform];
+
+  const agentBtns = Object.entries(AGENTS).map(([key, agent]) =>
+    `<button class="agent-btn" onclick="sendToAgent('${key}', '${r.id}')">${agent.name}</button>`
+  ).join('');
+
+  return `
+    <div class="result-card" data-platform="${r.platform}">
+      <img class="result-img" src="${r.img}" alt="${r.name}" loading="lazy"
+           onerror="this.style.background='var(--border)';this.removeAttribute('src')">
+      <div class="result-body">
+        <div class="result-top">
+          <div class="result-info">
+            <div class="result-name">${r.name}</div>
+            <div class="result-seller">${r.seller} · ⭐ ${r.rating} · ${r.sales.toLocaleString()} sold</div>
+            <div class="result-meta">
+              <span class="platform-badge ${plat.class}">${plat.label}</span>
+              <span class="quality ${qualityClass}"><span class="quality-dot"></span>${qualityLabel}</span>
+            </div>
+          </div>
+          <div class="result-price">
+            <div class="price-main">¥${r.priceCNY}</div>
+            <div class="price-cny">$${r.priceUSD}</div>
+          </div>
+        </div>
+        <div class="result-actions">
+          ${agentBtns}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ─── Send to Agent ───
+function sendToAgent(agentKey, resultId) {
+  const agent = AGENTS[agentKey];
+  // In production: construct proper product URL and redirect
+  console.log(`[repfind] Sending ${resultId} to ${agent.name}`);
+  // For prototype: show feedback
+  const btn = event.target;
+  const original = btn.textContent;
+  btn.textContent = 'Opening...';
+  btn.style.background = 'var(--accent)';
+  btn.style.color = 'white';
+  btn.style.borderColor = 'var(--accent)';
+  setTimeout(() => {
+    btn.textContent = '✓ Copied link';
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 1500);
+  }, 600);
+}
+
+// ─── Search Flow ───
+let currentResults = [];
+let currentQuery = '';
+
+function doSearch() {
+  const input = document.getElementById('searchInput');
+  const query = input.value.trim();
+  if (!query) return;
+
+  currentQuery = query;
+
+  // Show loading
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('aiVerdict').classList.remove('show');
+  document.getElementById('resultsGrid').innerHTML = '';
+  document.getElementById('emptyState').style.display = 'none';
+
+  // Simulate search delay (real API call in production)
+  setTimeout(() => {
+    document.getElementById('loading').classList.remove('show');
+
+    const results = generateResults(query);
+    currentResults = results;
+
+    // AI Verdict
+    const verdict = generateVerdict(query, results);
+    renderVerdict(verdict);
+
+    // Results
+    const grid = document.getElementById('resultsGrid');
+    grid.innerHTML = results.map(renderCard).join('');
+
+    // Apply current platform filter
+    applyFilter(currentPlatform);
+  }, 800);
+}
+
+function quickSearch(query) {
+  document.getElementById('searchInput').value = query;
+  doSearch();
+}
+
+// ─── Platform Filters ───
+let currentPlatform = 'all';
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentPlatform = btn.dataset.platform;
+    applyFilter(currentPlatform);
+  });
+});
+
+function applyFilter(platform) {
+  const cards = document.querySelectorAll('.result-card');
+  cards.forEach(card => {
+    if (platform === 'all' || card.dataset.platform === platform) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+// ─── Enter key search ───
+document.getElementById('searchInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') doSearch();
+});
+</script>
+
+</body>
+</html>
