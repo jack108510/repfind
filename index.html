@@ -1024,6 +1024,8 @@ let searchHistory = [];
 let currentPlatform = 'all';
 let isSearching = false;
 let chatHistory = []; // conversation context for AI
+let sessionId = sessionStorage.getItem('repfind_session') || ('sess_' + Math.random().toString(36).substr(2, 12) + Date.now().toString(36));
+sessionStorage.setItem('repfind_session', sessionId);
 
 // ─── DOM refs ───
 const mainInput = document.getElementById('searchInput');
@@ -1125,7 +1127,8 @@ async function doSearch(fromDocked) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: query,
-        history: chatHistory.slice(-10)
+        history: chatHistory.slice(-10),
+        session_id: sessionId
       })
     });
 
