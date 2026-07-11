@@ -3,21 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>repfind — your rep plug</title>
-  <meta name="description" content="Chat with repfind — your AI plug for reps across Weidian, Taobao, and 1688.">
+  <title>repfind — find the best reps, fast</title>
+  <meta name="description" content="Search across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy. Send straight to your agent.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0E0E10;
-      --surface: #18181B;
-      --surface-hover: #1F1F23;
-      --border: #2A2A2E;
-      --text: #FAFAFA;
-      --text-muted: #8B8B92;
-      --text-dim: #5C5C63;
+      --bg: #212121;
+      --bg-sidebar: #171717;
+      --surface: #2F2F2F;
+      --surface-hover: #383838;
+      --border: #3E3E3E;
+      --text: #ECECEC;
+      --text-muted: #9B9B9B;
+      --text-dim: #6B6B6B;
       --accent: #C84B2F;
       --accent-light: #E8624A;
       --accent-dim: rgba(200, 75, 47, 0.12);
@@ -26,8 +27,8 @@
       --red: #EF4444;
       --radius: 12px;
       --radius-sm: 8px;
-      --chat-bubble-ai: #1A1A1E;
-      --chat-bubble-user: #2A1A16;
+      --radius-pill: 100px;
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     html { scroll-behavior: smooth; }
@@ -37,159 +38,363 @@
       color: var(--text);
       line-height: 1.5;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
       overflow-x: hidden;
     }
 
     a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; }
 
-    /* ─── NAV ─── */
-    nav {
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      position: fixed;
+      left: 0; top: 0; bottom: 0;
+      width: 260px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      z-index: 100;
+      transition: transform var(--transition);
+    }
+    .sidebar-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 20px;
-      max-width: 800px;
-      margin: 0 auto;
-      width: 100%;
-      flex-shrink: 0;
+      padding: 8px;
+      margin-bottom: 16px;
     }
-    .logo {
-      font-size: 1.3rem;
+    .new-search-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background var(--transition);
+      width: 100%;
+      text-align: left;
+    }
+    .new-search-btn:hover { background: var(--surface); }
+    .sidebar-history {
+      flex: 1;
+      overflow-y: auto;
+      margin-top: 16px;
+    }
+    .history-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      font-weight: 600;
+      padding: 8px;
+      margin-bottom: 4px;
+    }
+    .history-item {
+      display: block;
+      padding: 9px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background var(--transition);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-item:hover { background: var(--surface); color: var(--text); }
+    .history-item.active { background: var(--surface); color: var(--text); }
+    .sidebar-footer {
+      padding: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .sidebar-footer-text {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      padding: 4px 8px;
+    }
+
+    /* ─── MAIN ─── */
+    .main {
+      margin-left: 260px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: margin var(--transition);
+    }
+
+    /* ─── TOP BAR (visible after search) ─── */
+    .topbar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar.show { display: flex; }
+    .topbar-logo {
+      font-size: 1.1rem;
       font-weight: 900;
       letter-spacing: -0.03em;
     }
-    .logo .find { color: var(--accent); }
-    .nav-right { display: flex; gap: 20px; align-items: center; }
-    .nav-right a { font-size: 0.82rem; color: var(--text-muted); transition: color .15s; font-weight: 500; }
-    .nav-right a:hover { color: var(--text); }
+    .topbar-logo .find { color: var(--accent); }
 
-    /* ─── CHAT AREA ─── */
-    .chat-container {
+    /* ─── WELCOME (centered, pre-search) ─── */
+    .welcome {
       flex: 1;
-      max-width: 800px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 0 20px;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      transition: opacity 0.3s;
+    }
+    .welcome.hide {
+      display: none;
+    }
+    .welcome h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+    .welcome h1 .find { color: var(--accent); }
+    .welcome p {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 36px;
     }
 
-    .chat-messages {
+    /* ─── SEARCH BOX (the prompt) ─── */
+    .prompt-container {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .prompt-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      padding: 6px 6px 6px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .prompt-box:focus-within {
+      border-color: var(--text-dim);
+      box-shadow: 0 0 0 1px var(--text-dim);
+    }
+    .prompt-box input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-family: inherit;
+      padding: 12px 0;
+    }
+    .prompt-box input::placeholder { color: var(--text-dim); }
+    .send-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: var(--text);
+      color: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all var(--transition);
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .send-btn:disabled {
+      background: var(--border);
+      color: var(--text-dim);
+      cursor: not-allowed;
+    }
+    .send-btn:not(:disabled):hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    /* ─── SUGGESTIONS ─── */
+    .suggestions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .suggestion {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.83rem;
+      padding: 10px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .suggestion:hover {
+      background: var(--surface-hover);
+      border-color: var(--text-dim);
+      color: var(--text);
+    }
+    .suggestion-icon { font-size: 1rem; }
+
+    /* ─── CHAT AREA (post-search) ─── */
+    .chat-area {
       flex: 1;
       overflow-y: auto;
-      padding: 8px 0 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      scrollbar-width: thin;
-      scrollbar-color: var(--border) transparent;
+      padding: 24px 24px 160px;
+      display: none;
     }
-    .chat-messages::-webkit-scrollbar { width: 5px; }
-    .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+    .chat-area.show { display: block; }
 
-    /* ─── MESSAGES ─── */
-    .msg {
-      max-width: 85%;
-      animation: msgIn .25s ease;
+    .chat-inner {
+      max-width: 720px;
+      margin: 0 auto;
     }
-    @keyframes msgIn {
-      from { opacity: 0; transform: translateY(6px); }
+
+    /* ─── USER QUERY BUBBLE ─── */
+    .query-bubble {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 24px;
+      animation: fadeInUp 0.3s ease;
+    }
+    .query-bubble span {
+      background: var(--surface);
+      padding: 10px 18px;
+      border-radius: var(--radius-pill);
+      font-size: 0.9rem;
+      font-weight: 500;
+      max-width: 80%;
+    }
+
+    /* ─── AI RESPONSE ─── */
+    .ai-response {
+      animation: fadeInUp 0.4s ease;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .msg-ai {
-      align-self: flex-start;
-    }
-    .msg-user {
-      align-self: flex-end;
-    }
-
-    .bubble {
-      padding: 12px 16px;
-      border-radius: 16px;
-      font-size: 0.95rem;
-      line-height: 1.55;
-    }
-    .msg-ai .bubble {
-      background: var(--chat-bubble-ai);
-      border: 1px solid var(--border);
-      border-top-left-radius: 4px;
-      color: var(--text);
-    }
-    .msg-user .bubble {
-      background: var(--chat-bubble-user);
-      border-top-right-radius: 4px;
-      color: var(--text);
-    }
-
-    .bubble strong { font-weight: 700; color: var(--text); }
-    .bubble em { font-style: normal; color: var(--accent-light); font-weight: 600; }
-
-    /* ─── AI avatar ─── */
-    .msg-ai {
+    /* ─── TYPING INDICATOR ─── */
+    .typing {
       display: flex;
-      gap: 10px;
-      align-items: flex-end;
+      gap: 4px;
+      padding: 16px 0;
     }
-    .ai-avatar {
+    .typing span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      animation: typingBounce 1.2s infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.15s; }
+    .typing span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-6px); opacity: 1; }
+    }
+
+    /* ─── AI VERDICT (chat-style) ─── */
+    .verdict-block {
+      margin-bottom: 20px;
+    }
+    .verdict-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .verdict-avatar {
       width: 28px;
       height: 28px;
       border-radius: 50%;
-      background: var(--accent-dim);
+      background: var(--accent);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 0.8rem;
+      font-weight: 900;
+      color: white;
       flex-shrink: 0;
-      margin-bottom: 2px;
     }
-
-    .msg-ai .msg-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      min-width: 0;
+    .verdict-name {
+      font-size: 0.85rem;
+      font-weight: 700;
     }
-
-    .msg-ai .bubble-wrap {
-      max-width: 100%;
+    .verdict-text {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: var(--text);
+      padding-left: 36px;
     }
+    .verdict-text strong { font-weight: 700; }
 
-    /* ─── QUICK REPLY CHIPS ─── */
-    .quick-replies {
+    /* ─── STAT PILLS ─── */
+    .stat-pills {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      padding-left: 38px;
+      padding-left: 36px;
+      margin-top: 14px;
     }
-    .quick-chip {
-      font-size: 0.82rem;
-      padding: 7px 14px;
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 100px;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all .15s;
-      font-family: inherit;
-      font-weight: 500;
+      border-radius: var(--radius-pill);
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
     }
-    .quick-chip:hover {
-      border-color: var(--accent);
-      color: var(--accent-light);
-      background: var(--accent-dim);
+    .stat-pill .stat-label {
+      color: var(--text-dim);
+      font-weight: 500;
+      font-size: 0.78rem;
+    }
+    .stat-pill .stat-val.accent { color: var(--accent-light); }
+    .stat-pill .stat-val.green { color: var(--green); }
+    .stat-pill .stat-val.yellow { color: var(--yellow); }
+    .stat-pill .dot {
+      width: 6px; height: 6px; border-radius: 50%;
     }
 
-    /* ─── RESULT CARDS IN CHAT ─── */
-    .chat-results {
+    /* ─── RESULTS ─── */
+    .results-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      font-weight: 600;
+      padding-left: 36px;
+      margin: 28px 0 14px;
+    }
+    .results-list {
       display: grid;
       gap: 10px;
-      padding-left: 38px;
-      max-width: 100%;
+      padding-left: 36px;
     }
     .result-card {
       display: flex;
@@ -198,7 +403,12 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 14px;
-      transition: border-color .15s, background .15s;
+      transition: border-color var(--transition), background var(--transition);
+      animation: cardIn 0.35s ease backwards;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .result-card:hover {
       border-color: var(--text-dim);
@@ -226,7 +436,7 @@
     }
     .result-info { min-width: 0; }
     .result-name {
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-weight: 600;
       white-space: nowrap;
       overflow: hidden;
@@ -234,17 +444,17 @@
       margin-bottom: 3px;
     }
     .result-seller {
-      font-size: 0.76rem;
+      font-size: 0.78rem;
       color: var(--text-dim);
     }
     .result-meta {
       display: flex;
       gap: 8px;
       align-items: center;
-      margin-top: 3px;
+      margin-top: 4px;
     }
     .platform-badge {
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       font-weight: 700;
       text-transform: uppercase;
       padding: 2px 6px;
@@ -254,7 +464,6 @@
     .platform-weidian { background: #1A2B3D; color: #6BAED6; }
     .platform-taobao { background: #2D1A1A; color: #E8715A; }
     .platform-1688 { background: #1A231A; color: #6BAA6B; }
-
     .result-price {
       text-align: right;
       flex-shrink: 0;
@@ -265,10 +474,9 @@
       letter-spacing: -0.02em;
     }
     .price-cny {
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       color: var(--text-dim);
     }
-
     .result-actions {
       display: flex;
       gap: 6px;
@@ -276,7 +484,7 @@
     }
     .agent-btn {
       flex: 1;
-      font-size: 0.74rem;
+      font-size: 0.75rem;
       font-weight: 600;
       padding: 6px 0;
       border-radius: var(--radius-sm);
@@ -284,8 +492,7 @@
       background: transparent;
       color: var(--text-muted);
       cursor: pointer;
-      transition: all .15s;
-      font-family: inherit;
+      transition: all var(--transition);
       text-align: center;
     }
     .agent-btn:hover {
@@ -293,8 +500,6 @@
       border-color: var(--accent);
       color: white;
     }
-
-    /* ─── QUALITY INDICATOR ─── */
     .quality {
       display: inline-flex;
       align-items: center;
@@ -314,191 +519,193 @@
     .quality-ok { color: var(--yellow); }
     .quality-risky { color: var(--red); }
 
-    /* ─── TYPING INDICATOR ─── */
-    .typing {
+    /* ─── PLATFORM FILTERS (inline, subtle) ─── */
+    .inline-filters {
       display: flex;
-      gap: 4px;
-      padding: 4px 0;
+      gap: 6px;
+      padding-left: 36px;
+      margin-bottom: 14px;
     }
-    .typing span {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--text-dim);
-      animation: typingBounce 1.2s ease infinite;
-    }
-    .typing span:nth-child(2) { animation-delay: 0.15s; }
-    .typing span:nth-child(3) { animation-delay: 0.3s; }
-    @keyframes typingBounce {
-      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-      30% { transform: translateY(-5px); opacity: 1; }
-    }
-
-    /* ─── INPUT BAR ─── */
-    .input-bar {
-      flex-shrink: 0;
-      max-width: 800px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 12px 20px 20px;
-    }
-    .input-wrap {
-      display: flex;
-      gap: 8px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 6px 6px 6px 18px;
-      transition: border-color .15s;
-    }
-    .input-wrap:focus-within {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-dim);
-    }
-    .input-wrap input {
-      flex: 1;
+    .inline-filter {
+      font-size: 0.76rem;
+      padding: 5px 12px;
       background: transparent;
-      border: none;
-      outline: none;
-      color: var(--text);
-      font-size: 0.95rem;
-      font-family: inherit;
-    }
-    .input-wrap input::placeholder { color: var(--text-dim); }
-    .input-wrap button {
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 20px;
-      padding: 8px 20px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      font-family: inherit;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      color: var(--text-muted);
       cursor: pointer;
-      transition: background .15s;
+      transition: all var(--transition);
+      font-weight: 500;
     }
-    .input-wrap button:hover { background: var(--accent-light); }
+    .inline-filter.active {
+      background: var(--surface);
+      border-color: var(--text-dim);
+      color: var(--text);
+    }
+    .inline-filter:hover:not(.active) {
+      color: var(--text);
+    }
 
-    .input-hint {
+    /* ─── DOCKED INPUT (bottom, after search) ─── */
+    .docked-input {
+      position: fixed;
+      bottom: 0;
+      left: 260px;
+      right: 0;
+      padding: 16px 24px 20px;
+      background: linear-gradient(to top, var(--bg) 60%, transparent);
+      display: none;
+      z-index: 50;
+    }
+    .docked-input.show { display: flex; }
+    .docked-input .prompt-box {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* ─── DISCLAIMER ─── */
+    .disclaimer {
       text-align: center;
       font-size: 0.72rem;
       color: var(--text-dim);
-      margin-top: 8px;
+      padding: 8px 0 0;
+      max-width: 720px;
+      margin: 0 auto;
     }
 
-    /* ─── WELCOME STATE ─── */
-    .welcome {
-      text-align: center;
-      padding: 40px 20px;
+    /* ─── MOBILE ─── */
+    .mobile-header {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
     }
-    .welcome h2 {
-      font-size: 1.5rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      margin-bottom: 8px;
-    }
-    .welcome h2 .find { color: var(--accent); }
-    .welcome p {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      margin-bottom: 24px;
-    }
-    .welcome-tags {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .welcome-tag {
-      font-size: 0.82rem;
-      padding: 8px 16px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 100px;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all .15s;
-      font-weight: 500;
-    }
-    .welcome-tag:hover {
-      border-color: var(--accent);
+    .menu-btn {
+      background: transparent;
+      border: none;
       color: var(--text);
+      font-size: 1.3rem;
+      cursor: pointer;
     }
-
-    /* ─── FOOTER ─── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 16px 20px;
-      text-align: center;
-      color: var(--text-dim);
-      font-size: 0.76rem;
-      flex-shrink: 0;
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 99;
     }
+    .sidebar-overlay.show { display: block; }
 
-    @media (max-width: 600px) {
-      .nav-right { display: none; }
-      .msg { max-width: 92%; }
-      .quick-replies, .chat-results { padding-left: 0; }
-      .result-card { padding: 12px; }
-      .result-img { width: 64px; height: 64px; }
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .main { margin-left: 0; }
+      .docked-input { left: 0; }
+      .mobile-header { display: flex; }
+      .welcome h1 { font-size: 1.6rem; }
+      .prompt-container { max-width: calc(100% - 32px); }
+      .results-list, .inline-filters, .verdict-text, .stat-pills, .results-label {
+        padding-left: 0;
+      }
+      .result-card { flex-direction: row; }
+      .result-img { width: 60px; height: 60px; }
     }
   </style>
 </head>
 <body>
 
-<nav>
-  <a href="/" class="logo">rep<span class="find">find</span></a>
-  <div class="nav-right">
-    <a href="#how">How it works</a>
-    <a href="#" onclick="alert('Coming soon — join the waitlist.')">Sign in</a>
+<!-- ─── SIDEBAR ─── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <a href="/" class="logo" style="font-size:1.2rem;font-weight:900;letter-spacing:-0.03em;">
+      rep<span style="color:var(--accent)">find</span>
+    </a>
   </div>
-</nav>
+  <button class="new-search-btn" onclick="newSearch()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+    New search
+  </button>
+  <div class="sidebar-history" id="historyList">
+    <div class="history-label">Recent</div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="sidebar-footer-text">The discovery layer for reps</div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-<div class="chat-container">
-  <div class="chat-messages" id="chatMessages">
-    <!-- Welcome message -->
-    <div class="msg msg-ai" id="welcomeMsg">
-      <div class="ai-avatar">🔥</div>
-      <div class="msg-content">
-        <div class="bubble-wrap">
-          <div class="bubble">
-            Yo. I'm <strong>repfind</strong> — your rep plug. Ask me what you're looking for and I'll point you to the best options across Weidian, Taobao, and 1688.<br><br>
-            What are you after?
-          </div>
-        </div>
-        <div class="quick-replies">
-          <button class="quick-chip" onclick="quickSend('Air Forces')">Air Forces</button>
-          <button class="quick-chip" onclick="quickSend('Travis Scott Jordans')">Travis Scott Jordans</button>
-          <button class="quick-chip" onclick="quickSend('Lululemon Define Jacket')">Lululemon</button>
-          <button class="quick-chip" onclick="quickSend('New Balance 9060')">NB 9060</button>
-          <button class="quick-chip" onclick="quickSend('Oakley OTT')">Oakley OTT</button>
-        </div>
+<!-- ─── MAIN ─── -->
+<div class="main">
+  <!-- Mobile header -->
+  <div class="mobile-header">
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+    <span class="topbar-logo">rep<span class="find" style="color:var(--accent)">find</span></span>
+    <div style="width:28px"></div>
+  </div>
+
+  <!-- Top bar (post-search) -->
+  <div class="topbar" id="topbar">
+    <span class="topbar-logo">rep<span class="find">find</span></span>
+    <div style="display:flex;gap:16px">
+      <a href="#" style="font-size:0.8rem;color:var(--text-muted)" onclick="alert('Coming soon')">Agents</a>
+    </div>
+  </div>
+
+  <!-- Welcome (centered) -->
+  <div class="welcome" id="welcome">
+    <h1>rep<span class="find">find</span></h1>
+    <p>Find reps across Weidian, Taobao &amp; 1688. AI verdicts on price and legitimacy.</p>
+    <div class="prompt-container">
+      <div class="prompt-box">
+        <input type="text" id="searchInput" placeholder="Search for any rep — e.g. Travis Scott AF1...">
+        <button class="send-btn" id="sendBtn" onclick="doSearch()" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        </button>
       </div>
+      <div class="suggestions">
+        <div class="suggestion" onclick="quickSearch('Travis Scott AF1')"><span class="suggestion-icon">👟</span> Travis Scott AF1</div>
+        <div class="suggestion" onclick="quickSearch('Lululemon Define Jacket')"><span class="suggestion-icon">🧥</span> Lululemon Define</div>
+        <div class="suggestion" onclick="quickSearch('New Balance 9060')"><span class="suggestion-icon">👟</span> NB 9060</div>
+        <div class="suggestion" onclick="quickSearch('Oakley OTT')"><span class="suggestion-icon">🕶️</span> Oakley OTT</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat area (post-search) -->
+  <div class="chat-area" id="chatArea">
+    <div class="chat-inner" id="chatInner">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <!-- Docked input (post-search, bottom) -->
+  <div class="docked-input" id="dockedInput">
+    <div style="width:100%">
+      <div class="prompt-box">
+        <input type="text" id="dockedSearchInput" placeholder="Search another rep...">
+        <button class="send-btn" id="dockedSendBtn" onclick="doSearch(true)" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        </button>
+      </div>
+      <div class="disclaimer">repfind is a discovery tool. Not affiliated with any agent or platform.</div>
     </div>
   </div>
 </div>
 
-<div class="input-bar">
-  <div class="input-wrap">
-    <input type="text" id="chatInput" placeholder="Message repfind..." autofocus>
-    <button onclick="sendMessage()">Send</button>
-  </div>
-  <div class="input-hint">repfind can make mistakes. Always check QC pics before buying.</div>
-</div>
-
-<footer>
-  rep<span style="color:var(--accent)">find</span> — your AI rep plug. Not affiliated with any agent or platform.
-</footer>
-
 <script>
 // ════════════════════════════════════════════════
-// repfind — Conversational Agent Logic
+// repfind — ChatGPT-style
 // ════════════════════════════════════════════════
 
 const AGENTS = {
-  kakobuy: { name: 'KakoBuy', url: 'https://www.kakobuy.com/product/' },
-  cnfans:  { name: 'CNFans',  url: 'https://www.cnfans.com/product/' },
-  oopbuy:  { name: 'Oopbuy',  url: 'https://www.oopbuy.com/item/' },
+  kakobuy: { name: 'KakoBuy' },
+  cnfans:  { name: 'CNFans' },
+  oopbuy:  { name: 'Oopbuy' },
 };
 
 const PLATFORMS = {
@@ -507,158 +714,334 @@ const PLATFORMS = {
   '1688':  { label: '1688',    class: 'platform-1688' },
 };
 
-// ─── Sneaker/Product Knowledge Base ───
-// Maps queries to categories, variations, and follow-up questions
-const KNOWLEDGE = {
-  'air force': {
-    aliases: ['air forces', 'af1', 'air force 1', 'air force one', 'white af1', 'white air force'],
-    category: 'Nike Air Force 1',
-    variations: ['All White (Triple White)', 'Triple Black', 'Collabs (Travis Scott, Off-White, etc.)', 'Low vs Mid vs High', 'Colorblocking (special releases)'],
-    clarifying: "Yeah I've got Air Forces. What style are you after?",
-    chips: ['Triple White', 'Triple Black', 'Travis Scott collab', 'Off-White collab', 'Surprise me'],
-  },
-  'travis scott': {
-    aliases: ['travis', 'cactus jack', 'ts jordan', 'ts af1', 'travis scott jordan', 'travis scott af1', 'travis scott air force'],
-    category: 'Travis Scott',
-    variations: ['Jordan 1 Low/Moc', 'Jordan 4 Cactus Jack', 'AF1 Cactus Jack', 'Jordan 1 Reverse Mocha', 'Fragment collab'],
-    clarifying: "Travis Scott heat. Which pair?",
-    chips: ['Jordan 1 Low', 'Jordan 4 Cactus Jack', 'AF1 Cactus Jack', 'Reverse Mocha', 'Show me everything'],
-  },
-  'jordan': {
-    aliases: ['jordans', 'air jordan', 'aj1', 'aj4', 'jordan 1', 'jordan 4'],
-    category: 'Air Jordan',
-    variations: ['Jordan 1 High', 'Jordan 1 Low', 'Jordan 4', 'Jordan 11', 'Collabs (Travis Scott, Off-White, etc.)'],
-    clarifying: "Jordans — got plenty. Which model?",
-    chips: ['Jordan 1 High', 'Jordan 1 Low', 'Jordan 4', 'Jordan 11', 'Collabs only'],
-  },
-  'dunk': {
-    aliases: ['dunks', 'nike dunk', 'sb dunk', 'dunk low', 'dunk high'],
-    category: 'Nike Dunk',
-    variations: ['Dunk Low', 'Dunk High', 'SB Dunk', 'Collabs (Ben & Jerry, Concepts, etc.)'],
-    clarifying: "Dunks, nice. Low or high?",
-    chips: ['Dunk Low', 'Dunk High', 'SB Dunk', 'Collabs', 'Panda Dunks'],
-  },
-  'yeezy': {
-    aliases: ['yeezys', 'yeezy 350', 'yeezy 450', 'yeezy slide', 'yeezy foam'],
-    category: 'Yeezy',
-    variations: ['350 V2', '450', 'Slides', 'Foam Runners', '700'],
-    clarifying: "Yeezys. Which silhouette?",
-    chips: ['350 V2', 'Slides', 'Foam Runners', '450', 'Show all'],
-  },
-  'lululemon': {
-    aliases: ['lulu', 'define jacket', 'scuba', 'lululemon define'],
-    category: 'Lululemon',
-    variations: ['Define Jacket', 'Scuba Hoodie', 'Align Leggings', 'Everywhere Belt Bag'],
-    clarifying: "Lululemon — what piece?",
-    chips: ['Define Jacket', 'Scuba Hoodie', 'Align Leggings', 'Belt Bag'],
-  },
-  'new balance': {
-    aliases: ['nb', 'nb 9060', 'new balance 9060', '990', 'nb 990', 'new balance 990'],
-    category: 'New Balance',
-    variations: ['9060', '990v6', '550', '2002R', 'Aime Leon Dore collab'],
-    clarifying: "New Balance, solid choice. Which model?",
-    chips: ['9060', '990v6', '550', '2002R', 'ALD collab'],
-  },
-  'oakley': {
-    aliases: ['oakleys', 'oakley ott', 'oakley sunglasses', 'oakley radar'],
-    category: 'Oakley',
-    variations: ['OTT (Over The Top)', 'Radar', 'Frogskins', 'Jawbreaker'],
-    clarifying: "Oakley eyewear. Which style?",
-    chips: ['OTT', 'Radar', 'Frogskins', 'Jawbreaker'],
-  },
-  'carhartt': {
-    aliases: ['carhartt wip', 'detroit jacket', 'carhartt detroit'],
-    category: 'Carhartt WIP',
-    variations: ['Detroit Jacket', 'Michigan Chore Coat', 'Active Jacket', 'Double Knee Pants'],
-    clarifying: "Carhartt WIP. What are you looking for?",
-    chips: ['Detroit Jacket', 'Michigan Coat', 'Active Jacket', 'Double Knee'],
-  },
-};
+let searchHistory = [];
+let currentPlatform = 'all';
 
-// ─── Intent matching ───
-function matchIntent(query) {
-  const q = query.toLowerCase().trim();
+// ─── Input enable/disable ───
+const mainInput = document.getElementById('searchInput');
+const mainSend = document.getElementById('sendBtn');
+const dockedInput = document.getElementById('dockedSearchInput');
+const dockedSend = document.getElementById('dockedSendBtn');
 
-  // Check each knowledge entry
-  for (const [key, data] of Object.entries(KNOWLEDGE)) {
-    if (q.includes(key) || data.aliases.some(a => q.includes(a))) {
-      return { key, ...data };
+mainInput.addEventListener('input', () => {
+  mainSend.disabled = !mainInput.value.trim();
+});
+dockedInput.addEventListener('input', () => {
+  dockedSend.disabled = !dockedInput.value.trim();
+});
+mainInput.addEventListener('keydown', e => { if (e.key === 'Enter' && mainInput.value.trim()) doSearch(); });
+dockedInput.addEventListener('keydown', e => { if (e.key === 'Enter' && dockedInput.value.trim()) doSearch(true); });
+
+// ─── Sidebar toggle (mobile) ───
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+// ─── New search (reset to welcome) ───
+function newSearch() {
+  document.getElementById('welcome').classList.remove('hide');
+  document.getElementById('chatArea').classList.remove('show');
+  document.getElementById('dockedInput').classList.remove('show');
+  document.getElementById('topbar').classList.remove('show');
+  mainInput.value = '';
+  mainInput.focus();
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
+// ─── Search entry points ───
+function quickSearch(query) {
+  mainInput.value = query;
+  doSearch();
+}
+function getQuery() {
+  if (dockedInput.value.trim()) return dockedInput.value.trim();
+  return mainInput.value.trim();
+}
+
+// ─── Main search flow ───
+function doSearch(fromDocked = false) {
+  const query = getQuery();
+  if (!query) return;
+
+  // Transition: welcome → chat
+  document.getElementById('welcome').classList.add('hide');
+  document.getElementById('chatArea').classList.add('show');
+  document.getElementById('dockedInput').classList.add('show');
+  document.getElementById('topbar').classList.add('show');
+
+  // Clear previous
+  const inner = document.getElementById('chatInner');
+  inner.innerHTML = '';
+
+  // Add user query bubble
+  const userBubble = document.createElement('div');
+  userBubble.className = 'query-bubble';
+  userBubble.innerHTML = `<span>${escapeHtml(query)}</span>`;
+  inner.appendChild(userBubble);
+
+  // Add typing indicator
+  const typing = document.createElement('div');
+  typing.className = 'ai-response';
+  typing.id = 'typingIndicator';
+  typing.innerHTML = `
+    <div class="verdict-header">
+      <div class="verdict-avatar">r</div>
+      <span class="verdict-name">repfind</span>
+    </div>
+    <div class="typing" style="padding-left:36px"><span></span><span></span><span></span></div>
+  `;
+  inner.appendChild(typing);
+
+  // Scroll to bottom
+  scrollToBottom();
+
+  // Clear inputs
+  dockedInput.value = '';
+  mainInput.value = '';
+  mainSend.disabled = true;
+  dockedSend.disabled = true;
+
+  // Simulate API delay then render
+  setTimeout(() => {
+    document.getElementById('typingIndicator').remove();
+    renderResponse(query, inner);
+    // Add to history
+    addHistory(query);
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+  }, 900 + Math.random() * 400);
+}
+
+// ─── Render AI response ───
+function renderResponse(query, container) {
+  const results = generateResults(query);
+  const verdict = generateVerdict(query, results);
+
+  const responseDiv = document.createElement('div');
+  responseDiv.className = 'ai-response';
+  responseDiv.id = 'aiResponse';
+
+  // Verdict text (streamed)
+  const verdictHTML = `
+    <div class="verdict-header">
+      <div class="verdict-avatar">r</div>
+      <span class="verdict-name">repfind</span>
+    </div>
+    <div class="verdict-text" id="verdictText"></div>
+    <div class="stat-pills" id="statPills"></div>
+    <div class="inline-filters" id="inlineFilters">
+      <button class="inline-filter active" data-platform="all">All</button>
+      <button class="inline-filter" data-platform="weidian">Weidian</button>
+      <button class="inline-filter" data-platform="taobao">Taobao</button>
+      <button class="inline-filter" data-platform="1688">1688</button>
+    </div>
+    <div class="results-label">${results.length} results</div>
+    <div class="results-list" id="resultsList"></div>
+  `;
+  responseDiv.innerHTML = verdictHTML;
+  container.appendChild(responseDiv);
+
+  // Stream verdict text
+  streamText(document.getElementById('verdictText'), verdict.verdict, () => {
+    // After text done, show stats
+    showStats(verdict.stats);
+    // Then stagger results
+    renderResults(results);
+    // Wire filters
+    wireFilters();
+  });
+
+  scrollToBottom();
+}
+
+// ─── Stream text (typewriter effect) ───
+function streamText(el, html, callback) {
+  // Parse HTML into tokens (tags + chars)
+  const tokens = [];
+  let i = 0;
+  while (i < html.length) {
+    if (html[i] === '<') {
+      const end = html.indexOf('>', i);
+      tokens.push({ tag: true, text: html.slice(i, end + 1) });
+      i = end + 1;
+    } else {
+      tokens.push({ tag: false, text: html[i] });
+      i++;
     }
   }
-  return null;
-}
 
-// ─── Check if user picked a variation ───
-function isVariationResponse(query, intent) {
-  if (!intent) return false;
-  return intent.variations.some(v => v.toLowerCase().includes(query.toLowerCase()) || query.toLowerCase().includes(v.toLowerCase()));
-}
+  el.innerHTML = '';
+  let idx = 0;
+  let displayed = '';
 
-// ─── Conversation state ───
-let conversationState = {
-  lastIntent: null,
-  awaitingVariation: false,
-  currentQuery: null,
-};
-
-// ─── Generate AI Response ───
-function generateResponse(query) {
-  const intent = matchIntent(query);
-
-  // If we asked for a clarification and they answered with a variation
-  if (conversationState.awaitingVariation && conversationState.lastIntent) {
-    conversationState.awaitingVariation = false;
-    return {
-      type: 'results',
-      text: getResultsText(query, conversationState.lastIntent),
-      results: generateResults(query),
-    };
+  function tick() {
+    if (idx >= tokens.length) {
+      el.innerHTML = displayed;
+      if (callback) setTimeout(callback, 200);
+      return;
+    }
+    const token = tokens[idx];
+    if (token.tag) {
+      displayed += token.text;
+      idx++;
+      tick();
+    } else {
+      displayed += token.text;
+      idx++;
+      el.innerHTML = displayed + '<span style="opacity:0.5;animation:blink 0.8s infinite">▋</span>';
+      // Add blink keyframe if not present
+      if (!document.getElementById('blinkStyle')) {
+        const s = document.createElement('style');
+        s.id = 'blinkStyle';
+        s.textContent = '@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}';
+        document.head.appendChild(s);
+      }
+      setTimeout(tick, 12 + Math.random() * 20);
+    }
+    scrollToBottom();
   }
-
-  // If we found a known product
-  if (intent) {
-    conversationState.lastIntent = intent;
-    conversationState.awaitingVariation = true;
-
-    return {
-      type: 'clarify',
-      text: intent.clarifying,
-      chips: intent.chips,
-    };
-  }
-
-  // Unknown product — still search but with a conversational response
-  conversationState.lastIntent = null;
-  return {
-    type: 'results',
-    text: getGenericText(query),
-    results: generateResults(query),
-  };
+  tick();
 }
 
-function getResultsText(query, intent) {
-  const responses = [
-    `Got it — <em>${query}</em>. Here's what I found across platforms. The green-rated sellers are your safest bets:`,
-    `Here are the best matches for <em>${query}</em>. I'd stick with the legit-rated ones 👇`,
-    `Pulled up <em>${query}</em> for you. Prices range quite a bit — check the quality tags before pulling the trigger:`,
-  ];
-  return responses[Math.floor(Math.random() * responses.length)];
+// ─── Show stat pills ───
+function showStats(stats) {
+  const el = document.getElementById('statPills');
+  if (!el) return;
+  el.innerHTML = stats.map((s, i) => {
+    const dotClass = s.class === 'green' ? 'background:var(--green)' :
+                     s.class === 'yellow' ? 'background:var(--yellow)' :
+                     s.class === 'accent' ? 'background:var(--accent)' : '';
+    return `<div class="stat-pill" style="animation:cardIn 0.3s ease backwards;animation-delay:${i*0.1}s">
+      <div class="dot" style="${dotClass}"></div>
+      <span class="stat-label">${s.label}</span>
+      <span class="stat-val ${s.class}">${s.value}</span>
+      ${s.sub ? `<span style="color:var(--text-dim);font-size:0.72rem">${s.sub}</span>` : ''}
+    </div>`;
+  }).join('');
 }
 
-function getGenericText(query) {
-  const responses = [
-    `I searched for <em>${query}</em>. Here's what came back — not something I've got categorized, but these are the live listings:`,
-    `Couldn't categorize <em>${query}</em> exactly, but I pulled results. Green dots = trusted sellers:`,
-    `Here's what I found for <em>${query}</em>. If you want, tell me more about what you're after and I can narrow it down:`,
-  ];
-  return responses[Math.floor(Math.random() * responses.length)];
+// ─── Render result cards ───
+function renderResults(results) {
+  const list = document.getElementById('resultsList');
+  if (!list) return;
+  list.innerHTML = '';
+  results.forEach((r, i) => {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.dataset.platform = r.platform;
+    card.style.animationDelay = `${i * 0.08}s`;
+    card.innerHTML = renderCardHTML(r);
+    list.appendChild(card);
+  });
+  scrollToBottom();
 }
 
-// ─── Mock data generator ───
+function renderCardHTML(r) {
+  const qualityClass = r.quality === 'good' ? 'quality-good' :
+                       r.quality === 'ok'   ? 'quality-ok'   : 'quality-risky';
+  const qualityLabel = r.quality === 'good' ? 'Legit' :
+                       r.quality === 'ok'   ? 'OK' : 'Risky';
+  const plat = PLATFORMS[r.platform];
+  const agentBtns = Object.entries(AGENTS).map(([key, agent]) =>
+    `<button class="agent-btn" onclick="sendToAgent('${key}', '${r.id}', this)">${agent.name}</button>`
+  ).join('');
+
+  return `
+    <img class="result-img" src="${r.img}" alt="${escapeAttr(r.name)}" loading="lazy"
+         onerror="this.style.opacity=0">
+    <div class="result-body">
+      <div class="result-top">
+        <div class="result-info">
+          <div class="result-name">${escapeHtml(r.name)}</div>
+          <div class="result-seller">${escapeHtml(r.seller)} · ⭐ ${r.rating} · ${r.sales.toLocaleString()} sold</div>
+          <div class="result-meta">
+            <span class="platform-badge ${plat.class}">${plat.label}</span>
+            <span class="quality ${qualityClass}"><span class="quality-dot"></span>${qualityLabel}</span>
+          </div>
+        </div>
+        <div class="result-price">
+          <div class="price-main">¥${r.priceCNY}</div>
+          <div class="price-cny">$${r.priceUSD}</div>
+        </div>
+      </div>
+      <div class="result-actions">${agentBtns}</div>
+    </div>
+  `;
+}
+
+// ─── Send to agent ───
+function sendToAgent(agentKey, resultId, btn) {
+  const original = btn.textContent;
+  btn.textContent = 'Opening...';
+  btn.style.background = 'var(--accent)';
+  btn.style.borderColor = 'var(--accent)';
+  btn.style.color = 'white';
+  setTimeout(() => {
+    btn.textContent = '✓ Copied';
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.style.cssText = '';
+    }, 1400);
+  }, 500);
+}
+
+// ─── Platform filters ───
+function wireFilters() {
+  document.querySelectorAll('.inline-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.inline-filter').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentPlatform = btn.dataset.platform;
+      applyFilter(currentPlatform);
+    });
+  });
+}
+function applyFilter(platform) {
+  document.querySelectorAll('.result-card').forEach(card => {
+    card.style.display = (platform === 'all' || card.dataset.platform === platform) ? '' : 'none';
+  });
+}
+
+// ─── History ───
+function addHistory(query) {
+  if (searchHistory[0] === query) return;
+  searchHistory = [query, ...searchHistory.filter(q => q !== query)].slice(0, 12);
+  renderHistory();
+}
+function renderHistory() {
+  const el = document.getElementById('historyList');
+  el.innerHTML = '<div class="history-label">Recent</div>';
+  searchHistory.forEach(q => {
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.textContent = q;
+    item.onclick = () => { mainInput.value = q; doSearch(); };
+    el.appendChild(item);
+  });
+}
+
+// ─── Utils ───
+function scrollToBottom() {
+  const area = document.getElementById('chatArea');
+  if (area) area.scrollTop = area.scrollHeight;
+}
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+function escapeAttr(str) {
+  return escapeHtml(str).replace(/"/g, '&quot;');
+}
+
+// ════════════════════════════════════════════════
+// Mock data (same as before)
+// ════════════════════════════════════════════════
 function generateResults(query) {
   const seed = query.toLowerCase();
   const basePrice = 50 + (seed.length % 10) * 8;
-
   const sellers = [
     { name: 'TopLux Store', rating: 4.8, sales: 3200, rep: 'good', platform: 'weidian' },
     { name: 'Factory Direct 厂家直销', rating: 4.6, sales: 1800, rep: 'good', platform: 'weidian' },
@@ -667,224 +1050,58 @@ function generateResults(query) {
     { name: 'Wholesale Supply 鹏程', rating: 4.5, sales: 5200, rep: 'good', platform: '1688' },
     { name: 'QuickShip Store', rating: 4.1, sales: 680, rep: 'ok', platform: 'weidian' },
   ];
-
   return sellers.map((s, i) => {
     const variance = 0.7 + (i * 0.12) + (Math.sin(seed.length + i) * 0.1);
     const priceCNY = Math.round((basePrice * variance) / 5) * 5;
     const priceUSD = (priceCNY / 7.25).toFixed(2);
     return {
       id: `${s.platform}-${i}-${Date.now()}`,
-      name: `${query.charAt(0).toUpperCase() + query.slice(1)} — Batch ${['A', 'B', 'C', 'D', 'E', 'F'][i]}`,
+      name: `${query.charAt(0).toUpperCase() + query.slice(1)} — Batch ${['A','B','C','D','E','F'][i]}`,
       seller: s.name,
       rating: s.rating,
       sales: s.sales,
       platform: s.platform,
-      priceCNY,
-      priceUSD,
+      priceCNY, priceUSD,
       quality: s.rep,
-      img: `https://picsum.photos/seed/${encodeURIComponent(seed + i)}/120/120`,
+      img: `https://picsum.photos/seed/${encodeURIComponent(seed + i)}/100/100`,
     };
   });
 }
 
-// ─── Render functions ───
-function addAIMessage(content) {
-  const container = document.getElementById('chatMessages');
+function generateVerdict(query, results) {
+  const prices = results.map(r => r.priceCNY);
+  const avg = Math.round(prices.reduce((a,b) => a+b, 0) / prices.length);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const goodCount = results.filter(r => r.quality === 'good').length;
+  const okCount = results.filter(r => r.quality === 'ok').length;
+  const riskyCount = results.filter(r => r.quality === 'risky').length;
 
-  const msg = document.createElement('div');
-  msg.className = 'msg msg-ai';
-
-  const avatar = document.createElement('div');
-  avatar.className = 'ai-avatar';
-  avatar.textContent = '🔥';
-
-  const msgContent = document.createElement('div');
-  msgContent.className = 'msg-content';
-
-  const bubbleWrap = document.createElement('div');
-  bubbleWrap.className = 'bubble-wrap';
-
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble';
-  bubble.innerHTML = content.text;
-  bubbleWrap.appendChild(bubble);
-  msgContent.appendChild(bubbleWrap);
-
-  // Quick reply chips
-  if (content.chips) {
-    const chipsEl = document.createElement('div');
-    chipsEl.className = 'quick-replies';
-    content.chips.forEach(chip => {
-      const btn = document.createElement('button');
-      btn.className = 'quick-chip';
-      btn.textContent = chip;
-      btn.onclick = () => {
-        document.getElementById('chatInput').value = chip;
-        sendMessage();
-      };
-      chipsEl.appendChild(btn);
-    });
-    msgContent.appendChild(chipsEl);
+  let verdict, confidence;
+  if (goodCount >= 3) {
+    verdict = `<strong>${goodCount} sellers</strong> look legit with solid ratings and real sales volume. The market for "${escapeHtml(query)}" is healthy — plenty of options.`;
+    confidence = 'high';
+  } else if (goodCount >= 1) {
+    verdict = `Mixed bag. <strong>${goodCount} sellers</strong> look trustworthy, ${okCount + riskyCount} are questionable. Stick to the green-rated ones below.`;
+    confidence = 'medium';
+  } else {
+    verdict = `Most results for "${escapeHtml(query)}" look risky. Low sales, poor ratings. Proceed with caution — check QC pics before committing.`;
+    confidence = 'low';
   }
 
-  // Result cards
-  if (content.results) {
-    const resultsEl = document.createElement('div');
-    resultsEl.className = 'chat-results';
-    content.results.forEach(r => {
-      resultsEl.innerHTML += renderCard(r);
-    });
-    msgContent.appendChild(resultsEl);
-  }
-
-  msg.appendChild(avatar);
-  msg.appendChild(msgContent);
-  container.appendChild(msg);
-  scrollToBottom();
+  const avgUSD = (avg / 7.25).toFixed(2);
+  return {
+    verdict,
+    stats: [
+      { label: 'Avg Price', value: `¥${avg}`, sub: `$${avgUSD}`, class: 'accent' },
+      { label: 'Range', value: `¥${min}–${max}`, class: '' },
+      { label: 'Legit', value: `${goodCount}/${results.length}`, class: goodCount >= 3 ? 'green' : goodCount >= 1 ? 'yellow' : '' },
+    ],
+  };
 }
 
-function addUserMessage(text) {
-  const container = document.getElementById('chatMessages');
-
-  const msg = document.createElement('div');
-  msg.className = 'msg msg-user';
-
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble';
-  bubble.textContent = text;
-
-  msg.appendChild(bubble);
-  container.appendChild(msg);
-  scrollToBottom();
-}
-
-function showTyping() {
-  const container = document.getElementById('chatMessages');
-  const msg = document.createElement('div');
-  msg.className = 'msg msg-ai';
-  msg.id = 'typingIndicator';
-
-  const avatar = document.createElement('div');
-  avatar.className = 'ai-avatar';
-  avatar.textContent = '🔥';
-
-  const msgContent = document.createElement('div');
-  msgContent.className = 'msg-content';
-
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble';
-  bubble.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
-
-  msgContent.appendChild(bubble);
-  msg.appendChild(avatar);
-  msg.appendChild(msgContent);
-  container.appendChild(msg);
-  scrollToBottom();
-}
-
-function removeTyping() {
-  const el = document.getElementById('typingIndicator');
-  if (el) el.remove();
-}
-
-function renderCard(r) {
-  const qualityClass = r.quality === 'good' ? 'quality-good' :
-                       r.quality === 'ok'   ? 'quality-ok'   : 'quality-risky';
-  const qualityLabel = r.quality === 'good' ? 'Legit' :
-                       r.quality === 'ok'   ? 'OK' : 'Risky';
-  const plat = PLATFORMS[r.platform];
-
-  const agentBtns = Object.entries(AGENTS).map(([key, agent]) =>
-    `<button class="agent-btn" onclick="sendToAgent('${key}', '${r.id}')">${agent.name}</button>`
-  ).join('');
-
-  return `
-    <div class="result-card" data-platform="${r.platform}">
-      <img class="result-img" src="${r.img}" alt="${r.name}" loading="lazy"
-           onerror="this.style.background='var(--border)';this.removeAttribute('src')">
-      <div class="result-body">
-        <div class="result-top">
-          <div class="result-info">
-            <div class="result-name">${r.name}</div>
-            <div class="result-seller">${r.seller} · ⭐ ${r.rating} · ${r.sales.toLocaleString()} sold</div>
-            <div class="result-meta">
-              <span class="platform-badge ${plat.class}">${plat.label}</span>
-              <span class="quality ${qualityClass}"><span class="quality-dot"></span>${qualityLabel}</span>
-            </div>
-          </div>
-          <div class="result-price">
-            <div class="price-main">¥${r.priceCNY}</div>
-            <div class="price-cny">$${r.priceUSD}</div>
-          </div>
-        </div>
-        <div class="result-actions">
-          ${agentBtns}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function sendToAgent(agentKey, resultId) {
-  const agent = AGENTS[agentKey];
-  console.log(`[repfind] Sending ${resultId} to ${agent.name}`);
-  // For prototype: find the clicked button
-  if (event && event.target) {
-    const btn = event.target;
-    const original = btn.textContent;
-    btn.textContent = '✓ Copied';
-    btn.style.background = 'var(--accent)';
-    btn.style.color = 'white';
-    btn.style.borderColor = 'var(--accent)';
-    setTimeout(() => {
-      btn.textContent = original;
-      btn.style.background = '';
-      btn.style.color = '';
-      btn.style.borderColor = '';
-    }, 1500);
-  }
-}
-
-// ─── Scroll ───
-function scrollToBottom() {
-  const container = document.getElementById('chatMessages');
-  container.scrollTop = container.scrollHeight;
-}
-
-// ─── Send message flow ───
-function sendMessage() {
-  const input = document.getElementById('chatInput');
-  const query = input.value.trim();
-  if (!query) return;
-
-  // Remove welcome message if still there
-  const welcome = document.getElementById('welcomeMsg');
-  if (welcome) welcome.remove();
-
-  // Add user message
-  addUserMessage(query);
-  input.value = '';
-
-  // Show typing
-  showTyping();
-
-  // Simulate AI thinking delay
-  setTimeout(() => {
-    removeTyping();
-    const response = generateResponse(query);
-    addAIMessage(response);
-  }, 700 + Math.random() * 500);
-}
-
-function quickSend(query) {
-  document.getElementById('chatInput').value = query;
-  sendMessage();
-}
-
-// ─── Enter key ───
-document.getElementById('chatInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') sendMessage();
-});
+// Focus input on load
+mainInput.focus();
 </script>
 
 </body>
