@@ -1007,10 +1007,33 @@
 // ════════════════════════════════════════════════
 
 const AGENTS = {
-  kakobuy: { name: 'KakoBuy' },
-  cnfans:  { name: 'CNFans' },
-  oopbuy:  { name: 'Oopbuy' },
+  cnfans:  { name: 'CNFans', ref: '1243144', domains: ['taobao','weidian','1688'] },
+  kakobuy: { name: 'KakoBuy', ref: '', domains: ['taobao','weidian','1688'] },
+  oopbuy:  { name: 'Oopbuy', ref: '', domains: ['taobao','weidian','1688'] },
 };
+
+// ─── Affiliate Link Builder ───
+function buildAgentLink(agentKey, product) {
+  const agent = AGENTS[agentKey];
+  if (!agent) return '#';
+
+  // CNFans link format with affiliate ref
+  if (agentKey === 'cnfans') {
+    const platform = product.platform.toUpperCase();
+    const base = `https://cnfans.com/product?platform=${platform}&id=${product.id}`;
+    return agent.ref ? `${base}&ref=${agent.ref}` : base;
+  }
+
+  // KakoBuy / Oopbuy — similar structure, add refs when available
+  if (agentKey === 'kakobuy') {
+    return `https://www.kakobuy.com/item/${product.platform}/${product.id}`;
+  }
+  if (agentKey === 'oopbuy') {
+    return `https://oopbuy.com/product/${product.platform}/${product.id}`;
+  }
+
+  return '#';
+}
 const PLATFORMS = {
   weidian: { label: 'Weidian', class: 'platform-weidian' },
   taobao:  { label: 'Taobao',  class: 'platform-taobao' },
@@ -1024,6 +1047,8 @@ let searchHistory = [];
 let currentPlatform = 'all';
 let isSearching = false;
 let chatHistory = []; // conversation context for AI
+let currentResults = []; // current search results for export
+let lastSearchQuery = ''; // last query for export naming
 let sessionId = sessionStorage.getItem('repfind_session') || ('sess_' + Math.random().toString(36).substr(2, 12) + Date.now().toString(36));
 sessionStorage.setItem('repfind_session', sessionId);
 
@@ -1232,6 +1257,10 @@ function renderSearchResponse(ai, container) {
   const results = generateResults(query);
   const verdict = generateVerdict(query, results);
 
+  // Store for export functionality
+  currentResults = results;
+  lastSearchQuery = query;
+
   const responseDiv = document.createElement('div');
   responseDiv.className = 'ai-response';
   responseDiv.innerHTML = `
@@ -1246,13 +1275,17 @@ function renderSearchResponse(ai, container) {
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
         Copy
       </button>
+      <button class="action-btn" onclick="exportSpreadsheet()" title="Download CSV spreadsheet">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+        Spreadsheet
+      </button>
+      <button class="action-btn" onclick="exportToGoogleSheets()" title="Copy for Google Sheets">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+        Copy Sheet
+      </button>
       <button class="action-btn" onclick="regenerateSearch()" title="Search again">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
         Refresh
-      </button>
-      <button class="action-btn" onclick="showToast('Link copied to clipboard')" title="Share">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-        Share
       </button>
     </div>
     <div class="provenance" id="provenance" style="display:none">
@@ -1408,19 +1441,107 @@ function renderCardHTML(r) {
 
 // ─── Send to agent ───
 function sendToAgent(agentKey, resultId, btn) {
+  // Find the product from current results
+  const card = btn.closest('.result-card');
+  if (!card) return;
+  const productName = card.querySelector('.result-name')?.textContent || '';
+
+  // Find product in current results
+  const product = currentResults.find(r => r.id === resultId);
+  if (!product) return;
+
+  const link = buildAgentLink(agentKey, product);
+  const agent = AGENTS[agentKey];
+
   const original = btn.textContent;
   btn.textContent = 'Opening...';
   btn.style.background = 'var(--accent)';
   btn.style.borderColor = 'var(--accent)';
   btn.style.color = 'white';
+
+  // Open the affiliate link in new tab
+  window.open(link, '_blank', 'noopener,noreferrer');
+
   setTimeout(() => {
-    btn.textContent = '✓ Copied';
-    showToast(`Product link copied for ${AGENTS[agentKey].name}`);
+    btn.textContent = '✓ Opened';
+    showToast(`Opening ${agent.name}... Your referral is tagged`);
     setTimeout(() => {
       btn.textContent = original;
       btn.style.cssText = '';
     }, 1400);
-  }, 500);
+  }, 400);
+}
+
+// ─── Export Spreadsheet (CSV) ───
+function exportSpreadsheet() {
+  if (!currentResults || currentResults.length === 0) {
+    showToast('No results to export');
+    return;
+  }
+
+  const query = lastSearchQuery || 'repfind';
+  const rows = [
+    ['Product', 'Seller', 'Platform', 'Price (CNY)', 'Price (USD)', 'Rating', 'Sales', 'Quality', 'CNFans Link (Affiliate)', 'KakoBuy Link', 'OopBuy Link']
+  ];
+
+  currentResults.forEach(r => {
+    const cnfansLink = buildAgentLink('cnfans', r);
+    const kakobuyLink = buildAgentLink('kakobuy', r);
+    const oopbuyLink = buildAgentLink('oopbuy', r);
+    rows.push([
+      r.name,
+      r.seller,
+      r.platform,
+      '¥' + r.priceCNY,
+      '$' + r.priceUSD,
+      '⭐' + r.rating,
+      r.sales.toLocaleString() + ' sold',
+      r.quality,
+      cnfansLink,
+      kakobuyLink,
+      oopbuyLink,
+    ]);
+  });
+
+  // Build CSV
+  const csv = rows.map(row =>
+    row.map(cell => {
+      const s = String(cell);
+      return s.includes(',') || s.includes('"') || s.includes('\n')
+        ? '"' + s.replace(/"/g, '""') + '"'
+        : s;
+    }).join(',')
+  ).join('\n');
+
+  // Download
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const filename = `repfind-${query.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}.csv`;
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(`Spreadsheet exported — ${currentResults.length} products with affiliate links`);
+}
+
+// ─── Google Sheet export (opens pre-filled link) ───
+function exportToGoogleSheets() {
+  if (!currentResults || currentResults.length === 0) {
+    showToast('No results to export');
+    return;
+  }
+  const query = lastSearchQuery || 'repfind';
+  // Build a simple HTML table that can be pasted into Google Sheets
+  const headers = ['Product','Seller','Platform','Price (CNY)','Price (USD)','Rating','Sales','Quality','CNFans (Affiliate)'];
+  const rows = currentResults.map(r => [
+    r.name, r.seller, r.platform, '¥'+r.priceCNY, '$'+r.priceUSD, '⭐'+r.rating, r.sales+' sold', r.quality, buildAgentLink('cnfans', r)
+  ]);
+  const tsv = [headers, ...rows].map(row => row.map(c => String(c).replace(/\t/g,' ').replace(/\n/g,' ')).join('\t')).join('\n');
+  navigator.clipboard?.writeText(tsv);
+  showToast('Copied to clipboard — paste into Google Sheets!');
 }
 
 // ─── Copy verdict ───
