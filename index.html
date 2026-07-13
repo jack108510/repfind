@@ -945,6 +945,26 @@
       0%, 100% { box-shadow: 0 0 0 0 var(--accent-dim); }
       50% { box-shadow: 0 0 0 4px transparent; }
     }
+
+    /* ─── SMART BADGES ─── */
+    .smart-badge { display:inline-flex; align-items:center; gap:3px; font-size:0.58rem; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle; }
+    .badge-best-value { background:rgba(200,75,47,0.15); color:var(--accent-light); border:1px solid rgba(200,75,47,0.3); }
+    .badge-top-rated { background:rgba(52,211,153,0.12); color:var(--green); border:1px solid rgba(52,211,153,0.25); }
+    .badge-best-seller { background:rgba(251,191,36,0.12); color:var(--yellow); border:1px solid rgba(251,191,36,0.25); }
+    .badge-lowest-price { background:rgba(96,165,250,0.12); color:var(--blue); border:1px solid rgba(96,165,250,0.25); }
+    .badge-warn { background:rgba(248,113,113,0.1); color:var(--red); border:1px solid rgba(248,113,113,0.2); }
+
+    /* ─── REFINEMENT ─── */
+    .refinement-hint { padding-left:34px; margin-top:12px; font-size:0.72rem; color:var(--text-dim); display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+    .refinement-chip { font-size:0.7rem; padding:3px 8px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-xs); color:var(--text-muted); cursor:pointer; transition:all var(--transition); }
+    .refinement-chip:hover { background:var(--surface-2); color:var(--text); border-color:var(--border-light); }
+
+    /* ─── AI INSIGHTS ─── */
+    .ai-insight { padding-left:34px; margin-top:16px; display:flex; flex-direction:column; gap:6px; }
+    .insight-row { display:flex; align-items:flex-start; gap:8px; font-size:0.8rem; color:var(--text-secondary); line-height:1.5; }
+    .insight-icon { flex-shrink:0; width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; margin-top:1px; }
+    .insight-icon.pick { color:var(--accent-light); } .insight-icon.warn { color:var(--red); } .insight-icon.info { color:var(--blue); } .insight-icon.deal { color:var(--green); }
+    .insight-row strong { color:var(--text); }
   </style>
 </head>
 <body>
@@ -1188,6 +1208,12 @@ async function doSearch(fromDocked) {
   inner.appendChild(loadingDiv);
   scrollToBottom();
 
+  // Progressive loading — show what's actually happening
+  const stepTimers = [
+    setTimeout(() => updateLoadingStep(1, 'Querying 24,000+ products...'), 1200),
+    setTimeout(() => updateLoadingStep(2, 'Analyzing prices and seller ratings...'), 2500),
+  ];
+
   // Clear inputs
   dockedInputEl.value = '';
   mainInput.value = '';
@@ -1213,7 +1239,10 @@ async function doSearch(fromDocked) {
     chatHistory.push({ role: 'assistant', content: ai.reply });
 
     // Remove loading
-    document.getElementById('loadingSection').remove();
+    // Remove loading + clear progressive timers
+    stepTimers.forEach(t => clearTimeout(t));
+    const ls = document.getElementById('loadingSection');
+    if (ls) ls.remove();
 
     if (ai.action === 'search' && ai.search_query) {
       // AI says search — show results with the refined query
@@ -1226,7 +1255,10 @@ async function doSearch(fromDocked) {
     addHistory(query);
   } catch (err) {
     console.error('Webhook error:', err);
-    document.getElementById('loadingSection').remove();
+    // Remove loading + clear progressive timers
+    stepTimers.forEach(t => clearTimeout(t));
+    const ls = document.getElementById('loadingSection');
+    if (ls) ls.remove();
     const errDiv = document.createElement('div');
     errDiv.className = 'ai-response';
     errDiv.innerHTML = `
@@ -1265,6 +1297,25 @@ function updateStep(step) {
   stepEl.classList.add('active');
   stepEl.style.opacity = '1';
   checkEl.classList.add('spinner-mini');
+}
+
+function updateLoadingStep(step, text) {
+  if (!document.getElementById('loadingSection')) return;
+  const stepList = document.getElementById('stepList');
+  if (!stepList) return;
+  if (step > 0) {
+    const prevEl = document.querySelector(`[data-step="${step - 1}"]`);
+    const prevCheck = document.getElementById(`check${step - 1}`);
+    if (prevEl) { prevEl.classList.remove('active'); prevEl.classList.add('done'); prevEl.style.opacity = '0.5'; }
+    if (prevCheck) { prevCheck.classList.remove('spinner-mini'); prevCheck.classList.add('done'); prevCheck.innerHTML = '<svg viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.5"><path d="M2 6l3 3 5-6"/></svg>'; }
+  }
+  const ns = document.createElement('div');
+  ns.className = 'step-item active';
+  ns.dataset.step = step;
+  ns.style.animationDelay = '0s';
+  ns.innerHTML = `<div class="step-check spinner-mini" id="check${step}"></div><span>${text}</span>`;
+  stepList.appendChild(ns);
+  scrollToBottom();
 }
 
 // ════════════════════════════════════════════════
@@ -1398,6 +1449,7 @@ async function renderSearchResponse(ai, container) {
     
     // Store for export functionality
     currentResults = results;
+    baseResults = [...results];
     lastSearchQuery = query;
     
     const verdict = generateVerdict(query, results);
@@ -1417,10 +1469,19 @@ async function renderSearchResponse(ai, container) {
         provText.innerHTML = `No products found for "${escapeHtml(query)}". Try a different search term.`;
       }
       provEl.style.display = 'flex';
+
+      // AI insights
+      const statPills = document.getElementById('statPills');
+      if (verdict.insights && statPills) statPills.insertAdjacentHTML('afterend', renderInsights(verdict.insights));
       
       renderResults(results);
       wireFilters();
       renderFollowUps(query);
+
+      // Refinement chips
+      const resultsSection = document.getElementById('resultsSection');
+      if (resultsSection) resultsSection.insertAdjacentHTML('afterend', renderRefinementHint());
+
       scrollToBottom();
       
       // ─── Cross-sell: suggest complementary products ───
@@ -1501,19 +1562,20 @@ function renderResults(results) {
     const card = document.createElement('div');
     card.className = 'result-card';
     card.dataset.platform = r.platform;
-    card.style.animationDelay = `${i * 0.08}s`;
-    card.innerHTML = renderCardHTML(r);
+    card.style.animationDelay = `${Math.min(i * 0.06, 0.4)}s`;
+    card.innerHTML = renderCardHTML(r, i);
     list.appendChild(card);
   });
   scrollToBottom();
 }
 
-function renderCardHTML(r) {
+function renderCardHTML(r, idx) {
   const qClass = r.quality === 'good' ? 'quality-good' : r.quality === 'ok' ? 'quality-ok' : 'quality-risky';
   const qLabel = r.quality === 'good' ? 'Legit' : r.quality === 'ok' ? 'OK' : 'Risky';
   const plat = PLATFORMS[r.platform] || PLATFORMS['weidian'];
   const buyLink = buildBestLink(r);
   const agentBtns = `<a class="buy-btn" href="${buyLink}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')">Buy Now ↗</a>`;
+  const badges = (typeof idx === 'number' && lastAnalysis) ? renderSmartBadges(idx, lastAnalysis) : '';
 
   const fallbackImg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='68' height='68'%3E%3Crect fill='%232A2A2A' width='68' height='68'/%3E%3Ctext x='34' y='38' text-anchor='middle' fill='%23555' font-size='10' font-family='sans-serif'%3Eno img%3C/text%3E%3C/svg%3E`;
   return `
@@ -1521,7 +1583,7 @@ function renderCardHTML(r) {
     <div class="result-body">
       <div class="result-top">
         <div class="result-info">
-          <div class="result-name">${escapeHtml(r.name)}</div>
+          <div class="result-name" title="${escapeAttr(r.name)}">${escapeHtml(r.name)}${badges}</div>
           <div class="result-seller">${escapeHtml(r.seller)} · ⭐ ${r.rating.toFixed(1)} · ${r.sales.toLocaleString()} sold</div>
           <div class="result-meta">
             <span class="platform-badge ${plat.class}">${plat.label}</span>
@@ -2135,95 +2197,124 @@ function transformProducts(rawProducts) {
   });
 }
 
+// ════════════════════════════════════════════════
+// AI ANALYSIS ENGINE — Smart verdicts, badges, insights, refinement
+// ════════════════════════════════════════════════
+
+let lastAnalysis = null;
+let baseResults = [];
+
+function analyzeResults(results) {
+  if (!results || results.length === 0) return null;
+  const priced = results.filter(r => parseFloat(r.priceUSD) > 0);
+  const prices = priced.map(r => parseFloat(r.priceUSD));
+  const avgPrice = prices.length > 0 ? prices.reduce((a,b) => a+b, 0) / prices.length : 0;
+  const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+  const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+  let bestValueIdx = -1, bestValueScore = -1, topRatedIdx = -1, topRatedScore = -1;
+  let bestSellerIdx = -1, bestSellerScore = -1, lowestPriceIdx = -1, lowestPrice = Infinity;
+  let warnIdxs = [];
+  results.forEach((r, i) => {
+    const price = parseFloat(r.priceUSD) || 0;
+    const rating = r.rating || 4.5;
+    const sales = r.sales || 0;
+    const valueScore = (rating * 100) + (Math.min(sales, 5000) / 50) - (price > avgPrice ? (price - avgPrice) * 5 : 0);
+    if (valueScore > bestValueScore) { bestValueScore = valueScore; bestValueIdx = i; }
+    if (rating > topRatedScore) { topRatedScore = rating; topRatedIdx = i; }
+    if (sales > bestSellerScore) { bestSellerScore = sales; bestSellerIdx = i; }
+    if (price > 0 && price < lowestPrice) { lowestPrice = price; lowestPriceIdx = i; }
+    if (rating < 4.3) warnIdxs.push(i);
+    else if (price > 0 && avgPrice > 0 && price < avgPrice * 0.4) warnIdxs.push(i);
+  });
+  return { avgPrice, minPrice, maxPrice, priceSpread: maxPrice - minPrice, bestValueIdx, topRatedIdx, bestSellerIdx, lowestPriceIdx, warnIdxs, totalResults: results.length, platformCount: new Set(results.map(r => r.platform)).size };
+}
+
+function generateSmartVerdict(query, results, a) {
+  if (!results || results.length === 0) return { verdict: `No exact matches for <strong>"${escapeHtml(query)}"</strong> in our database of 24,000+ products. Try <strong>Jordan</strong>, <strong>Yeezy</strong>, or <strong>Travis Scott</strong>.`, stats: [], insights: [] };
+  if (!a) return { verdict: `Found <strong>${results.length} listings</strong>.`, stats: [], insights: [] };
+  const avg = a.avgPrice.toFixed(2), min = a.minPrice.toFixed(2), max = a.maxPrice.toFixed(2);
+  let parts = [`Found <strong>${a.totalResults} listings</strong> for "${escapeHtml(query)}"`];
+  if (a.priceSpread > 20) parts.push(`Prices range from <strong>$${min}</strong> to <strong>$${max}</strong> — a <strong>$${a.priceSpread.toFixed(0)} spread</strong>`);
+  else if (a.avgPrice > 0) parts.push(`Prices cluster around <strong>$${avg}</strong>`);
+  const stats = a.avgPrice > 0 ? [
+    { label: 'Avg Price', value: `$${avg}`, sub: `¥${Math.round(a.avgPrice * 7.25)}`, class: 'accent' },
+    { label: 'Price Range', value: `$${min}–$${max}`, class: '' },
+    { label: 'Listings', value: `${a.totalResults}`, class: 'green' },
+  ] : [{ label: 'Listings', value: `${a.totalResults}`, class: 'accent' }];
+  const insights = [];
+  if (a.bestValueIdx >= 0) {
+    const p = results[a.bestValueIdx]; const price = parseFloat(p.priceUSD) || 0;
+    const reason = (price > 0 && price < a.avgPrice) ? `$${price.toFixed(2)} is below the $${avg} average, with a ${p.rating.toFixed(1)}★ rating and ${(p.sales||0).toLocaleString()} sales` : `highest combined score for rating (${p.rating.toFixed(1)}★) and sales (${(p.sales||0).toLocaleString()})`;
+    insights.push({ type: 'pick', icon: '🎯', text: `<strong>Best value:</strong> ${escapeHtml(p.name)} — ${reason}` });
+  }
+  if (a.lowestPriceIdx >= 0 && a.lowestPriceIdx !== a.bestValueIdx) {
+    const p = results[a.lowestPriceIdx]; const price = parseFloat(p.priceUSD) || 0;
+    if (a.avgPrice > 0 && price < a.avgPrice * 0.6) insights.push({ type: 'deal', icon: '💰', text: `<strong>Lowest price:</strong> ${escapeHtml(p.name)} at $${price.toFixed(2)} — ${Math.round((1-price/a.avgPrice)*100)}% below average. Check QC before buying.` });
+  }
+  if (a.warnIdxs.length > 0) {
+    const wp = a.warnIdxs.map(i => escapeHtml(results[i].name)).slice(0, 2);
+    insights.push({ type: 'warn', icon: '⚠️', text: `<strong>Watch out:</strong> ${wp.join(', ')} ${a.warnIdxs.length > 2 ? `and ${a.warnIdxs.length-2} others ` : ''}${a.warnIdxs.some(i => results[i].rating < 4.3) ? 'have low seller ratings' : 'have suspiciously low prices'}.` });
+  }
+  if (a.priceSpread > 30 && a.totalResults >= 4) insights.push({ type: 'info', icon: '📊', text: `Big price gap ($${min} to $${max}). Higher price ≠ better quality in reps — check QC reviews.` });
+  return { verdict: parts.join('. ') + '.', stats, insights };
+}
+
+function renderInsights(insights) {
+  if (!insights || !insights.length) return '';
+  return '<div class="ai-insight">' + insights.map(ins => {
+    const cls = ins.type === 'pick' ? 'pick' : ins.type === 'warn' ? 'warn' : ins.type === 'deal' ? 'deal' : 'info';
+    return `<div class="insight-row"><span class="insight-icon ${cls}">${ins.icon}</span><span>${ins.text}</span></div>`;
+  }).join('') + '</div>';
+}
+
+function renderSmartBadges(idx, analysis) {
+  if (!analysis) return '';
+  let b = '';
+  if (idx === analysis.bestValueIdx) b += '<span class="smart-badge badge-best-value">🎯 Best Value</span>';
+  if (idx === analysis.topRatedIdx) b += '<span class="smart-badge badge-top-rated">⭐ Top Rated</span>';
+  if (idx === analysis.bestSellerIdx) b += '<span class="smart-badge badge-best-seller">🔥 Best Seller</span>';
+  if (idx === analysis.lowestPriceIdx && analysis.lowestPriceIdx !== analysis.bestValueIdx) b += '<span class="smart-badge badge-lowest-price">💰 Lowest</span>';
+  if (analysis.warnIdxs.includes(idx)) b += '<span class="smart-badge badge-warn">⚠️ Caution</span>';
+  return b;
+}
+
+function renderRefinementHint() {
+  return `<div class="refinement-hint"><span>Narrow down:</span><span class="refinement-chip" onclick="refineResults('cheaper')">💰 Under avg</span><span class="refinement-chip" onclick="refineResults('expensive')">💎 Premium</span><span class="refinement-chip" onclick="refineResults('toprated')">⭐ Highest rated</span><span class="refinement-chip" onclick="refineResults('popular')">🔥 Most sold</span><span class="refinement-chip" onclick="refineResults('all')">↺ Show all</span></div>`;
+}
+
+function refineResults(mode) {
+  if (!baseResults.length) return;
+  const allLists = document.querySelectorAll('#resultsList');
+  const list = allLists[allLists.length - 1];
+  if (!list) return;
+  let filtered = [...baseResults];
+  const avg = lastAnalysis ? lastAnalysis.avgPrice : 0;
+  switch(mode) {
+    case 'cheaper': filtered = filtered.filter(r => parseFloat(r.priceUSD) > 0 && parseFloat(r.priceUSD) <= avg).sort((a,b) => parseFloat(a.priceUSD) - parseFloat(b.priceUSD)); showToast(`Showing ${filtered.length} under $${avg.toFixed(2)}`); break;
+    case 'expensive': filtered = filtered.filter(r => parseFloat(r.priceUSD) > avg).sort((a,b) => parseFloat(b.priceUSD) - parseFloat(a.priceUSD)); showToast(`Premium picks`); break;
+    case 'toprated': filtered.sort((a,b) => (b.rating||0) - (a.rating||0)); showToast('Sorted by rating'); break;
+    case 'popular': filtered.sort((a,b) => (b.sales||0) - (a.sales||0)); showToast('Sorted by sales'); break;
+    default: showToast('Showing all'); break;
+  }
+  list.innerHTML = '';
+  filtered.forEach((r, i) => {
+    const origIdx = baseResults.indexOf(r);
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.dataset.platform = r.platform;
+    card.style.animationDelay = `${Math.min(i * 0.04, 0.3)}s`;
+    card.innerHTML = renderCardHTML(r, origIdx);
+    list.appendChild(card);
+  });
+  scrollToBottom();
+}
+
 function generateVerdict(query, results) {
-  if (!results || results.length === 0) {
-    const noResultMsgs = [
-      `Hmm, nothing in the database for "${escapeHtml(query)}" yet. Try a broader term — we\'ve got 24,000+ products.`,
-      `No luck with "${escapeHtml(query)}". Maybe try the brand name or a different keyword?`,
-      `Couldn\'t find anything for "${escapeHtml(query)}". These listings move fast — try a variant spelling or broader category.`,
-    ];
-    return { verdict: noResultMsgs[Math.floor(Math.random() * noResultMsgs.length)], stats: [] };
-  }
-  
-  const prices = results.map(r => parseFloat(r.priceUSD)).filter(p => p > 0);
-  
-  if (prices.length === 0) {
-    const noPriceMsgs = [
-      `Found <strong>${results.length} listings</strong> for "${escapeHtml(query)}". Prices vary — click <strong>Buy Now</strong> to check the current rate.`,
-      `<strong>${results.length} matches</strong> for "${escapeHtml(query)}". Hit Buy Now to go straight to the listing.`,
-    ];
-    return { verdict: noPriceMsgs[Math.floor(Math.random() * noPriceMsgs.length)], stats: [{ label: 'Results', value: `${results.length}`, class: 'accent' }] };
-  }
-  
-  const avg = prices.reduce((a,b) => a+b, 0) / prices.length;
-  const min = Math.min(...prices);
-  const max = Math.max(...prices);
-  
-  // Dynamic verdicts based on data
-  const verdicts = [];
-  
-  if (results.length >= 10) {
-    verdicts.push(`Found <strong>${results.length} listings</strong> for "${escapeHtml(query)}" — plenty to choose from. Avg price is <strong>$${avg.toFixed(2)}</strong>, ranging from $${min.toFixed(2)} to $${max.toFixed(2)}. The top picks are sorted by best match and seller quality.`);
-  } else if (results.length >= 5) {
-    verdicts.push(`Got <strong>${results.length} solid matches</strong> for "${escapeHtml(query)}". Prices sit around <strong>$${avg.toFixed(2)}</strong> ($${min.toFixed(2)}–$${max.toFixed(2)}). Check the legit ratings — higher is better.`);
-  } else if (results.length >= 1) {
-    verdicts.push(`Only <strong>${results.length} tight matches</strong> for "${escapeHtml(query)}" — these are the most relevant. Avg $${avg.toFixed(2)}, cheapest at $${min.toFixed(2)}.`);
-  }
-  
-  // Price commentary
-  if (avg < 15) {
-    verdicts.push(`\n\n💡 These are budget-tier prices. Good for the risk — check seller ratings.`);
-  } else if (avg > 100) {
-    verdicts.push(`\n\n💰 These are premium-tier reps. Expect better materials and QC.`);
-  }
-  
-  const verdict = verdicts[Math.floor(Math.random() * verdicts.length)] || verdicts[0];
-  
-  return {
-    verdict,
-    stats: [
-      { label: 'Avg Price', value: `$${avg.toFixed(2)}`, class: 'accent' },
-      { label: 'Price Range', value: `$${min.toFixed(2)}–$${max.toFixed(2)}`, class: '' },
-      { label: 'Results', value: `${results.length}`, class: 'green' },
-    ],
-  };
+  const analysis = analyzeResults(results);
+  lastAnalysis = analysis;
+  return generateSmartVerdict(query, results, analysis);
 }
 
-
-mainInput.focus();
-  if (!results || results.length === 0) {
-    return {
-      verdict: `No exact matches found for "${escapeHtml(query)}". Try a broader search term — we have <strong>24,000+</strong> products in the database.`,
-      stats: [],
-    };
-  }
-  
-  const prices = results.map(r => parseFloat(r.priceUSD)).filter(p => p > 0);
-  
-  if (prices.length === 0) {
-    return {
-      verdict: `Found <strong>${results.length} results</strong> for "${escapeHtml(query)}". Check the listings below — click <strong>Buy Now</strong> to go straight to checkout with your referral applied.`,
-      stats: [
-        { label: 'Results', value: `${results.length}`, class: 'accent' },
-      ],
-    };
-  }
-  
-  const avg = prices.reduce((a,b) => a+b, 0) / prices.length;
-  const min = Math.min(...prices);
-  const max = Math.max(...prices);
-  
-  const verdict = `Found <strong>${results.length} listings</strong> for "${escapeHtml(query)}". Avg price is <strong>$${avg.toFixed(2)}</strong> (range $${min.toFixed(2)}–$${max.toFixed(2)}). Click an agent button to buy — your referral is automatically applied.`;
-  
-  return {
-    verdict,
-    stats: [
-      { label: 'Avg Price', value: `$${avg.toFixed(2)}`, class: 'accent' },
-      { label: 'Price Range', value: `$${min.toFixed(2)}–$${max.toFixed(2)}`, class: '' },
-      { label: 'Results', value: `${results.length}`, class: 'green' },
-    ],
-  };
-}
 
 mainInput.focus();
 
