@@ -2001,42 +2001,21 @@ let PRODUCT_DB = null;
 async function loadProductDB() {
   if (PRODUCT_DB) return PRODUCT_DB;
   try {
-    // Fetch all products from Supabase (paginated, 1000 per page)
-    PRODUCT_DB = [];
-    const pageSize = 1000;
-    for (let offset = 0; ; offset += pageSize) {
-      const url = `${SUPABASE_URL}/rest/v1/repfind_products?select=name,brand,category,platform,seller_name,price_cny,price_usd,image_url,quality,rating,sales,cnfans_url,external_id&order=id.asc&limit=${pageSize}&offset=${offset}`;
-      const resp = await fetch(url, {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-        }
-      });
-      if (!resp.ok) throw new Error(`Supabase returned ${resp.status}`);
-      const batch = await resp.json();
-      if (!batch || batch.length === 0) break;
-      // Map Supabase objects → format the codebase expects
-      for (const p of batch) {
-        PRODUCT_DB.push({
-          name: p.name || 'Unknown Product',
-          price: p.price_usd ? `$${p.price_usd}` : (p.price_cny ? `¥${p.price_cny}` : ''),
-          category: p.category || p.brand || '',
-          image: p.image_url || '',
-          platform: p.platform || 'weidian',
-          itemID: p.external_id || '',
-          // Extra fields for richer cards
-          _seller: p.seller_name || '',
-          _rating: p.rating || 4.5,
-          _sales: p.sales || 0,
-          _priceCNY: p.price_cny || 0,
-          _priceUSD: p.price_usd || 0,
-          _cnfansUrl: p.cnfans_url || '',
-          _quality: p.quality || 'good',
-        });
-      }
-      if (batch.length < pageSize) break; // last page
-    }
-    console.log(`Loaded ${PRODUCT_DB.length} products from Supabase`);
+    const resp = await fetch('data/products.json');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const raw = await resp.json();
+    // raw is array of: [name, price_usd, category, image, platform, itemID]
+    PRODUCT_DB = raw.map(p => ({
+      name: p[0],
+      price: p[1] ? `$${p[1]}` : '',
+      category: p[2] || '',
+      image: p[3] || '',
+      platform: p[4] || 'weidian',
+      itemID: p[5] || '',
+      _priceUSD: p[1] || 0,
+      _priceCNY: p[1] ? Math.round(parseFloat(p[1]) * 7.25) : 0,
+    }));
+    console.log(`Loaded ${PRODUCT_DB.length} products`);
     return PRODUCT_DB;
   } catch (err) {
     console.error('Product DB load error:', err);
@@ -2205,26 +2184,16 @@ function searchProducts(query, limit = 12) {
 }
 
 function transformProducts(rawProducts) {
-  return rawProducts.map((p, i) => {
-    // Use real data from Supabase, fall back to computed values
-    const priceCNY = p._priceCNY || '';
-    const priceUSD = p._priceUSD ? p._priceUSD.toFixed(2) : '';
-
-    return {
-      id: p.itemID,
-      name: p.name || 'Unknown Product',
-      seller: p._seller || p.category || 'Verified Seller',
-      rating: p._rating || 4.5,
-      sales: p._sales || 0,
-      platform: p.platform || 'weidian',
-      priceCNY: priceCNY,
-      priceUSD: priceUSD,
-      quality: p._quality || 'good',
-      img: p.image || '',
-      cnfansUrl: p._cnfansUrl || null,
-      _category: p._category || p.category || '',
-    };
-  });
+  return rawProducts.map((p) => ({
+    id: p.itemID,
+    name: p.name || 'Unknown Product',
+    seller: p.platform ? PLATFORMS[p.platform]?.label || 'Weidian' : 'Weidian',
+    platform: p.platform || 'weidian',
+    priceCNY: p._priceCNY || '',
+    priceUSD: p._priceUSD ? parseFloat(p._priceUSD).toFixed(2) : '',
+    img: p.image || '',
+    _category: p.category || '',
+  }));
 }
 
 // ════════════════════════════════════════════════
