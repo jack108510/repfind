@@ -1175,25 +1175,9 @@ async function doSearch(fromDocked) {
     if (ai.action === 'search' && ai.search_query) {
       // AI says search — show results with the refined query
       renderSearchResponse(ai, inner);
-    } else if (ai.action === 'search' || ai.search_query) {
-      // AI returned search action but missing query — use raw user query
-      ai.search_query = query;
-      renderSearchResponse(ai, inner);
     } else {
-      // Clarify — conversational reply with chips
-      // But also try a background search in case the AI was too cautious
-      const bgResults = searchProducts(query, 6);
-      if (bgResults.length >= 3) {
-        // Enough results — just search directly
-        ai.action = 'search';
-        ai.search_query = query;
-        if (!ai.reply || ai.reply.length < 20) {
-          ai.reply = `Found some great matches for "${query}". Here are the top picks:`;
-        }
-        renderSearchResponse(ai, inner);
-      } else {
-        renderChatResponse(ai, inner);
-      }
+      // AI wants to clarify — show conversational reply with chips
+      renderChatResponse(ai, inner);
     }
 
     addHistory(query);
@@ -1395,6 +1379,9 @@ async function renderSearchResponse(ai, container) {
       wireFilters();
       renderFollowUps(query);
       scrollToBottom();
+      
+      // ─── Cross-sell: suggest complementary products ───
+      setTimeout(() => renderCrossSell(query, results, container), 1500);
     }, 300);
   });
 }
@@ -1627,6 +1614,149 @@ function regenerateSearch() {
     mainInput.value = last;
     doSearch();
   }
+}
+
+// ─── Cross-sell: suggest complementary products ───
+function renderCrossSell(query, results, container) {
+  if (!PRODUCT_DB || results.length === 0) return;
+  
+  // Map product categories to complementary categories
+  const CROSSSELL_MAP = {
+    'shoes': [
+      { cat: 'Pants/Shorts', label: 'These cargos pair perfectly with your {q}' },
+      { cat: 'Pants', label: 'These pants go great with {q}' },
+      { cat: 'Hoodies/Sweaters', label: 'Complete the fit — hoodies that match {q}' },
+      { cat: 'Hoodies', label: 'Pair these hoodies with your {q}' },
+    ],
+    'shoe': [
+      { cat: 'Pants/Shorts', label: 'These cargos pair perfectly with your {q}' },
+      { cat: 'Pants', label: 'These pants go great with {q}' },
+    ],
+    'jersey': [
+      { cat: 'Shorts', label: 'Match your {q} with these shorts' },
+      { cat: 'Pants/Shorts', label: 'Complete the kit with these' },
+    ],
+    'hoodies/sweaters': [
+      { cat: 'Pants/Shorts', label: 'Pair your {q} with these pants' },
+      { cat: 'Pants', label: 'These pants complete the look' },
+    ],
+    'hoodies': [
+      { cat: 'Pants/Shorts', label: 'Pair your {q} with these pants' },
+      { cat: 'Pants', label: 'These pants complete the look' },
+    ],
+    't-shirts': [
+      { cat: 'Pants/Shorts', label: 'These pants go great with your {q}' },
+      { cat: 'Pants', label: 'Complete the fit with these' },
+    ],
+    't-shirt': [
+      { cat: 'Pants/Shorts', label: 'These pants go great with your {q}' },
+      { cat: 'Pants', label: 'Complete the fit with these' },
+    ],
+    'jackets': [
+      { cat: 'Pants', label: 'These pants complete the look with your {q}' },
+      { cat: 'T-Shirts', label: 'Layer a tee under your {q}' },
+    ],
+    'coats / jackets': [
+      { cat: 'Pants', label: 'These pants complete the look' },
+      { cat: 'Hoodies/Sweaters', label: 'Layer a hoodie under your {q}' },
+    ],
+    'shorts': [
+      { cat: 'T-Shirts', label: 'Pair a tee with your {q}' },
+      { cat: 'Hoodies/Sweaters', label: 'Throw on a hoodie with your {q}' },
+    ],
+    'belts': [
+      { cat: 'Pants', label: 'These belts need the right pants' },
+    ],
+    'accessories': [
+      { cat: 'Shoes', label: 'Complete the fit with fresh kicks' },
+    ],
+  };
+  
+  // Detect what category the user searched for
+  const queryLower = query.toLowerCase();
+  const resultCats = results.map(r => (r._category || '').toLowerCase());
+  
+  let crossSellCat = null;
+  let crossSellLabel = null;
+  
+  // Check result categories against our map
+  for (const result of results) {
+    const cat = (result._category || '').toLowerCase();
+    for (const [key, suggestions] of Object.entries(CROSSSELL_MAP)) {
+      if (cat.includes(key)) {
+        crossSellCat = suggestions[0].cat;
+        crossSellLabel = suggestions[0].label.replace('{q}', escapeHtml(query));
+        break;
+      }
+    }
+    if (crossSellCat) break;
+  }
+  
+  // Also check query directly
+  if (!crossSellCat) {
+    const QUERY_MAP = {
+      'jordan': { cat: 'Pants/Shorts', label: '🔥 These cargos go hard with Jordan' },
+      'af1': { cat: 'Pants/Shorts', label: '🔥 These pants pair perfectly with AF1s' },
+      'dunk': { cat: 'Pants/Shorts', label: '🔥 Complete the fit with these pants' },
+      'yeezy': { cat: 'Pants/Shorts', label: '🔥 These pants match your Yeezys' },
+      'shoe': { cat: 'Pants/Shorts', label: '🔥 Pants that go with these' },
+      'sneaker': { cat: 'Pants/Shorts', label: '🔥 Pants that complete the fit' },
+      'hoodie': { cat: 'Pants', label: '🔥 These pants complete the hoodie fit' },
+      'jersey': { cat: 'Shorts', label: '🔥 Match your jersey with these shorts' },
+      'jacket': { cat: 'Pants', label: '🔥 These pants complete the jacket look' },
+      'tee': { cat: 'Pants/Shorts', label: '🔥 These pants pair great with tees' },
+    };
+    for (const [key, suggestion] of Object.entries(QUERY_MAP)) {
+      if (queryLower.includes(key)) {
+        crossSellCat = suggestion.cat;
+        crossSellLabel = suggestion.label;
+        break;
+      }
+    }
+  }
+  
+  if (!crossSellCat) return;
+  
+  // Search for complementary products
+  const crossSellResults = searchProducts(crossSellCat, 3);
+  if (crossSellResults.length === 0) return;
+  
+  const crossSellProducts = transformProducts(crossSellResults.map(p => ({ ...p, _category: crossSellCat })));
+  
+  // Render the cross-sell section
+  const crossSellDiv = document.createElement('div');
+  crossSellDiv.className = 'ai-response';
+  crossSellDiv.style.animation = 'fadeInUp 0.4s ease';
+  crossSellDiv.innerHTML = `
+    <div class="verdict-header">
+      <div class="avatar">r</div>
+      <span class="bot-name">repfind <span class="badge">AI</span></span>
+    </div>
+    <div class="verdict-text" style="margin-bottom:16px">${crossSellLabel} — click to grab them with your referral applied:</div>
+    <div class="results-section" style="padding-left:0;margin-top:0">
+      <div class="results-list" id="crossSellList"></div>
+    </div>
+  `;
+  container.appendChild(crossSellDiv);
+  
+  // Render the cross-sell product cards
+  const listEl = crossSellDiv.querySelector('#crossSellList');
+  crossSellProducts.forEach((r, i) => {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.dataset.platform = r.platform;
+    card.style.animationDelay = `${i * 0.08}s`;
+    
+    // Store for sendToAgent
+    if (!currentResults.includes(r)) {
+      currentResults.push(r);
+    }
+    
+    card.innerHTML = renderCardHTML(r);
+    listEl.appendChild(card);
+  });
+  
+  scrollToBottom();
 }
 
 // ─── Follow-ups ───
@@ -1891,6 +2021,7 @@ function transformProducts(rawProducts) {
       quality: 'good',
       img: p.image || `https://picsum.photos/seed/${encodeURIComponent(p.itemID || 'x')}/100/100`,
       cnfansUrl: null,
+      _category: p._category || p.category || '',
     };
   });
 }
