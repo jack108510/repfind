@@ -4,7 +4,39 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>repfind — find the best reps, fast</title>
-  <meta name="description" content="Search across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy. Send straight to your agent.">
+  <meta name="description" content="Search 24,000+ products across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy. Send straight to your agent.">
+  <meta name="keywords" content="repfind, reps, replica, weidian, taobao, 1688, cnfans, kakobuy, oopbuy, travis scott, jordan, yeezy, nike">
+  <meta name="author" content="repfind">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="repfind — find the best reps, fast">
+  <meta property="og:description" content="Search 24,000+ products across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy.">
+  <meta property="og:url" content="https://jack108510.github.io/repfind/">
+  <meta property="og:site_name" content="repfind">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="repfind — find the best reps, fast">
+  <meta name="twitter:description" content="Search 24,000+ products across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy.">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://jack108510.github.io/repfind/">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "repfind",
+    "url": "https://jack108510.github.io/repfind/",
+    "description": "Search 24,000+ products across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy.",
+    "applicationCategory": "ShoppingApplication",
+    "operatingSystem": "Web",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -962,7 +994,7 @@
   <!-- Welcome -->
   <div class="welcome" id="welcome">
     <div class="welcome-logo">rep<span class="find">find</span></div>
-    <p class="welcome-tagline">Search across Weidian, Taobao &amp; 1688. AI verdicts on price, quality, and legitimacy.</p>
+    <p class="welcome-tagline">Search 24,000+ products across Weidian, Taobao &amp; 1688. AI verdicts on price, quality, and legitimacy.</p>
     <div class="prompt-container">
       <div class="prompt-box">
         <input type="text" id="searchInput" placeholder="Search for any rep — e.g. Travis Scott AF1..." autofocus>
@@ -1473,8 +1505,9 @@ function renderCardHTML(r) {
     `<button class="agent-btn" onclick="event.stopPropagation();sendToAgent('${key}', '${r.id}', this)">${(agent.icon||'') + ' ' + agent.name}</button>`
   ).join('');
 
+  const fallbackImg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='68' height='68'%3E%3Crect fill='%232A2A2A' width='68' height='68'/%3E%3Ctext x='34' y='38' text-anchor='middle' fill='%23555' font-size='10' font-family='sans-serif'%3Eno img%3C/text%3E%3C/svg%3E`;
   return `
-    <img class="result-img" src="${r.img}" alt="${escapeAttr(r.name)}" loading="lazy" onerror="this.style.opacity=0">
+    <img class="result-img" src="${r.img || fallbackImg}" alt="${escapeAttr(r.name)}" loading="lazy" onerror="this.src='${fallbackImg}'">
     <div class="result-body">
       <div class="result-top">
         <div class="result-info">
@@ -1828,27 +1861,53 @@ function escapeHtml(str) {
 function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
 
 // ════════════════════════════════════════════════
-// REAL PRODUCT DATABASE — 35,449 products from scraped spreadsheets
+// REAL PRODUCT DATABASE — 24,384 products from Supabase
 // ════════════════════════════════════════════════
+
+const SUPABASE_URL = 'https://xacehhtgvubcqdoltazg.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_1TNu5hqotJ7GGQXfjliivQ_ttK51EAA';
 
 let PRODUCT_DB = null;
 
 async function loadProductDB() {
   if (PRODUCT_DB) return PRODUCT_DB;
   try {
-    const resp = await fetch('data/products.json');
-    if (!resp.ok) throw new Error('Failed to load products');
-    const raw = await resp.json();
-    // raw is array of: [name, price, category, image, platform, itemID]
-    PRODUCT_DB = raw.map(p => ({
-      name: p[0],
-      price: p[1],
-      category: p[2],
-      image: p[3],
-      platform: p[4] || 'weidian',
-      itemID: p[5],
-    }));
-    console.log(`Loaded ${PRODUCT_DB.length} products`);
+    // Fetch all products from Supabase (paginated, 1000 per page)
+    PRODUCT_DB = [];
+    const pageSize = 1000;
+    for (let offset = 0; ; offset += pageSize) {
+      const url = `${SUPABASE_URL}/rest/v1/repfind_products?select=name,brand,category,platform,seller_name,price_cny,price_usd,image_url,quality,rating,sales,cnfans_url,external_id&order=id.asc&limit=${pageSize}&offset=${offset}`;
+      const resp = await fetch(url, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+        }
+      });
+      if (!resp.ok) throw new Error(`Supabase returned ${resp.status}`);
+      const batch = await resp.json();
+      if (!batch || batch.length === 0) break;
+      // Map Supabase objects → format the codebase expects
+      for (const p of batch) {
+        PRODUCT_DB.push({
+          name: p.name || 'Unknown Product',
+          price: p.price_usd ? `$${p.price_usd}` : (p.price_cny ? `¥${p.price_cny}` : ''),
+          category: p.category || p.brand || '',
+          image: p.image_url || '',
+          platform: p.platform || 'weidian',
+          itemID: p.external_id || '',
+          // Extra fields for richer cards
+          _seller: p.seller_name || '',
+          _rating: p.rating || 4.5,
+          _sales: p.sales || 0,
+          _priceCNY: p.price_cny || 0,
+          _priceUSD: p.price_usd || 0,
+          _cnfansUrl: p.cnfans_url || '',
+          _quality: p.quality || 'good',
+        });
+      }
+      if (batch.length < pageSize) break; // last page
+    }
+    console.log(`Loaded ${PRODUCT_DB.length} products from Supabase`);
     return PRODUCT_DB;
   } catch (err) {
     console.error('Product DB load error:', err);
@@ -1993,34 +2052,22 @@ function searchProducts(query, limit = 12) {
 
 function transformProducts(rawProducts) {
   return rawProducts.map((p, i) => {
-    // Parse price — could be "$14", "¥88", "25.43", etc
-    let priceUSD = '';
-    let priceCNY = '';
-    const priceStr = String(p.price || '');
-    
-    const usdMatch = priceStr.match(/\$?([\d.]+)/);
-    const usdVal = usdMatch ? parseFloat(usdMatch[1]) : null;
-    
-    if (priceStr.includes('¥') || priceStr.includes('CNY') || priceStr.includes('￥')) {
-      priceCNY = usdVal ? String(usdVal) : '';
-      priceUSD = usdVal ? (usdVal / 7.25).toFixed(2) : '';
-    } else {
-      priceUSD = usdVal ? usdVal.toFixed(2) : '';
-      priceCNY = usdVal ? Math.round(usdVal * 7.25) : '';
-    }
-    
+    // Use real data from Supabase, fall back to computed values
+    const priceCNY = p._priceCNY || '';
+    const priceUSD = p._priceUSD ? p._priceUSD.toFixed(2) : '';
+
     return {
       id: p.itemID,
       name: p.name || 'Unknown Product',
-      seller: p.category || 'Weidian Seller',
-      rating: 4.0 + (Math.abs(Math.sin((p.itemID || '').charCodeAt(0) || 0)) * 0.9),
-      sales: Math.floor(Math.abs(Math.sin(parseInt(p.itemID || '0', 10) % 9999)) * 3000) + 100,
+      seller: p._seller || p.category || 'Verified Seller',
+      rating: p._rating || 4.5,
+      sales: p._sales || 0,
       platform: p.platform || 'weidian',
       priceCNY: priceCNY,
       priceUSD: priceUSD,
-      quality: 'good',
-      img: p.image || `https://picsum.photos/seed/${encodeURIComponent(p.itemID || 'x')}/100/100`,
-      cnfansUrl: null,
+      quality: p._quality || 'good',
+      img: p.image || '',
+      cnfansUrl: p._cnfansUrl || null,
       _category: p._category || p.category || '',
     };
   });
@@ -2029,7 +2076,7 @@ function transformProducts(rawProducts) {
 function generateVerdict(query, results) {
   if (!results || results.length === 0) {
     return {
-      verdict: `No exact matches found for "${escapeHtml(query)}". Try a broader search term — we have <strong>35,000+</strong> products in the database.`,
+      verdict: `No exact matches found for "${escapeHtml(query)}". Try a broader search term — we have <strong>24,000+</strong> products in the database.`,
       stats: [],
     };
   }
