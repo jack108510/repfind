@@ -1736,26 +1736,20 @@ function searchProducts(query, limit = 12) {
   const words = term.split(/\s+/).filter(w => w.length > 1);
   
   // ─── Rep keyword synonyms ───
-  // Maps common search terms to brand/model names in the database
+  // Only used when a query is ambiguous/abbreviated, NOT to broaden specific searches
   const SYNONYMS = {
-    'af1': ['air force 1', 'air force one', 'af1', 'af 1'],
-    'dunk': ['dunk low', 'dunk high', 'sb dunk'],
-    'jordan': ['jordan 1', 'jordan 4', 'jordan 11', 'air jordan', 'aj1', 'aj4', 'retro jordan'],
-    'aj1': ['jordan 1', 'air jordan 1', 'aj1'],
-    'aj4': ['jordan 4', 'air jordan 4', 'aj4'],
-    'nb': ['new balance', 'nb 9060', 'nb 530', 'nb 2002r'],
-    'yeezy': ['yeezy 350', 'yeezy 450', 'yeezy slide', 'yeezy foam'],
-    'travis': ['travis scott', 'ts jordan', 'ts dunk', 'cactus jack'],
-    'bape': ['bape sta', 'bape hoodie', 'a bathing ape'],
-    'essentials': ['fear of god', 'fog essentials', 'essentials hoodie'],
-    'fog': ['fear of god', 'fog essentials'],
-    'lv': ['louis vuitton', 'lv bag', 'lv wallet', 'lv belt'],
-    'gucci': ['gucci bag', 'gucci wallet', 'gucci belt', 'gucci shoes'],
-    'dior': ['dior b30', 'dior b22', 'dior shirt'],
-    'puffer': ['puffer jacket', 'down jacket', 'parajumper', 'moncler'],
-    'cargo': ['cargo pants', 'cargo shorts'],
-    'tee': ['tshirt', 't-shirt', 'tee shirt'],
-    'hoodie': ['hoodie', 'hooded sweatshirt'],
+    'af1': ['air force 1', 'air force one'],
+    'af 1': ['air force 1', 'air force one'],
+    'aj1': ['air jordan 1', 'jordan 1'],
+    'aj4': ['air jordan 4', 'jordan 4'],
+    'aj11': ['air jordan 11', 'jordan 11'],
+    'nb': ['new balance'],
+    'fog': ['fear of god'],
+    'ts': ['travis scott'],
+    'lv': ['louis vuitton'],
+    'tee': ['t-shirt', 'tshirt'],
+    'dunk lows': ['dunk low'],
+    'yeezys': ['yeezy'],
   };
   
   // Expand query with synonyms
@@ -1788,7 +1782,8 @@ function searchProducts(query, limit = 12) {
     // 3. Name starts with query (very strong signal)
     if (name.startsWith(term)) score += 100;
     
-    // 4. All query words present in name
+    // 4. All query words present in name (CRITICAL — if user said "jordan 4", 
+    // products missing "4" should NOT outrank products that have it)
     let allWordsMatch = true;
     let matchedWords = 0;
     for (const w of words) {
@@ -1798,7 +1793,10 @@ function searchProducts(query, limit = 12) {
         allWordsMatch = false;
       }
     }
-    if (allWordsMatch && words.length > 1) score += 80;
+    if (allWordsMatch && words.length > 1) score += 120; // Big boost for having ALL words
+    // Penalize for each missing word (a product missing "4" when user searched "jordan 4")
+    const missingWords = words.length - matchedWords;
+    score -= missingWords * 50;
     
     // 5. Individual word matches in name (weighted by position)
     for (const w of words) {
