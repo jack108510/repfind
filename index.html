@@ -1071,23 +1071,19 @@ const AGENTS = {
 };
 
 // ─── Affiliate Link Builder ───
+// All products route through agent search with product name.
+// This actually works — direct product links need real platform IDs we don't have.
 function buildAgentLink(agentKey, product) {
-  const platform = product.platform || 'weidian';
-  const id = product.id || product.itemID;
-  if (!id) return '#';
+  const name = encodeURIComponent(product.name || product.id || 'rep');
+  const ref = AFFILIATE_CODES[agentKey];
 
   switch(agentKey) {
-    case 'kakobuy': {
-      // Verified working: takes raw source URL + affcode
-      const sourceUrl = `https://${platform}.com/item.html?itemID=${id}`;
-      return `https://www.kakobuy.com/item/details?url=${encodeURIComponent(sourceUrl)}&source=WD&affcode=${AFFILIATE_CODES.kakobuy}`;
-    }
-    case 'oopbuy':
-      // Verified working: /product/{platform}/{id}?inviteCode=
-      return `https://oopbuy.com/product/${platform}/${id}?inviteCode=${AFFILIATE_CODES.oopbuy}`;
     case 'cnfans':
-      // Needs encoded IDs — may not resolve raw weidian IDs, but we generate best-effort
-      return `https://cnfans.com/product?platform=${platform.toUpperCase()}&id=${id}&ref=${AFFILIATE_CODES.cnfans}`;
+      return `https://cnfans.com/search?keyword=${name}&ref=${ref}`;
+    case 'kakobuy':
+      return `https://www.kakobuy.com/search?q=${name}&affcode=${ref}`;
+    case 'oopbuy':
+      return `https://oopbuy.com/search?q=${name}&inviteCode=${ref}`;
     default:
       return '#';
   }
@@ -1570,8 +1566,6 @@ function renderResults(results) {
 }
 
 function renderCardHTML(r, idx) {
-  const qClass = r.quality === 'good' ? 'quality-good' : r.quality === 'ok' ? 'quality-ok' : 'quality-risky';
-  const qLabel = r.quality === 'good' ? 'Legit' : r.quality === 'ok' ? 'OK' : 'Risky';
   const plat = PLATFORMS[r.platform] || PLATFORMS['weidian'];
   const buyLink = buildBestLink(r);
   const agentBtns = `<a class="buy-btn" href="${buyLink}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')">Buy Now ↗</a>`;
@@ -1584,10 +1578,9 @@ function renderCardHTML(r, idx) {
       <div class="result-top">
         <div class="result-info">
           <div class="result-name" title="${escapeAttr(r.name)}">${escapeHtml(r.name)}${badges}</div>
-          <div class="result-seller">${escapeHtml(r.seller)} · ⭐ ${r.rating.toFixed(1)} · ${r.sales.toLocaleString()} sold</div>
+          <div class="result-seller">${escapeHtml(r.seller || plat.label)}</div>
           <div class="result-meta">
             <span class="platform-badge ${plat.class}">${plat.label}</span>
-            <span class="quality ${qClass}"><span class="quality-dot"></span>${qLabel}</span>
           </div>
         </div>
         <div class="result-price">
@@ -1602,14 +1595,6 @@ function renderCardHTML(r, idx) {
 
 // ─── Best Link Builder (prefers stored CNFans URL, falls back to building one) ───
 function buildBestLink(product) {
-  // If product has a stored cnfans_url, use it (append ref if not already present)
-  if (product.cnfansUrl && product.cnfansUrl.length > 10) {
-    const url = product.cnfansUrl;
-    if (url.includes('ref=')) return url;
-    const sep = url.includes('?') ? '&' : '?';
-    return url + sep + 'ref=' + AFFILIATE_CODES.cnfans;
-  }
-  // Otherwise build from platform + ID
   return buildAgentLink('cnfans', product);
 }
 
@@ -2211,22 +2196,17 @@ function analyzeResults(results) {
   const avgPrice = prices.length > 0 ? prices.reduce((a,b) => a+b, 0) / prices.length : 0;
   const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
   const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
-  let bestValueIdx = -1, bestValueScore = -1, topRatedIdx = -1, topRatedScore = -1;
-  let bestSellerIdx = -1, bestSellerScore = -1, lowestPriceIdx = -1, lowestPrice = Infinity;
-  let warnIdxs = [];
-  results.forEach((r, i) => {
-    const price = parseFloat(r.priceUSD) || 0;
-    const rating = r.rating || 4.5;
-    const sales = r.sales || 0;
-    const valueScore = (rating * 100) + (Math.min(sales, 5000) / 50) - (price > avgPrice ? (price - avgPrice) * 5 : 0);
-    if (valueScore > bestValueScore) { bestValueScore = valueScore; bestValueIdx = i; }
-    if (rating > topRatedScore) { topRatedScore = rating; topRatedIdx = i; }
-    if (sales > bestSellerScore) { bestSellerScore = sales; bestSellerIdx = i; }
-    if (price > 0 && price < lowestPrice) { lowestPrice = price; lowestPriceIdx = i; }
-    if (rating < 4.3) warnIdxs.push(i);
-    else if (price > 0 && avgPrice > 0 && price < avgPrice * 0.4) warnIdxs.push(i);
+  let lowestPriceIdx = -1, lowestPrice = Infinity;
+  priced.forEach((r) => {
+    const price = parseFloat(r.priceUSD);
+    if (price > 0 && price < lowestPrice) { lowestPrice = price; lowestPriceIdx = results.indexOf(r); }
   });
-  return { avgPrice, minPrice, maxPrice, priceSpread: maxPrice - minPrice, bestValueIdx, topRatedIdx, bestSellerIdx, lowestPriceIdx, warnIdxs, totalResults: results.length, platformCount: new Set(results.map(r => r.platform)).size };
+  return {
+    avgPrice, minPrice, maxPrice, priceSpread: maxPrice - minPrice,
+    lowestPriceIdx,
+    totalResults: results.length,
+    platformCount: new Set(results.map(r => r.platform)).size,
+  };
 }
 
 function generateSmartVerdict(query, results, a) {
@@ -2242,20 +2222,12 @@ function generateSmartVerdict(query, results, a) {
     { label: 'Listings', value: `${a.totalResults}`, class: 'green' },
   ] : [{ label: 'Listings', value: `${a.totalResults}`, class: 'accent' }];
   const insights = [];
-  if (a.bestValueIdx >= 0) {
-    const p = results[a.bestValueIdx]; const price = parseFloat(p.priceUSD) || 0;
-    const reason = (price > 0 && price < a.avgPrice) ? `$${price.toFixed(2)} is below the $${avg} average, with a ${p.rating.toFixed(1)}★ rating and ${(p.sales||0).toLocaleString()} sales` : `highest combined score for rating (${p.rating.toFixed(1)}★) and sales (${(p.sales||0).toLocaleString()})`;
-    insights.push({ type: 'pick', icon: '🎯', text: `<strong>Best value:</strong> ${escapeHtml(p.name)} — ${reason}` });
-  }
-  if (a.lowestPriceIdx >= 0 && a.lowestPriceIdx !== a.bestValueIdx) {
+  if (a.lowestPriceIdx >= 0 && a.avgPrice > 0) {
     const p = results[a.lowestPriceIdx]; const price = parseFloat(p.priceUSD) || 0;
-    if (a.avgPrice > 0 && price < a.avgPrice * 0.6) insights.push({ type: 'deal', icon: '💰', text: `<strong>Lowest price:</strong> ${escapeHtml(p.name)} at $${price.toFixed(2)} — ${Math.round((1-price/a.avgPrice)*100)}% below average. Check QC before buying.` });
+    const pctBelow = Math.round((1 - price / a.avgPrice) * 100);
+    if (pctBelow > 5) insights.push({ type: 'deal', icon: '💰', text: `<strong>Lowest price:</strong> ${escapeHtml(p.name)} at $${price.toFixed(2)} — ${pctBelow}% below the $${avg} average.` });
   }
-  if (a.warnIdxs.length > 0) {
-    const wp = a.warnIdxs.map(i => escapeHtml(results[i].name)).slice(0, 2);
-    insights.push({ type: 'warn', icon: '⚠️', text: `<strong>Watch out:</strong> ${wp.join(', ')} ${a.warnIdxs.length > 2 ? `and ${a.warnIdxs.length-2} others ` : ''}${a.warnIdxs.some(i => results[i].rating < 4.3) ? 'have low seller ratings' : 'have suspiciously low prices'}.` });
-  }
-  if (a.priceSpread > 30 && a.totalResults >= 4) insights.push({ type: 'info', icon: '📊', text: `Big price gap ($${min} to $${max}). Higher price ≠ better quality in reps — check QC reviews.` });
+  if (a.priceSpread > 30 && a.totalResults >= 4) insights.push({ type: 'info', icon: '📊', text: `Big price gap ($${min} to $${max}). Higher price doesn't always mean better quality — do your own QC research.` });
   return { verdict: parts.join('. ') + '.', stats, insights };
 }
 
@@ -2270,16 +2242,12 @@ function renderInsights(insights) {
 function renderSmartBadges(idx, analysis) {
   if (!analysis) return '';
   let b = '';
-  if (idx === analysis.bestValueIdx) b += '<span class="smart-badge badge-best-value">🎯 Best Value</span>';
-  if (idx === analysis.topRatedIdx) b += '<span class="smart-badge badge-top-rated">⭐ Top Rated</span>';
-  if (idx === analysis.bestSellerIdx) b += '<span class="smart-badge badge-best-seller">🔥 Best Seller</span>';
-  if (idx === analysis.lowestPriceIdx && analysis.lowestPriceIdx !== analysis.bestValueIdx) b += '<span class="smart-badge badge-lowest-price">💰 Lowest</span>';
-  if (analysis.warnIdxs.includes(idx)) b += '<span class="smart-badge badge-warn">⚠️ Caution</span>';
+  if (idx === analysis.lowestPriceIdx) b += '<span class="smart-badge badge-lowest-price">💰 Lowest Price</span>';
   return b;
 }
 
 function renderRefinementHint() {
-  return `<div class="refinement-hint"><span>Narrow down:</span><span class="refinement-chip" onclick="refineResults('cheaper')">💰 Under avg</span><span class="refinement-chip" onclick="refineResults('expensive')">💎 Premium</span><span class="refinement-chip" onclick="refineResults('toprated')">⭐ Highest rated</span><span class="refinement-chip" onclick="refineResults('popular')">🔥 Most sold</span><span class="refinement-chip" onclick="refineResults('all')">↺ Show all</span></div>`;
+  return `<div class="refinement-hint"><span>Narrow down:</span><span class="refinement-chip" onclick="refineResults('cheaper')">💰 Under avg</span><span class="refinement-chip" onclick="refineResults('expensive')">💎 Premium</span><span class="refinement-chip" onclick="refineResults('cheapest')">📈 Cheapest first</span><span class="refinement-chip" onclick="refineResults('all')">↺ Show all</span></div>`;
 }
 
 function refineResults(mode) {
@@ -2292,8 +2260,7 @@ function refineResults(mode) {
   switch(mode) {
     case 'cheaper': filtered = filtered.filter(r => parseFloat(r.priceUSD) > 0 && parseFloat(r.priceUSD) <= avg).sort((a,b) => parseFloat(a.priceUSD) - parseFloat(b.priceUSD)); showToast(`Showing ${filtered.length} under $${avg.toFixed(2)}`); break;
     case 'expensive': filtered = filtered.filter(r => parseFloat(r.priceUSD) > avg).sort((a,b) => parseFloat(b.priceUSD) - parseFloat(a.priceUSD)); showToast(`Premium picks`); break;
-    case 'toprated': filtered.sort((a,b) => (b.rating||0) - (a.rating||0)); showToast('Sorted by rating'); break;
-    case 'popular': filtered.sort((a,b) => (b.sales||0) - (a.sales||0)); showToast('Sorted by sales'); break;
+    case 'cheapest': filtered.sort((a,b) => parseFloat(a.priceUSD || 9999) - parseFloat(b.priceUSD || 9999)); showToast('Sorted cheapest first'); break;
     default: showToast('Showing all'); break;
   }
   list.innerHTML = '';
