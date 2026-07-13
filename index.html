@@ -1006,38 +1006,39 @@
 // repfind — Premium AI Search UX
 // ════════════════════════════════════════════════
 
+const AFFILIATE_CODES = {
+  kakobuy: 'cq43b',
+  oopbuy:  '2TRZU7BH3',
+  cnfans:  '1243144',
+};
+
 const AGENTS = {
-  cnfans:  { name: 'CNFans', ref: '1243144', domains: ['taobao','weidian','1688'] },
-  kakobuy: { name: 'KakoBuy', ref: '', domains: ['taobao','weidian','1688'] },
-  oopbuy:  { name: 'Oopbuy', ref: '', domains: ['taobao','weidian','1688'] },
+  kakobuy: { name: 'KakoBuy', icon: '🛒' },
+  oopbuy:  { name: 'Oopbuy',  icon: '🛍️' },
+  cnfans:  { name: 'CNFans',  icon: '📦' },
 };
 
 // ─── Affiliate Link Builder ───
 function buildAgentLink(agentKey, product) {
-  const agent = AGENTS[agentKey];
-  if (!agent) return '#';
+  const platform = product.platform || 'weidian';
+  const id = product.id || product.itemID;
+  if (!id) return '#';
 
-  // If product has a stored CNFans URL (from database), use it
-  if (agentKey === 'cnfans' && product.cnfansUrl) {
-    return product.cnfansUrl; // Already has ref=1243144
+  switch(agentKey) {
+    case 'kakobuy': {
+      // Verified working: takes raw source URL + affcode
+      const sourceUrl = `https://${platform}.com/item.html?itemID=${id}`;
+      return `https://www.kakobuy.com/item/details?url=${encodeURIComponent(sourceUrl)}&source=WD&affcode=${AFFILIATE_CODES.kakobuy}`;
+    }
+    case 'oopbuy':
+      // Verified working: /product/{platform}/{id}?inviteCode=
+      return `https://oopbuy.com/product/${platform}/${id}?inviteCode=${AFFILIATE_CODES.oopbuy}`;
+    case 'cnfans':
+      // Needs encoded IDs — may not resolve raw weidian IDs, but we generate best-effort
+      return `https://cnfans.com/product?platform=${platform.toUpperCase()}&id=${id}&ref=${AFFILIATE_CODES.cnfans}`;
+    default:
+      return '#';
   }
-
-  // CNFans link format with affiliate ref
-  if (agentKey === 'cnfans') {
-    const platform = (product.platform || 'weidian').toUpperCase();
-    const base = `https://cnfans.com/product?platform=${platform}&id=${product.id}`;
-    return agent.ref ? `${base}&ref=${agent.ref}` : base;
-  }
-
-  // KakoBuy / Oopbuy
-  if (agentKey === 'kakobuy') {
-    return `https://www.kakobuy.com/item/${product.platform || 'weidian'}/${product.id}`;
-  }
-  if (agentKey === 'oopbuy') {
-    return `https://oopbuy.com/product/${product.platform || 'weidian'}/${product.id}`;
-  }
-
-  return '#';
 }
 const PLATFORMS = {
   weidian: { label: 'Weidian', class: 'platform-weidian' },
@@ -1318,8 +1319,9 @@ async function renderSearchResponse(ai, container) {
 
   // Stream the AI reply first
   streamText(document.getElementById('verdictText'), ai.reply, async () => {
-    // Then fetch real products from database
-    const rawProducts = await fetchProducts(query, 12);
+    // Search real product database
+    await loadProductDB();
+    const rawProducts = searchProducts(query, 12);
     const results = transformProducts(rawProducts);
     
     // Store for export functionality
@@ -1436,7 +1438,7 @@ function renderCardHTML(r) {
   const qLabel = r.quality === 'good' ? 'Legit' : r.quality === 'ok' ? 'OK' : 'Risky';
   const plat = PLATFORMS[r.platform] || PLATFORMS['weidian'];
   const agentBtns = Object.entries(AGENTS).map(([key, agent]) =>
-    `<button class="agent-btn" onclick="event.stopPropagation();sendToAgent('${key}', '${r.id}', this)">${agent.name}</button>`
+    `<button class="agent-btn" onclick="event.stopPropagation();sendToAgent('${key}', '${r.id}', this)">${(agent.icon||'') + ' ' + agent.name}</button>`
   ).join('');
 
   return `
@@ -1651,101 +1653,157 @@ function escapeHtml(str) {
 function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
 
 // ════════════════════════════════════════════════
-// SUPABASE — Real Product Database
+// REAL PRODUCT DATABASE — 35,449 products from scraped spreadsheets
 // ════════════════════════════════════════════════
 
-const SB_URL = 'https://xacehhtgvubcqdoltazg.supabase.co';
-const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhY2VoaHRndnViY3Fkb2x0YXpnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mzk0Mjg2NywiZXhwIjoyMDg5NTE4ODY3fQ.5sqLtRtRnWEEuytTsfGhh1hmrQkTilL4Bd_rMrqmQ9A';
+let PRODUCT_DB = null;
 
-async function fetchProducts(query, limit = 12) {
-  // Search by text in name or by category/tags
-  const searchTerm = query.toLowerCase().trim();
-  
-  // Try full-text search first
-  const searchUrl = `${SB_URL}/rest/v1/repfind_products?select=name,external_id,price_usd,price_cny,image_url,cnfans_url,category,platform&or=(name.ilike.%${encodeURIComponent(searchTerm)}%,category.ilike.%${encodeURIComponent(searchTerm)}%,search_tags.cs.{${encodeURIComponent(searchTerm)}})&limit=${limit}&order=price_usd.asc`;
-  
+async function loadProductDB() {
+  if (PRODUCT_DB) return PRODUCT_DB;
   try {
-    const resp = await fetch(searchUrl, {
-      headers: {
-        'apikey': SB_ANON,
-        'Authorization': `Bearer ${SB_ANON}`,
-      }
-    });
+    const resp = await fetch('data/products.json');
+    if (!resp.ok) throw new Error('Failed to load products');
+    const raw = await resp.json();
+    // raw is array of: [name, price, category, image, platform, itemID]
+    PRODUCT_DB = raw.map(p => ({
+      name: p[0],
+      price: p[1],
+      category: p[2],
+      image: p[3],
+      platform: p[4] || 'weidian',
+      itemID: p[5],
+    }));
+    console.log(`Loaded ${PRODUCT_DB.length} products`);
+    return PRODUCT_DB;
+  } catch (err) {
+    console.error('Product DB load error:', err);
+    PRODUCT_DB = [];
+    return PRODUCT_DB;
+  }
+}
+
+function searchProducts(query, limit = 12) {
+  if (!PRODUCT_DB || PRODUCT_DB.length === 0) return [];
+  
+  const term = query.toLowerCase().trim();
+  const words = term.split(/\s+/).filter(w => w.length > 1);
+  
+  // Score each product by how well it matches
+  const scored = [];
+  for (const p of PRODUCT_DB) {
+    const name = (p.name || '').toLowerCase();
+    const cat = (p.category || '').toLowerCase();
     
-    if (!resp.ok) throw new Error(`Supabase error: ${resp.status}`);
-    const data = await resp.json();
+    let score = 0;
     
-    // If no exact matches, try partial word matching
-    if (data.length === 0) {
-      const words = searchTerm.split(/\s+/).filter(w => w.length > 2);
-      if (words.length > 0) {
-        const partialQuery = words.map(w => `name.ilike.%${w}%`).join(',');
-        const partialUrl = `${SB_URL}/rest/v1/repfind_products?select=name,external_id,price_usd,price_cny,image_url,cnfans_url,category,platform&or=(${partialQuery})&limit=${limit}&order=price_usd.asc`;
-        const resp2 = await fetch(partialUrl, {
-          headers: {
-            'apikey': SB_ANON,
-            'Authorization': `Bearer ${SB_ANON}`,
-          }
-        });
-        if (resp2.ok) {
-          return await resp2.json();
-        }
-      }
+    // Exact phrase match
+    if (name.includes(term)) score += 100;
+    if (cat.includes(term)) score += 50;
+    
+    // Individual word matches
+    for (const w of words) {
+      if (name.includes(w)) score += 20;
+      if (cat.includes(w)) score += 10;
     }
     
-    return data;
-  } catch (err) {
-    console.error('Product fetch error:', err);
-    return [];
+    // Boost for having an image
+    if (p.image) score += 1;
+    
+    if (score > 0) {
+      scored.push({ ...p, score });
+    }
   }
+  
+  // Sort by relevance score
+  scored.sort((a, b) => b.score - a.score);
+  
+  // Deduplicate by itemID (keep highest scoring)
+  const seen = new Set();
+  const results = [];
+  for (const p of scored) {
+    if (!seen.has(p.itemID)) {
+      seen.add(p.itemID);
+      results.push(p);
+      if (results.length >= limit) break;
+    }
+  }
+  
+  return results;
 }
 
 function transformProducts(rawProducts) {
-  return rawProducts.map((p, i) => ({
-    id: p.external_id || `prod-${i}`,
-    name: p.name || 'Unknown Product',
-    seller: p.category ? `${p.category} seller` : 'Verified Seller',
-    rating: 4.3 + (Math.sin(i * 7) * 0.5),
-    sales: Math.floor(Math.abs(Math.sin(i * 13)) * 4000) + 200,
-    platform: p.platform || 'weidian',
-    priceCNY: p.price_cny || Math.round((p.price_usd || 70) * 7.25),
-    priceUSD: p.price_usd ? p.price_usd.toFixed(2) : '70.00',
-    quality: i % 5 === 4 ? 'ok' : 'good',
-    img: p.image_url || `https://picsum.photos/seed/${encodeURIComponent(p.external_id || i)}/100/100`,
-    cnfansUrl: p.cnfans_url,
-  }));
+  return rawProducts.map((p, i) => {
+    // Parse price — could be "$14", "¥88", "25.43", etc
+    let priceUSD = '';
+    let priceCNY = '';
+    const priceStr = String(p.price || '');
+    
+    const usdMatch = priceStr.match(/\$?([\d.]+)/);
+    const usdVal = usdMatch ? parseFloat(usdMatch[1]) : null;
+    
+    if (priceStr.includes('¥') || priceStr.includes('CNY') || priceStr.includes('￥')) {
+      priceCNY = usdVal ? String(usdVal) : '';
+      priceUSD = usdVal ? (usdVal / 7.25).toFixed(2) : '';
+    } else {
+      priceUSD = usdVal ? usdVal.toFixed(2) : '';
+      priceCNY = usdVal ? Math.round(usdVal * 7.25) : '';
+    }
+    
+    return {
+      id: p.itemID,
+      name: p.name || 'Unknown Product',
+      seller: p.category || 'Weidian Seller',
+      rating: 4.0 + (Math.abs(Math.sin((p.itemID || '').charCodeAt(0) || 0)) * 0.9),
+      sales: Math.floor(Math.abs(Math.sin(parseInt(p.itemID || '0', 10) % 9999)) * 3000) + 100,
+      platform: p.platform || 'weidian',
+      priceCNY: priceCNY,
+      priceUSD: priceUSD,
+      quality: 'good',
+      img: p.image || `https://picsum.photos/seed/${encodeURIComponent(p.itemID || 'x')}/100/100`,
+      cnfansUrl: null,
+    };
+  });
 }
 
 function generateVerdict(query, results) {
-  const prices = results.map(r => r.priceCNY);
-  const avg = Math.round(prices.reduce((a,b) => a+b, 0) / prices.length);
+  if (!results || results.length === 0) {
+    return {
+      verdict: `No exact matches found for "${escapeHtml(query)}". Try a broader search term — we have <strong>35,000+</strong> products in the database.`,
+      stats: [],
+    };
+  }
+  
+  const prices = results.map(r => parseFloat(r.priceUSD)).filter(p => p > 0);
+  
+  if (prices.length === 0) {
+    return {
+      verdict: `Found <strong>${results.length} results</strong> for "${escapeHtml(query)}". Check the listings below — click any agent to buy with your referral automatically applied.`,
+      stats: [
+        { label: 'Results', value: `${results.length}`, class: 'accent' },
+      ],
+    };
+  }
+  
+  const avg = prices.reduce((a,b) => a+b, 0) / prices.length;
   const min = Math.min(...prices);
   const max = Math.max(...prices);
-  const goodCount = results.filter(r => r.quality === 'good').length;
-  const okCount = results.filter(r => r.quality === 'ok').length;
-  const riskyCount = results.filter(r => r.quality === 'risky').length;
-  const avgUSD = (avg / 7.25).toFixed(2);
-
-  let verdict;
-  if (goodCount >= 3) {
-    verdict = `Found <strong>${goodCount} legit sellers</strong> with solid ratings and real sales volume. The market for "${escapeHtml(query)}" is healthy — avg price is <strong>¥${avg} ($${avgUSD})</strong> and you've got plenty of options.`;
-  } else if (goodCount >= 1) {
-    verdict = `Mixed results. <strong>${goodCount} sellers</strong> look trustworthy, ${okCount + riskyCount} are questionable. Avg price is <strong>¥${avg} ($${avgUSD})</strong> — stick to the green-rated ones below.`;
-  } else {
-    verdict = `Most results for "${escapeHtml(query)}" look risky. Low sales, poor ratings. Avg price is <strong>¥${avg} ($${avgUSD})</strong>. Proceed with caution — check QC pics before committing.`;
-  }
-
+  
+  const verdict = `Found <strong>${results.length} listings</strong> for "${escapeHtml(query)}". Avg price is <strong>$${avg.toFixed(2)}</strong> (range $${min.toFixed(2)}–$${max.toFixed(2)}). Click an agent button to buy — your referral is automatically applied.`;
+  
   return {
     verdict,
     stats: [
-      { label: 'Avg Price', value: `¥${avg}`, sub: `$${avgUSD}`, class: 'accent' },
-      { label: 'Price Range', value: `¥${min}–${max}`, class: '' },
-      { label: 'Legit Sellers', value: `${goodCount}/${results.length}`, class: goodCount >= 3 ? 'green' : goodCount >= 1 ? 'yellow' : '' },
+      { label: 'Avg Price', value: `$${avg.toFixed(2)}`, class: 'accent' },
+      { label: 'Price Range', value: `$${min.toFixed(2)}–$${max.toFixed(2)}`, class: '' },
+      { label: 'Results', value: `${results.length}`, class: 'green' },
     ],
   };
 }
 
 mainInput.focus();
+
+// Preload product database in background
+loadProductDB();
 </script>
 </body>
 </html>
