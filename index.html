@@ -1175,9 +1175,25 @@ async function doSearch(fromDocked) {
     if (ai.action === 'search' && ai.search_query) {
       // AI says search — show results with the refined query
       renderSearchResponse(ai, inner);
+    } else if (ai.action === 'search' || ai.search_query) {
+      // AI returned search action but missing query — use raw user query
+      ai.search_query = query;
+      renderSearchResponse(ai, inner);
     } else {
       // Clarify — conversational reply with chips
-      renderChatResponse(ai, inner);
+      // But also try a background search in case the AI was too cautious
+      const bgResults = searchProducts(query, 6);
+      if (bgResults.length >= 3) {
+        // Enough results — just search directly
+        ai.action = 'search';
+        ai.search_query = query;
+        if (!ai.reply || ai.reply.length < 20) {
+          ai.reply = `Found some great matches for "${query}". Here are the top picks:`;
+        }
+        renderSearchResponse(ai, inner);
+      } else {
+        renderChatResponse(ai, inner);
+      }
     }
 
     addHistory(query);
@@ -1321,7 +1337,36 @@ async function renderSearchResponse(ai, container) {
   streamText(document.getElementById('verdictText'), ai.reply, async () => {
     // Search real product database
     await loadProductDB();
-    const rawProducts = searchProducts(query, 12);
+    let rawProducts = searchProducts(query, 12);
+    
+    // If AI query returned too few results, try broader fallbacks
+    if (rawProducts.length < 6) {
+      // Try with the original user query (not the AI-refined one)
+      const userQuery = chatHistory[chatHistory.length - 2]?.content || query;
+      if (userQuery && userQuery !== query) {
+        const fallback = searchProducts(userQuery, 12);
+        if (fallback.length > rawProducts.length) {
+          rawProducts = fallback;
+        }
+      }
+      
+      // Still too few? Try each word individually
+      if (rawProducts.length < 4) {
+        const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+        const bestWord = words.sort((a,b) => {
+          const ac = searchProducts(a, 100).length;
+          const bc = searchProducts(b, 100).length;
+          return bc - ac;
+        })[0];
+        if (bestWord) {
+          const wordResults = searchProducts(bestWord, 12);
+          if (wordResults.length > rawProducts.length) {
+            rawProducts = wordResults;
+          }
+        }
+      }
+    }
+    
     const results = transformProducts(rawProducts);
     
     // Store for export functionality
@@ -1686,36 +1731,123 @@ function searchProducts(query, limit = 12) {
   if (!PRODUCT_DB || PRODUCT_DB.length === 0) return [];
   
   const term = query.toLowerCase().trim();
+  if (!term) return [];
+  
   const words = term.split(/\s+/).filter(w => w.length > 1);
   
-  // Score each product by how well it matches
+  // ─── Rep keyword synonyms ───
+  // Maps common search terms to brand/model names in the database
+  const SYNONYMS = {
+    'af1': ['air force 1', 'air force one', 'af1', 'af 1'],
+    'dunk': ['dunk low', 'dunk high', 'sb dunk'],
+    'jordan': ['jordan 1', 'jordan 4', 'jordan 11', 'air jordan', 'aj1', 'aj4', 'retro jordan'],
+    'aj1': ['jordan 1', 'air jordan 1', 'aj1'],
+    'aj4': ['jordan 4', 'air jordan 4', 'aj4'],
+    'nb': ['new balance', 'nb 9060', 'nb 530', 'nb 2002r'],
+    'yeezy': ['yeezy 350', 'yeezy 450', 'yeezy slide', 'yeezy foam'],
+    'travis': ['travis scott', 'ts jordan', 'ts dunk', 'cactus jack'],
+    'bape': ['bape sta', 'bape hoodie', 'a bathing ape'],
+    'essentials': ['fear of god', 'fog essentials', 'essentials hoodie'],
+    'fog': ['fear of god', 'fog essentials'],
+    'lv': ['louis vuitton', 'lv bag', 'lv wallet', 'lv belt'],
+    'gucci': ['gucci bag', 'gucci wallet', 'gucci belt', 'gucci shoes'],
+    'dior': ['dior b30', 'dior b22', 'dior shirt'],
+    'puffer': ['puffer jacket', 'down jacket', 'parajumper', 'moncler'],
+    'cargo': ['cargo pants', 'cargo shorts'],
+    'tee': ['tshirt', 't-shirt', 'tee shirt'],
+    'hoodie': ['hoodie', 'hooded sweatshirt'],
+  };
+  
+  // Expand query with synonyms
+  const expandedTerms = new Set([term]);
+  for (const [key, syns] of Object.entries(SYNONYMS)) {
+    if (term.includes(key) || words.some(w => w === key)) {
+      syns.forEach(s => expandedTerms.add(s));
+    }
+  }
+  const searchTermList = [...expandedTerms];
+  
+  // ─── Scoring ───
   const scored = [];
   for (const p of PRODUCT_DB) {
     const name = (p.name || '').toLowerCase();
     const cat = (p.category || '').toLowerCase();
     
+    if (!name) continue;
+    
     let score = 0;
     
-    // Exact phrase match
-    if (name.includes(term)) score += 100;
-    if (cat.includes(term)) score += 50;
+    // 1. Exact full query phrase in name (highest signal)
+    if (name.includes(term)) score += 200;
     
-    // Individual word matches
-    for (const w of words) {
-      if (name.includes(w)) score += 20;
-      if (cat.includes(w)) score += 10;
+    // 2. Expanded term phrase matches in name
+    for (const st of searchTermList) {
+      if (st !== term && name.includes(st)) score += 150;
     }
     
-    // Boost for having an image
-    if (p.image) score += 1;
+    // 3. Name starts with query (very strong signal)
+    if (name.startsWith(term)) score += 100;
+    
+    // 4. All query words present in name
+    let allWordsMatch = true;
+    let matchedWords = 0;
+    for (const w of words) {
+      if (name.includes(w)) {
+        matchedWords++;
+      } else {
+        allWordsMatch = false;
+      }
+    }
+    if (allWordsMatch && words.length > 1) score += 80;
+    
+    // 5. Individual word matches in name (weighted by position)
+    for (const w of words) {
+      const idx = name.indexOf(w);
+      if (idx === 0) score += 40;        // word at start
+      else if (idx > 0 && idx < name.length / 3) score += 30; // word near start
+      else if (idx > 0) score += 15;     // word somewhere
+    }
+    
+    // 6. Expanded word matches (synonyms)
+    for (const st of searchTermList) {
+      if (st !== term && !words.some(w => st.includes(w))) {
+        const stWords = st.split(/\s+/);
+        let stMatch = true;
+        for (const sw of stWords) {
+          if (!name.includes(sw)) { stMatch = false; break; }
+        }
+        if (stMatch) score += 50;
+      }
+    }
+    
+    // 7. Category match (lower weight)
+    for (const w of words) {
+      if (cat.includes(w)) score += 8;
+    }
+    for (const st of searchTermList) {
+      if (st !== term && cat.includes(st)) score += 12;
+    }
+    
+    // 8. Quality boosts
+    if (p.image && !p.image.includes('picsum')) score += 5;  // Has real image
+    if (p.clicks > 0) score += Math.min(p.clicks / 100, 20); // Popularity (capped)
+    
+    // 9. Penalize very long names (likely irrelevant keyword-stuffed listings)
+    if (name.length > 80) score -= 10;
+    
+    // 10. Penalize names that are just numbers or gibberish
+    if (/^[\d\s\W]+$/.test(name)) score -= 30;
     
     if (score > 0) {
       scored.push({ ...p, score });
     }
   }
   
-  // Sort by relevance score
-  scored.sort((a, b) => b.score - a.score);
+  // Sort by score (desc), then by name length (asc) for tie-breaker
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return (a.name || '').length - (b.name || '').length;
+  });
   
   // Deduplicate by itemID (keep highest scoring)
   const seen = new Set();
