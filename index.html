@@ -757,6 +757,15 @@
       font-size: 0.68rem;
       color: var(--text-dim);
     }
+    .currency-switcher { display: flex; gap: 2px; margin-left: auto; }
+    .currency-btn {
+      font-size: 0.65rem; font-weight: 700; padding: 3px 7px;
+      border-radius: var(--radius-xs); border: 1px solid transparent;
+      background: transparent; color: var(--text-dim); cursor: pointer;
+      transition: all var(--transition);
+    }
+    .currency-btn:hover { color: var(--text-muted); }
+    .currency-btn.active { background: var(--surface-3); color: var(--accent); border-color: var(--border-light); }
     .result-actions {
       display: flex;
       gap: 6px;
@@ -1006,6 +1015,13 @@
   <div class="topbar" id="topbar">
     <span class="topbar-logo">rep<span class="find">find</span></span>
     <div class="topbar-right">
+      <div class="currency-switcher" id="topbarCurrency">
+        <button class="currency-btn" data-currency="USD" onclick="setCurrency('USD')">USD</button>
+        <button class="currency-btn" data-currency="CAD" onclick="setCurrency('CAD')">CAD</button>
+        <button class="currency-btn" data-currency="AUD" onclick="setCurrency('AUD')">AUD</button>
+        <button class="currency-btn" data-currency="EUR" onclick="setCurrency('EUR')">EUR</button>
+        <button class="currency-btn" data-currency="CNY" onclick="setCurrency('CNY')">CNY</button>
+      </div>
       <button class="topbar-btn" onclick="alert('Coming soon')">Agents</button>
       <button class="topbar-btn" onclick="alert('Coming soon')">About</button>
     </div>
@@ -1069,6 +1085,32 @@ const AGENTS = {
   oopbuy:  { name: 'Oopbuy',  icon: '🛍️' },
   cnfans:  { name: 'CNFans',  icon: '📦' },
 };
+
+// ─── Currency conversion ───
+const EXCHANGE_RATES = { CNY: 1, USD: 0.14, CAD: 0.19, AUD: 0.21, EUR: 0.13 };
+const CURRENCY_SYMBOLS = { CNY: '¥', USD: '$', CAD: 'C$', AUD: 'A$', EUR: '€' };
+let currentCurrency = localStorage.getItem('repfind_currency') || 'USD';
+function convertPrice(cny, currency) {
+  if (!cny || cny <= 0) return null;
+  return cny * (EXCHANGE_RATES[currency] || EXCHANGE_RATES.USD);
+}
+function formatPrice(cny, currency) {
+  const v = convertPrice(cny, currency);
+  if (v === null) return '';
+  return (CURRENCY_SYMBOLS[currency] || '$') + v.toFixed(2);
+}
+function setCurrency(curr) {
+  currentCurrency = curr;
+  localStorage.setItem('repfind_currency', curr);
+  document.querySelectorAll('[data-price-cny]').forEach(el => {
+    const cny = parseFloat(el.dataset.priceCny);
+    el.querySelector('.price-main').textContent = formatPrice(cny, currentCurrency);
+    el.querySelector('.price-cny').textContent = currentCurrency;
+  });
+  document.querySelectorAll('.currency-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.currency === curr);
+  });
+}
 
 // ─── Affiliate Link Builder ───
 // All products route through agent search with product name.
@@ -1137,7 +1179,10 @@ function newSearch() {
   document.getElementById('dockedInput').classList.remove('show');
   document.getElementById('topbar').classList.remove('show');
   mainInput.value = '';
-  mainInput.focus();
+  document.querySelectorAll('.currency-btn').forEach(b => {
+  b.classList.toggle('active', b.dataset.currency === currentCurrency);
+});
+mainInput.focus();
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('show');
   chatHistory = []; // reset conversation
@@ -1583,9 +1628,9 @@ function renderCardHTML(r, idx) {
             <span class="platform-badge ${plat.class}">${plat.label}</span>
           </div>
         </div>
-        <div class="result-price">
-          <div class="price-main">¥${r.priceCNY}</div>
-          <div class="price-cny">$${r.priceUSD}</div>
+        <div class="result-price" data-price-cny="${r.priceCNY || 0}">
+          <div class="price-main">${formatPrice(r.priceCNY || 0, currentCurrency)}</div>
+          <div class="price-cny">${currentCurrency}</div>
         </div>
       </div>
       <div class="result-actions">${agentBtns}</div>
@@ -2283,6 +2328,9 @@ function generateVerdict(query, results) {
 }
 
 
+document.querySelectorAll('.currency-btn').forEach(b => {
+  b.classList.toggle('active', b.dataset.currency === currentCurrency);
+});
 mainInput.focus();
 
 // Preload product database in background
