@@ -1160,6 +1160,17 @@ async function doSearch(fromDocked) {
   const loadingDiv = document.createElement('div');
   loadingDiv.className = 'ai-response';
   loadingDiv.id = 'loadingSection';
+  // Pick a random thinking message for personality
+  const thinkingMsgs = [
+    'Let me dig through the stacks...',
+    'Searching the best sellers for you...',
+    'Asking around the quality forums...',
+    'Scanning 24K+ listings...',
+    'Checking legit ratings and prices...',
+    'Hunting for the best batches...',
+  ];
+  const thinkMsg = thinkingMsgs[Math.floor(Math.random() * thinkingMsgs.length)];
+  
   loadingDiv.innerHTML = `
     <div class="loading-header">
       <div class="avatar">r</div>
@@ -1169,7 +1180,7 @@ async function doSearch(fromDocked) {
       <div class="step-list" id="stepList">
         <div class="step-item active" data-step="0" style="animation-delay:0s">
           <div class="step-check spinner-mini" id="check0"></div>
-          <span>Thinking...</span>
+          <span>${thinkMsg}</span>
         </div>
       </div>
     </div>
@@ -1401,7 +1412,7 @@ async function renderSearchResponse(ai, container) {
       const provEl = document.getElementById('provenance');
       const provText = document.getElementById('provenanceText');
       if (results.length > 0) {
-        provText.innerHTML = `Sourced from <strong style="color:var(--text-muted)">${results.length} verified sellers</strong> <span class="dot-sep"></span> <span>${new Set(results.map(r => r.platform)).size} platforms</span> <span class="dot-sep"></span> <span>Updated just now</span>`;
+        provText.innerHTML = `<strong style="color:var(--text-muted)">${results.length} listings</strong> from real sellers <span class="dot-sep"></span> <span>${new Set(results.map(r => r.platform)).size} platforms</span> <span class="dot-sep"></span> <span>Live data</span>`;
       } else {
         provText.innerHTML = `No products found for "${escapeHtml(query)}". Try a different search term.`;
       }
@@ -1818,12 +1829,17 @@ function renderFollowUps(query) {
   const el = document.getElementById('followUpChips');
   const section = document.getElementById('followUps');
   if (!el || !section) return;
-  const suggestions = [
-    `${query} QC review`,
-    `${query} best batch`,
+  // Conversational follow-ups that feel like a knowledgeable friend
+  const allSuggestions = [
+    `best ${query} batch?`,
+    `is ${query} worth it?`,
     `${query} vs retail`,
-    `Cheap ${query}`,
+    `cheapest ${query}`,
+    `${query} sizing`,
+    `any good ${query} under $30?`,
   ];
+  // Pick 3 random ones
+  const suggestions = allSuggestions.sort(() => 0.5 - Math.random()).slice(0, 3);
   el.innerHTML = suggestions.map(s =>
     `<div class="follow-up-chip" onclick="quickSearch('${escapeAttr(s)}')">${escapeHtml(s)}</div>`
   ).join('');
@@ -2120,6 +2136,61 @@ function transformProducts(rawProducts) {
 }
 
 function generateVerdict(query, results) {
+  if (!results || results.length === 0) {
+    const noResultMsgs = [
+      `Hmm, nothing in the database for "${escapeHtml(query)}" yet. Try a broader term — we\'ve got 24,000+ products.`,
+      `No luck with "${escapeHtml(query)}". Maybe try the brand name or a different keyword?`,
+      `Couldn\'t find anything for "${escapeHtml(query)}". These listings move fast — try a variant spelling or broader category.`,
+    ];
+    return { verdict: noResultMsgs[Math.floor(Math.random() * noResultMsgs.length)], stats: [] };
+  }
+  
+  const prices = results.map(r => parseFloat(r.priceUSD)).filter(p => p > 0);
+  
+  if (prices.length === 0) {
+    const noPriceMsgs = [
+      `Found <strong>${results.length} listings</strong> for "${escapeHtml(query)}". Prices vary — click <strong>Buy Now</strong> to check the current rate.`,
+      `<strong>${results.length} matches</strong> for "${escapeHtml(query)}". Hit Buy Now to go straight to the listing.`,
+    ];
+    return { verdict: noPriceMsgs[Math.floor(Math.random() * noPriceMsgs.length)], stats: [{ label: 'Results', value: `${results.length}`, class: 'accent' }] };
+  }
+  
+  const avg = prices.reduce((a,b) => a+b, 0) / prices.length;
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  
+  // Dynamic verdicts based on data
+  const verdicts = [];
+  
+  if (results.length >= 10) {
+    verdicts.push(`Found <strong>${results.length} listings</strong> for "${escapeHtml(query)}" — plenty to choose from. Avg price is <strong>$${avg.toFixed(2)}</strong>, ranging from $${min.toFixed(2)} to $${max.toFixed(2)}. The top picks are sorted by best match and seller quality.`);
+  } else if (results.length >= 5) {
+    verdicts.push(`Got <strong>${results.length} solid matches</strong> for "${escapeHtml(query)}". Prices sit around <strong>$${avg.toFixed(2)}</strong> ($${min.toFixed(2)}–$${max.toFixed(2)}). Check the legit ratings — higher is better.`);
+  } else if (results.length >= 1) {
+    verdicts.push(`Only <strong>${results.length} tight matches</strong> for "${escapeHtml(query)}" — these are the most relevant. Avg $${avg.toFixed(2)}, cheapest at $${min.toFixed(2)}.`);
+  }
+  
+  // Price commentary
+  if (avg < 15) {
+    verdicts.push(`\n\n💡 These are budget-tier prices. Good for the risk — check seller ratings.`);
+  } else if (avg > 100) {
+    verdicts.push(`\n\n💰 These are premium-tier reps. Expect better materials and QC.`);
+  }
+  
+  const verdict = verdicts[Math.floor(Math.random() * verdicts.length)] || verdicts[0];
+  
+  return {
+    verdict,
+    stats: [
+      { label: 'Avg Price', value: `$${avg.toFixed(2)}`, class: 'accent' },
+      { label: 'Price Range', value: `$${min.toFixed(2)}–$${max.toFixed(2)}`, class: '' },
+      { label: 'Results', value: `${results.length}`, class: 'green' },
+    ],
+  };
+}
+
+
+mainInput.focus();
   if (!results || results.length === 0) {
     return {
       verdict: `No exact matches found for "${escapeHtml(query)}". Try a broader search term — we have <strong>24,000+</strong> products in the database.`,
