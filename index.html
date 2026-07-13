@@ -360,6 +360,7 @@
     }
     .suggestion-icon {
       font-size: 0.95rem;
+      filter: grayscale(1) brightness(2);
     }
 
     /* ─── CHAT AREA ─── */
@@ -1161,17 +1162,12 @@
         </button>
       </div>
       <div class="suggestions">
-        <div class="suggestion" onclick="quickSearch('Travis Scott AF1')"><span class="suggestion-icon">👟</span> Travis Scott AF1</div>
-        <div class="suggestion" onclick="quickSearch('Lululemon Define Jacket')"><span class="suggestion-icon">🧥</span> Lululemon Define</div>
-        <div class="suggestion" onclick="quickSearch('New Balance 9060')"><span class="suggestion-icon">👟</span> NB 9060</div>
-        <div class="suggestion" onclick="quickSearch('Oakley OTT')"><span class="suggestion-icon">🕶️</span> Oakley OTT</div>
-      </div>
-      <div class="suggestions" style="margin-top:8px">
         <div class="suggestion" onclick="quickSearch('Sneakers')"><span class="suggestion-icon">👟</span> Sneakers</div>
         <div class="suggestion" onclick="quickSearch('Hoodies')"><span class="suggestion-icon">🧥</span> Hoodies</div>
         <div class="suggestion" onclick="quickSearch('Jackets')"><span class="suggestion-icon">🧥</span> Jackets</div>
         <div class="suggestion" onclick="quickSearch('T-Shirts')"><span class="suggestion-icon">👕</span> Tees</div>
         <div class="suggestion" onclick="quickSearch('Pants')"><span class="suggestion-icon">👖</span> Pants</div>
+        <div class="suggestion" onclick="quickSearch('Electronics')"><span class="suggestion-icon">📱</span> Electronics</div>
       </div>
     </div>
   </div>
@@ -1210,9 +1206,9 @@ const AFFILIATE_CODES = {
 };
 
 const AGENTS = {
-  kakobuy: { name: 'KakoBuy', icon: '🛒', color: '#C84B2F' },
-  oopbuy:  { name: 'Oopbuy',  icon: '🛍️', color: '#60A5FA' },
-  cnfans:  { name: 'CNFans',  icon: '📦', color: '#34D399' },
+  kakobuy: { name: 'KakoBuy', color: '#C84B2F' },
+  oopbuy:  { name: 'Oopbuy',  color: '#60A5FA' },
+  cnfans:  { name: 'CNFans',  color: '#34D399' },
 };
 
 // ─── Agent Selection (user picks which sites to buy from) ───
@@ -1725,7 +1721,7 @@ async function renderSearchResponse(ai, container) {
       // Empty state or results
       if (results.length === 0) {
         const list = document.getElementById('resultsList');
-        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-size:1.4rem;margin-bottom:8px">🔍</div><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">Our database has 24K+ products — try a broader term</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Jordan','Yeezy','Travis Scott','Lululemon'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
+        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">Our database has 24K+ products — try a broader term</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Jordan','Yeezy','Travis Scott','Lululemon'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
       } else {
         renderResults(results);
       }
@@ -1831,7 +1827,7 @@ function renderCardHTML(r, idx) {
   const plat = PLATFORMS[r.platform] || PLATFORMS['weidian'];
   const badges = (typeof idx === 'number' && lastAnalysis) ? renderSmartBadges(idx, lastAnalysis) : '';
   const isVerified = r.id && /^\d+$/.test(r.id);
-  const verifiedBadge = isVerified ? '<span class="verified-badge">✓ Verified</span>' : '';
+  const verifiedBadge = isVerified ? '<span class="verified-badge">Verified</span>' : '';
 
   // Price context vs average
   const avg = lastAnalysis ? lastAnalysis.avgPrice : 0;
@@ -1918,7 +1914,7 @@ function sendToAgent(agentKey, resultId, btn) {
   window.open(link, '_blank', 'noopener,noreferrer');
 
   setTimeout(() => {
-    btn.textContent = '✓ Opened';
+    btn.textContent = 'Opened';
     showToast(`Opening ${agent.name}... Your referral is tagged`);
     setTimeout(() => {
       btn.textContent = original;
@@ -2094,16 +2090,16 @@ function renderCrossSell(query, results, container) {
   // Also check query directly
   if (!crossSellCat) {
     const QUERY_MAP = {
-      'jordan': { cat: 'Pants/Shorts', label: '🔥 These cargos go hard with Jordan' },
-      'af1': { cat: 'Pants/Shorts', label: '🔥 These pants pair perfectly with AF1s' },
-      'dunk': { cat: 'Pants/Shorts', label: '🔥 Complete the fit with these pants' },
-      'yeezy': { cat: 'Pants/Shorts', label: '🔥 These pants match your Yeezys' },
-      'shoe': { cat: 'Pants/Shorts', label: '🔥 Pants that go with these' },
-      'sneaker': { cat: 'Pants/Shorts', label: '🔥 Pants that complete the fit' },
-      'hoodie': { cat: 'Pants', label: '🔥 These pants complete the hoodie fit' },
-      'jersey': { cat: 'Shorts', label: '🔥 Match your jersey with these shorts' },
-      'jacket': { cat: 'Pants', label: '🔥 These pants complete the jacket look' },
-      'tee': { cat: 'Pants/Shorts', label: '🔥 These pants pair great with tees' },
+      'jordan': { cat: 'Pants/Shorts', label: 'These cargos go hard with Jordan' },
+      'af1': { cat: 'Pants/Shorts', label: 'These pants pair perfectly with AF1s' },
+      'dunk': { cat: 'Pants/Shorts', label: 'Complete the fit with these pants' },
+      'yeezy': { cat: 'Pants/Shorts', label: 'These pants match your Yeezys' },
+      'shoe': { cat: 'Pants/Shorts', label: 'Pants that go with these' },
+      'sneaker': { cat: 'Pants/Shorts', label: 'Pants that complete the fit' },
+      'hoodie': { cat: 'Pants', label: 'These pants complete the hoodie fit' },
+      'jersey': { cat: 'Shorts', label: 'Match your jersey with these shorts' },
+      'jacket': { cat: 'Pants', label: 'These pants complete the jacket look' },
+      'tee': { cat: 'Pants/Shorts', label: 'These pants pair great with tees' },
     };
     for (const [key, suggestion] of Object.entries(QUERY_MAP)) {
       if (queryLower.includes(key)) {
@@ -2481,9 +2477,9 @@ function generateSmartVerdict(query, results, a) {
   if (a.lowestPriceIdx >= 0 && a.avgPrice > 0) {
     const p = results[a.lowestPriceIdx]; const price = parseFloat(p.priceUSD) || 0;
     const pctBelow = Math.round((1 - price / a.avgPrice) * 100);
-    if (pctBelow > 5) insights.push({ type: 'deal', icon: '💰', text: `<strong>Lowest price:</strong> ${escapeHtml(p.name)} at $${price.toFixed(2)} — ${pctBelow}% below the $${avg} average.` });
+    if (pctBelow > 5) insights.push({ type: 'deal', icon: '$', text: `<strong>Lowest price:</strong> ${escapeHtml(p.name)} at $${price.toFixed(2)} — ${pctBelow}% below the $${avg} average.` });
   }
-  if (a.priceSpread > 30 && a.totalResults >= 4) insights.push({ type: 'info', icon: '📊', text: `Big price gap ($${min} to $${max}). Higher price doesn't always mean better quality — do your own QC research.` });
+  if (a.priceSpread > 30 && a.totalResults >= 4) insights.push({ type: 'info', icon: 'i', text: `Big price gap ($${min} to $${max}). Higher price doesn't always mean better quality — do your own QC research.` });
   return { verdict: parts.join('. ') + '.', stats, insights };
 }
 
@@ -2498,12 +2494,12 @@ function renderInsights(insights) {
 function renderSmartBadges(idx, analysis) {
   if (!analysis) return '';
   let b = '';
-  if (idx === analysis.lowestPriceIdx) b += '<span class="smart-badge badge-lowest-price">💰 Lowest Price</span>';
+  if (idx === analysis.lowestPriceIdx) b += '<span class="smart-badge badge-lowest-price">Lowest Price</span>';
   return b;
 }
 
 function renderRefinementHint() {
-  return `<div class="refinement-hint"><span>Narrow down:</span><span class="refinement-chip" onclick="refineResults('cheaper')">💰 Under avg</span><span class="refinement-chip" onclick="refineResults('expensive')">💎 Premium</span><span class="refinement-chip" onclick="refineResults('cheapest')">📈 Cheapest first</span><span class="refinement-chip" onclick="refineResults('all')">↺ Show all</span></div>`;
+  return `<div class="refinement-hint"><span>Narrow down:</span><span class="refinement-chip" onclick="refineResults('cheaper')">Under avg</span><span class="refinement-chip" onclick="refineResults('expensive')">Premium</span><span class="refinement-chip" onclick="refineResults('cheapest')">Cheapest first</span><span class="refinement-chip" onclick="refineResults('all')">Show all</span></div>`;
 }
 
 function refineResults(mode) {
