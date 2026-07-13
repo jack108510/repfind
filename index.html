@@ -1113,12 +1113,29 @@ function setCurrency(curr) {
 }
 
 // ─── Affiliate Link Builder ───
-// All products route through agent search with product name.
-// This actually works — direct product links need real platform IDs we don't have.
+// BS-code products now have real Weidian item IDs — use direct product links.
+// FI-code products (no real ID) fall back to search by name.
 function buildAgentLink(agentKey, product) {
-  const name = encodeURIComponent(product.name || product.id || 'rep');
+  const id = product.id || product.itemID;
+  const name = encodeURIComponent(product.name || id || 'rep');
   const ref = AFFILIATE_CODES[agentKey];
 
+  // If we have a numeric Weidian ID, build direct product links
+  if (id && /^\d+$/.test(id)) {
+    const sourceUrl = `https://weidian.com/item.html?itemID=${id}`;
+    switch(agentKey) {
+      case 'cnfans':
+        return `https://cnfans.com/product?platform=WEIDIAN&id=${id}&ref=${ref}`;
+      case 'kakobuy':
+        return `https://www.kakobuy.com/item/details?url=${encodeURIComponent(sourceUrl)}&source=WD&affcode=${ref}`;
+      case 'oopbuy':
+        return `https://oopbuy.com/product/weidian/${id}?inviteCode=${ref}`;
+      default:
+        return '#';
+    }
+  }
+
+  // No real ID — use search with product name
   switch(agentKey) {
     case 'cnfans':
       return `https://cnfans.com/search?keyword=${name}&ref=${ref}`;
