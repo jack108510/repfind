@@ -637,6 +637,11 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: 14px;
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 10;
+      padding: 8px 0;
     }
     .results-label {
       font-size: 0.76rem;
@@ -786,8 +791,125 @@
       letter-spacing: 0.02em;
     }
     .buy-btn:hover {
+      background: var(--accent-light);
+      border-color: var(--accent-light);
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(200,75,47,0.35);
+    }
+
+    /* ─── AGENT TOGGLE ─── */
+    .agent-toggle {
+      display: flex;
+      gap: 6px;
+      padding: 8px 0;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .agent-toggle-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-dim);
+      font-weight: 600;
+      margin-right: 4px;
+    }
+    .agent-toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border);
       background: transparent;
-      color: var(--accent);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .agent-toggle-btn.active {
+      background: var(--surface-2);
+      color: var(--text);
+      border-color: var(--border-light);
+    }
+    .agent-toggle-btn:hover:not(.active) {
+      color: var(--text-muted);
+      border-color: var(--border-light);
+    }
+    .agent-toggle-btn .agent-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: all var(--transition);
+    }
+    .agent-toggle-btn .agent-dot.on { opacity: 1; }
+    .agent-toggle-btn .agent-dot.off { opacity: 0.25; }
+
+    /* ─── VERIFIED BADGE ─── */
+    .verified-badge {
+      font-size: 0.58rem;
+      font-weight: 700;
+      color: var(--green);
+      background: rgba(52,211,153,0.1);
+      border: 1px solid rgba(52,211,153,0.2);
+      border-radius: 4px;
+      padding: 2px 6px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    /* ─── PRICE CONTEXT ─── */
+    .price-context {
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .price-context.below { color: var(--green); }
+    .price-context.above { color: var(--text-dim); }
+    .price-context.near { color: var(--text-dim); }
+
+    /* ─── SKELETON CARDS ─── */
+    @keyframes shimmer {
+      0% { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+    .skeleton-card {
+      display: flex;
+      gap: 14px;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+    }
+    .skeleton-img {
+      width: 68px; height: 68px;
+      border-radius: var(--radius-xs);
+      background: linear-gradient(90deg, var(--border) 25%, var(--surface-hover) 50%, var(--border) 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    .skeleton-body { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .skeleton-line {
+      height: 10px;
+      border-radius: 5px;
+      background: linear-gradient(90deg, var(--border) 25%, var(--surface-hover) 50%, var(--border) 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+    .skeleton-line.short { width: 40%; }
+    .skeleton-line.med { width: 60%; }
+    .skeleton-btn {
+      height: 28px; width: 120px;
+      border-radius: var(--radius-xs);
+      background: linear-gradient(90deg, var(--border) 25%, var(--surface-hover) 50%, var(--border) 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+      margin-top: 4px;
     }
 
     /* ─── QUALITY ─── */
@@ -1044,6 +1166,13 @@
         <div class="suggestion" onclick="quickSearch('New Balance 9060')"><span class="suggestion-icon">👟</span> NB 9060</div>
         <div class="suggestion" onclick="quickSearch('Oakley OTT')"><span class="suggestion-icon">🕶️</span> Oakley OTT</div>
       </div>
+      <div class="suggestions" style="margin-top:8px">
+        <div class="suggestion" onclick="quickSearch('Sneakers')"><span class="suggestion-icon">👟</span> Sneakers</div>
+        <div class="suggestion" onclick="quickSearch('Hoodies')"><span class="suggestion-icon">🧥</span> Hoodies</div>
+        <div class="suggestion" onclick="quickSearch('Jackets')"><span class="suggestion-icon">🧥</span> Jackets</div>
+        <div class="suggestion" onclick="quickSearch('T-Shirts')"><span class="suggestion-icon">👕</span> Tees</div>
+        <div class="suggestion" onclick="quickSearch('Pants')"><span class="suggestion-icon">👖</span> Pants</div>
+      </div>
     </div>
   </div>
 
@@ -1081,10 +1210,68 @@ const AFFILIATE_CODES = {
 };
 
 const AGENTS = {
-  kakobuy: { name: 'KakoBuy', icon: '🛒' },
-  oopbuy:  { name: 'Oopbuy',  icon: '🛍️' },
-  cnfans:  { name: 'CNFans',  icon: '📦' },
+  kakobuy: { name: 'KakoBuy', icon: '🛒', color: '#C84B2F' },
+  oopbuy:  { name: 'Oopbuy',  icon: '🛍️', color: '#60A5FA' },
+  cnfans:  { name: 'CNFans',  icon: '📦', color: '#34D399' },
 };
+
+// ─── Agent Selection (user picks which sites to buy from) ───
+let selectedAgents = JSON.parse(localStorage.getItem('repfind_agents') || '["kakobuy"]');
+
+function getSelectedAgents() {
+  return selectedAgents.length > 0 ? selectedAgents : ['kakobuy'];
+}
+
+function toggleAgent(key) {
+  if (selectedAgents.includes(key)) {
+    if (selectedAgents.length > 1) selectedAgents = selectedAgents.filter(a => a !== key);
+  } else {
+    selectedAgents.push(key);
+  }
+  localStorage.setItem('repfind_agents', JSON.stringify(selectedAgents));
+  updateAgentToggleUI();
+  // Re-render current results
+  if (currentResults.length) {
+    const allLists = document.querySelectorAll('#resultsList');
+    const list = allLists[allLists.length - 1];
+    if (list) {
+      list.innerHTML = '';
+      baseResults.forEach((r, i) => {
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        card.dataset.platform = r.platform;
+        card.style.animationDelay = `${Math.min(i * 0.04, 0.3)}s`;
+        card.innerHTML = renderCardHTML(r, i);
+        list.appendChild(card);
+      });
+    }
+  }
+}
+
+function updateAgentToggleUI() {
+  document.querySelectorAll('.agent-toggle-btn').forEach(btn => {
+    const key = btn.dataset.agent;
+    const dot = btn.querySelector('.agent-dot');
+    if (selectedAgents.includes(key)) {
+      btn.classList.add('active');
+      if (dot) { dot.classList.add('on'); dot.classList.remove('off'); }
+    } else {
+      btn.classList.remove('active');
+      if (dot) { dot.classList.add('off'); dot.classList.remove('on'); }
+    }
+  });
+}
+
+function renderAgentToggleHTML() {
+  const buttons = Object.entries(AGENTS).map(([key, agent]) => {
+    const active = selectedAgents.includes(key);
+    return `<button class="agent-toggle-btn ${active ? 'active' : ''}" data-agent="${key}" onclick="toggleAgent('${key}')">
+      <span class="agent-dot ${active ? 'on' : 'off'}" style="background:${agent.color}"></span>
+      ${agent.name}
+    </button>`;
+  }).join('');
+  return `<div class="agent-toggle"><span class="agent-toggle-label">Order from:</span>${buttons}</div>`;
+}
 
 // ─── Currency conversion ───
 const EXCHANGE_RATES = { CNY: 1, USD: 0.14, CAD: 0.19, AUD: 0.21, EUR: 0.13 };
@@ -1456,10 +1643,10 @@ async function renderSearchResponse(ai, container) {
         </div>
       </div>
       <div class="results-list" id="resultsList">
-        <div style="text-align:center;padding:40px;color:var(--text-dim);font-size:0.85rem;">
-          <div style="display:inline-block;width:24px;height:24px;border:2px solid var(--border-light);border-top-color:var(--accent);border-radius:50%;animation:spin 0.6s linear infinite;margin-bottom:10px;"></div>
-          <div>Searching real products...</div>
-        </div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-btn"></div></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-btn"></div></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-btn"></div></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-btn"></div></div></div>
       </div>
     </div>
     <div class="follow-ups" id="followUps" style="display:none">
@@ -1531,14 +1718,27 @@ async function renderSearchResponse(ai, container) {
       // AI insights
       const statPills = document.getElementById('statPills');
       if (verdict.insights && statPills) statPills.insertAdjacentHTML('afterend', renderInsights(verdict.insights));
-      
-      renderResults(results);
+
+      // Agent toggle — inject before results
+      if (statPills) statPills.insertAdjacentHTML('beforebegin', renderAgentToggleHTML());
+
+      // Empty state or results
+      if (results.length === 0) {
+        const list = document.getElementById('resultsList');
+        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-size:1.4rem;margin-bottom:8px">🔍</div><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">Our database has 24K+ products — try a broader term</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Jordan','Yeezy','Travis Scott','Lululemon'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
+      } else {
+        renderResults(results);
+      }
+
       wireFilters();
       renderFollowUps(query);
 
+      // Update results label
+      document.getElementById('resultsLabel').textContent = results.length > 0 ? `${results.length} results` : 'No results';
+
       // Refinement chips
       const resultsSection = document.getElementById('resultsSection');
-      if (resultsSection) resultsSection.insertAdjacentHTML('afterend', renderRefinementHint());
+      if (resultsSection && results.length > 0) resultsSection.insertAdjacentHTML('afterend', renderRefinementHint());
 
       scrollToBottom();
       
@@ -1629,9 +1829,32 @@ function renderResults(results) {
 
 function renderCardHTML(r, idx) {
   const plat = PLATFORMS[r.platform] || PLATFORMS['weidian'];
-  const buyLink = buildBestLink(r);
-  const agentBtns = `<a class="buy-btn" href="${buyLink}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')">Buy on KakoBuy ↗</a>`;
   const badges = (typeof idx === 'number' && lastAnalysis) ? renderSmartBadges(idx, lastAnalysis) : '';
+  const isVerified = r.id && /^\d+$/.test(r.id);
+  const verifiedBadge = isVerified ? '<span class="verified-badge">✓ Verified</span>' : '';
+
+  // Price context vs average
+  const avg = lastAnalysis ? lastAnalysis.avgPrice : 0;
+  const price = parseFloat(r.priceUSD) || 0;
+  let priceContext = '';
+  if (avg > 0 && price > 0) {
+    const pct = ((price - avg) / avg) * 100;
+    if (pct < -8) priceContext = `<span class="price-context below">↓ ${Math.abs(Math.round(pct))}% below avg</span>`;
+    else if (pct > 8) priceContext = `<span class="price-context above">↑ ${Math.round(pct)}% above avg</span>`;
+    else priceContext = `<span class="price-context near">Near avg</span>`;
+  }
+
+  // Source link to Weidian for verified products
+  const sourceLink = isVerified
+    ? `<a href="https://weidian.com/item.html?itemID=${r.id}" target="_blank" rel="noopener noreferrer" style="font-size:0.72rem;color:var(--text-dim);padding:8px 6px;flex-shrink:0;transition:color var(--transition)" onclick="event.stopPropagation()" onmouseover="this.style.color='var(--text-muted)'" onmouseout="this.style.color='var(--text-dim)'">Source ↗</a>`
+    : '';
+
+  // Build agent buttons based on user's selected agents
+  const agentBtns = getSelectedAgents().map(key => {
+    const agent = AGENTS[key];
+    const link = buildAgentLink(key, r);
+    return `<a class="buy-btn" href="${link}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')" style="${getSelectedAgents().length > 1 ? 'flex:1;font-size:0.72rem;' : ''}">${agent.name} ↗</a>`;
+  }).join('');
 
   const fallbackImg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='68' height='68'%3E%3Crect fill='%232A2A2A' width='68' height='68'/%3E%3Ctext x='34' y='38' text-anchor='middle' fill='%23555' font-size='10' font-family='sans-serif'%3Eno img%3C/text%3E%3C/svg%3E`;
   return `
@@ -1640,9 +1863,10 @@ function renderCardHTML(r, idx) {
       <div class="result-top">
         <div class="result-info">
           <div class="result-name" title="${escapeAttr(r.name)}">${escapeHtml(r.name)}${badges}</div>
-          <div class="result-seller">${escapeHtml(r.seller || plat.label)}</div>
+          <div class="result-seller">${priceContext}</div>
           <div class="result-meta">
             <span class="platform-badge ${plat.class}">${plat.label}</span>
+            ${verifiedBadge}
           </div>
         </div>
         <div class="result-price" data-price-cny="${r.priceCNY || 0}">
@@ -1650,7 +1874,7 @@ function renderCardHTML(r, idx) {
           <div class="price-cny">${currentCurrency}</div>
         </div>
       </div>
-      <div class="result-actions">${agentBtns}</div>
+      <div class="result-actions">${agentBtns}${sourceLink}</div>
     </div>
   `;
 }
