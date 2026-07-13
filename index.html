@@ -1733,7 +1733,7 @@ function searchProducts(query, limit = 12) {
   const term = query.toLowerCase().trim();
   if (!term) return [];
   
-  const words = term.split(/\s+/).filter(w => w.length > 1);
+  const words = term.split(/\s+/).filter(w => w.length > 0);
   
   // ─── Rep keyword synonyms ───
   // Only used when a query is ambiguous/abbreviated, NOT to broaden specific searches
