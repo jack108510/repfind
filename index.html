@@ -122,6 +122,13 @@
       font-size: 1.15rem;
       font-weight: 900;
       letter-spacing: -0.04em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sidebar-logo img {
+      height: 28px;
+      width: auto;
     }
     .sidebar-logo .find { color: var(--accent); }
     .new-search-btn {
@@ -262,8 +269,16 @@
       font-weight: 900;
       letter-spacing: -0.05em;
       margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .welcome-logo img {
+      height: 56px;
+      width: auto;
     }
     .welcome-logo .find { color: var(--accent); }
+    .topbar-logo img { height: 24px; width: auto; vertical-align: middle; }
     .welcome-tagline {
       font-size: 1rem;
       color: var(--text-muted);
@@ -1104,7 +1119,7 @@
 <!-- ─── SIDEBAR ─── -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <span class="sidebar-logo">rep<span class="find">find</span></span>
+    <span class="sidebar-logo"><img src="logo.png" alt="repfind"></span>
   </div>
   <button class="new-search-btn" onclick="newSearch()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -1130,13 +1145,13 @@
     <button class="menu-btn" onclick="toggleSidebar()">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
     </button>
-    <span class="topbar-logo">rep<span class="find" style="color:var(--accent)">find</span></span>
+    <span class="topbar-logo"><img src="logo.png" alt="repfind"></span>
     <div style="width:22px"></div>
   </div>
 
   <!-- Top bar -->
   <div class="topbar" id="topbar">
-    <span class="topbar-logo">rep<span class="find">find</span></span>
+    <span class="topbar-logo"><img src="logo.png" alt="repfind"></span>
     <div class="topbar-right">
       <div class="currency-switcher" id="topbarCurrency">
         <button class="currency-btn" data-currency="USD" onclick="setCurrency('USD')">USD</button>
@@ -1152,7 +1167,7 @@
 
   <!-- Welcome -->
   <div class="welcome" id="welcome">
-    <div class="welcome-logo">rep<span class="find">find</span></div>
+    <div class="welcome-logo"><img src="logo.png" alt="repfind"></div>
     <p class="welcome-tagline">Search 24,000+ products across Weidian, Taobao &amp; 1688. AI verdicts on price, quality, and legitimacy.</p>
     <div class="prompt-container">
       <div class="prompt-box">
