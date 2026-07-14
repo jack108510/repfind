@@ -2176,18 +2176,12 @@ function renderCardHTML(r, idx) {
     else priceContext = `<span class="price-context near">Near avg</span>`;
   }
 
-  // Source link to Weidian for verified products
-  // Source link routes through KakoBuy affiliate — never leak to raw Weidian
-  const sourceLink = isVerified
-    ? `<a href="${buildAgentLink('kakobuy', r)}" target="_blank" rel="noopener noreferrer" style="font-size:0.72rem;color:var(--text-dim);padding:8px 6px;flex-shrink:0;transition:color var(--transition)" onclick="event.stopPropagation()" onmouseover="this.style.color='var(--text-muted)'" onmouseout="this.style.color='var(--text-dim)'">Source ↗</a>`
-    : '';
-
-  // Build agent buttons based on user's selected agents
-  const agentBtns = getSelectedAgents().map(key => {
-    const agent = AGENTS[key];
-    const link = buildAgentLink(key, r);
-    return `<a class="buy-btn" href="${link}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')" style="${getSelectedAgents().length > 1 ? 'flex:1;font-size:0.72rem;' : ''}">${agent.name} ↗</a>`;
-  }).join('');
+  // Single buy button — KakoBuy is our primary affiliate
+  // If user selected multiple agents, use the first one as primary
+  const primaryAgentKey = getSelectedAgents()[0] || 'kakobuy';
+  const primaryAgent = AGENTS[primaryAgentKey];
+  const buyLink = buildAgentLink(primaryAgentKey, r);
+  const buyBtn = `<a class="buy-btn" href="${buyLink}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')">${primaryAgent.name} ↗</a>`;
 
   // Add to cart button
   const cartBtn = `<button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart('${r.id}', this)">+ Haul</button>`;
@@ -2210,7 +2204,7 @@ function renderCardHTML(r, idx) {
           <div class="price-cny">${currentCurrency}</div>
         </div>
       </div>
-      <div class="result-actions">${agentBtns}${sourceLink}${cartBtn}</div>
+      <div class="result-actions">${buyBtn}${cartBtn}</div>
     </div>
   `;
 }
