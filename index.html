@@ -1403,7 +1403,7 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
       </div>
-      <div style="display:flex;justify-content:center;gap:2px;margin-bottom:6px">
+      <div style="display:flex;justify-content:center;gap:1px;margin-bottom:2px">
         <button class="currency-btn" data-currency="USD" onclick="setCurrency('USD')">USD</button>
         <button class="currency-btn" data-currency="CAD" onclick="setCurrency('CAD')">CAD</button>
         <button class="currency-btn" data-currency="AUD" onclick="setCurrency('AUD')">AUD</button>
@@ -1729,8 +1729,17 @@ async function doSearch(fromDocked) {
     if (ai.action === 'search' && ai.search_query) {
       // AI says search — show results with the refined query
       renderSearchResponse(ai, inner);
+    } else if (ai.action === 'clarify' && query.trim().split(/\s+/).length >= 2) {
+      // AI wants to clarify BUT query has 2+ words — skip clarification, search directly
+      const fakeSearchResponse = {
+        ...ai,
+        action: 'search',
+        search_query: query,
+        reply: ai.reply || `Let me find the best options for ${query}.`,
+      };
+      renderSearchResponse(fakeSearchResponse, inner);
     } else {
-      // AI wants to clarify — show conversational reply with chips
+      // Single word or very short — let AI clarify
       renderChatResponse(ai, inner);
     }
 
