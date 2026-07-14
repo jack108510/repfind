@@ -51,6 +51,7 @@
       --surface: #242424;
       --surface-2: #2E2E2E;
       --surface-hover: #343434;
+      --surface-3: #383838;
       --border: #2A2A2A;
       --border-light: #383838;
       --text: #F5F5F5;
@@ -1364,7 +1365,7 @@
   <!-- Welcome -->
   <div class="welcome" id="welcome">
     <div class="welcome-logo"><img src="logo.png" alt="repfind"></div>
-    <p class="welcome-tagline">Search 24,000+ products across Weidian, Taobao &amp; 1688. AI verdicts on price, quality, and legitimacy.</p>
+    <p class="welcome-tagline">Search 130,000+ products across Weidian, Taobao &amp; 1688. AI verdicts on price, quality, and legitimacy.</p>
     <div class="prompt-container">
       <div class="prompt-box">
         <input type="text" id="searchInput" placeholder="Search for any rep — e.g. Travis Scott AF1..." autofocus>
@@ -1567,7 +1568,7 @@ const PLATFORMS = {
 // ─── Webhook config ───
 const WEBHOOK_URL = 'https://n8n.wildeautomations.com/webhook/repfind-chat';
 
-let searchHistory = [];
+let searchHistory = JSON.parse(localStorage.getItem('repfind_history') || '[]');
 let currentPlatform = 'all';
 let isSearching = false;
 let chatHistory = []; // conversation context for AI
@@ -2069,8 +2070,9 @@ function renderCardHTML(r, idx) {
   }
 
   // Source link to Weidian for verified products
+  // Source link routes through KakoBuy affiliate — never leak to raw Weidian
   const sourceLink = isVerified
-    ? `<a href="https://weidian.com/item.html?itemID=${r.id}" target="_blank" rel="noopener noreferrer" style="font-size:0.72rem;color:var(--text-dim);padding:8px 6px;flex-shrink:0;transition:color var(--transition)" onclick="event.stopPropagation()" onmouseover="this.style.color='var(--text-muted)'" onmouseout="this.style.color='var(--text-dim)'">Source ↗</a>`
+    ? `<a href="${buildAgentLink('kakobuy', r)}" target="_blank" rel="noopener noreferrer" style="font-size:0.72rem;color:var(--text-dim);padding:8px 6px;flex-shrink:0;transition:color var(--transition)" onclick="event.stopPropagation()" onmouseover="this.style.color='var(--text-muted)'" onmouseout="this.style.color='var(--text-dim)'">Source ↗</a>`
     : '';
 
   // Build agent buttons based on user's selected agents
@@ -2176,9 +2178,9 @@ function exportSpreadsheet() {
       r.platform,
       '¥' + r.priceCNY,
       '$' + r.priceUSD,
-      '⭐' + r.rating,
-      r.sales.toLocaleString() + ' sold',
-      r.quality,
+      '',
+      '',
+      '',
       cnfansLink,
       kakobuyLink,
       oopbuyLink,
@@ -2219,7 +2221,7 @@ function exportToGoogleSheets() {
   // Build a simple HTML table that can be pasted into Google Sheets
   const headers = ['Product','Seller','Platform','Price (CNY)','Price (USD)','Rating','Sales','Quality','CNFans (Affiliate)'];
   const rows = currentResults.map(r => [
-    r.name, r.seller, r.platform, '¥'+r.priceCNY, '$'+r.priceUSD, '⭐'+r.rating, r.sales+' sold', r.quality, buildAgentLink('cnfans', r)
+    r.name, r.seller || r.platform, r.platform, '¥'+r.priceCNY, '$'+r.priceUSD, '', '', '', buildAgentLink('cnfans', r)
   ]);
   const tsv = [headers, ...rows].map(row => row.map(c => String(c).replace(/\t/g,' ').replace(/\n/g,' ')).join('\t')).join('\n');
   navigator.clipboard?.writeText(tsv);
@@ -2428,6 +2430,7 @@ function applyFilter(platform) {
 function addHistory(query) {
   if (searchHistory[0] === query) return;
   searchHistory = [query, ...searchHistory.filter(q => q !== query)].slice(0, 10);
+  localStorage.setItem('repfind_history', JSON.stringify(searchHistory));
   renderHistory();
 }
 function renderHistory() {
@@ -2836,14 +2839,23 @@ function checkoutCart() {
   if (cart.length === 0) return;
   const agents = getSelectedAgents();
   const primaryAgent = agents[0] || 'kakobuy';
-  cart.forEach((item, i) => {
-    setTimeout(() => {
-      const link = buildAgentLink(primaryAgent, item);
-      window.open(link, '_blank', 'noopener,noreferrer');
-    }, i * 300);
+  
+  // Build all affiliate links
+  const links = cart.map(item => ({
+    name: item.name,
+    link: buildAgentLink(primaryAgent, item),
+  }));
+
+  // Copy all links to clipboard
+  const text = links.map(l => `${l.name}\n${l.link}`).join('\n\n');
+  navigator.clipboard?.writeText(text).then(() => {
+    const agentName = AGENTS[primaryAgent]?.name || 'agent';
+    showToast(`${cart.length} affiliate links copied — paste on ${agentName}`);
+  }).catch(() => {
+    // Fallback: open first item
+    window.open(links[0].link, '_blank', 'noopener,noreferrer');
+    showToast(`Opening on ${AGENTS[primaryAgent]?.name || 'agent'}...`);
   });
-  const agentName = AGENTS[primaryAgent]?.name || 'agent';
-  showToast(`Opening ${cart.length} items on ${agentName}...`);
 }
 
 // Init cart badge on load
