@@ -1729,17 +1729,10 @@ async function doSearch(fromDocked) {
     if (ai.action === 'search' && ai.search_query) {
       // AI says search — show results with the refined query
       renderSearchResponse(ai, inner);
-    } else if (ai.action === 'clarify' && query.trim().split(/\s+/).length >= 2) {
-      // AI wants to clarify BUT query has 2+ words — skip clarification, search directly
-      const fakeSearchResponse = {
-        ...ai,
-        action: 'search',
-        search_query: query,
-        reply: ai.reply || `Let me find the best options for ${query}.`,
-      };
-      renderSearchResponse(fakeSearchResponse, inner);
+    } else if (ai.action === 'clarify') {
+      // AI wants to clarify — search our DB first, offer data-driven narrowing
+      renderDataDrivenClarify(query, ai, inner);
     } else {
-      // Single word or very short — let AI clarify
       renderChatResponse(ai, inner);
     }
 
@@ -1807,6 +1800,99 @@ function updateLoadingStep(step, text) {
   ns.innerHTML = `<div class="step-check spinner-mini" id="check${step}"></div><span>${text}</span>`;
   stepList.appendChild(ns);
   scrollToBottom();
+}
+
+// ════════════════════════════════════════════════
+// DATA-DRIVEN CLARIFICATION — search DB first, narrow by real categories
+// ════════════════════════════════════════════════
+async function renderDataDrivenClarify(query, ai, container) {
+  await loadProductDB();
+
+  // Search our actual database for this query
+  let rawProducts = searchProducts(query, 50);
+
+  // If no results, try the AI's suggested chips as fallback searches
+  if (rawProducts.length === 0 && ai.chips && ai.chips.length) {
+    for (const chip of ai.chips) {
+      const chipResults = searchProducts(chip, 30);
+      if (chipResults.length > 0) {
+        rawProducts = chipResults;
+        break;
+      }
+    }
+  }
+
+  // If still no results — show the AI's conversational reply
+  if (rawProducts.length === 0) {
+    renderChatResponse(ai, container);
+    return;
+  }
+
+  // We have results. Group by category/brand to understand what we have
+  const categoryCounts = {};
+  const brandCounts = {};
+  for (const p of rawProducts) {
+    const cat = (p._category || p.category || 'Other').trim();
+    const brand = (p._category || p.category || '').trim();
+    categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+    if (brand) brandCounts[brand] = (brandCounts[brand] || 0) + 1;
+  }
+
+  // Sort categories by count
+  const sortedCats = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1]);
+
+  // DECISION: show results directly or offer narrowing?
+  // If 1 dominant category (>60% of results) OR fewer than 15 results — just show them
+  const topCat = sortedCats[0];
+  const isDominant = topCat && topCat[1] / rawProducts.length > 0.6;
+
+  if (isDominant || rawProducts.length <= 15 || sortedCats.length <= 1) {
+    // Enough focus — show results directly
+    const fakeSearchResponse = {
+      ...ai,
+      action: 'search',
+      search_query: query,
+      reply: ai.reply || `Found ${rawProducts.length} matches for "${query}". Here's what I've got.`,
+    };
+    renderSearchResponse(fakeSearchResponse, container);
+    return;
+  }
+
+  // Multiple categories — offer data-driven narrowing
+  const responseDiv = document.createElement('div');
+  responseDiv.className = 'ai-response';
+
+  // Build narrowing chips from real categories
+  const chipsHTML = sortedCats.slice(0, 6).map(([cat, count]) => {
+    const label = cat.length > 30 ? cat.substring(0, 28) + '...' : cat;
+    const searchTerm = `${query} ${cat}`;
+    return `<div class="follow-up-chip" onclick="quickSearch('${escapeAttr(searchTerm)}')">${escapeHtml(label)} <span style="opacity:0.5;font-size:0.75em">${count}</span></div>`;
+  }).join('');
+
+  // Also offer "show all" option
+  const showAllHTML = `<div class="follow-up-chip" onclick="forceSearch('${escapeAttr(query)}')" style="border-color:var(--accent);color:var(--accent-light)">Show all ${rawProducts.length} results</div>`;
+
+  responseDiv.innerHTML = `
+    <div class="verdict-header">
+      <div class="avatar"><img src="logo.png" alt=""></div>
+    </div>
+    <div class="verdict-text" style="margin-bottom:4px">Found <strong>${rawProducts.length} matches</strong> for "${escapeHtml(query)}" across <strong>${sortedCats.length} categories</strong>. What are you looking for?</div>
+    <div class="follow-ups" style="display:block;margin-top:12px;padding-left:0">
+      <div class="follow-up-chips" style="gap:6px">
+        ${chipsHTML}
+        ${showAllHTML}
+      </div>
+    </div>
+  `;
+  container.appendChild(responseDiv);
+  scrollToBottom();
+}
+
+// Force search bypassing clarification
+function forceSearch(query) {
+  mainInput.value = query;
+  // Trick: create a fake AI response that goes straight to search
+  doSearch();
 }
 
 // ════════════════════════════════════════════════
