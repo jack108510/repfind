@@ -4,21 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>repfind — find the best reps, fast</title>
-  <meta name="description" content="Search 24,000+ products across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy. Send straight to your agent.">
+  <meta name="description" content="Search 130,000+ products across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy. Send straight to your agent.">
   <meta name="keywords" content="repfind, reps, replica, weidian, taobao, 1688, cnfans, kakobuy, oopbuy, travis scott, jordan, yeezy, nike">
   <meta name="author" content="repfind">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="repfind — find the best reps, fast">
-  <meta property="og:description" content="Search 24,000+ products across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy.">
+  <meta property="og:description" content="Search 130,000+ products across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy.">
   <meta property="og:url" content="https://jack108510.github.io/repfind/">
   <meta property="og:site_name" content="repfind">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="repfind — find the best reps, fast">
-  <meta name="twitter:description" content="Search 24,000+ products across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy.">
+  <meta name="twitter:description" content="Search 130,000+ products across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy.">
 
   <!-- Canonical -->
   <link rel="canonical" href="https://jack108510.github.io/repfind/">
@@ -30,7 +30,7 @@
     "@type": "WebApplication",
     "name": "repfind",
     "url": "https://jack108510.github.io/repfind/",
-    "description": "Search 24,000+ products across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy.",
+    "description": "Search 130,000+ products across Weidian, Taobao, and 1688. AI verdicts on price, quality, and legitimacy.",
     "applicationCategory": "ShoppingApplication",
     "operatingSystem": "Web",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
@@ -816,7 +816,7 @@
       gap: 0;
     }
     .stat-pill-label {
-      font-size: 0.66rem;
+      font-size: 0.7rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--text-dim);
@@ -906,9 +906,9 @@
       background: var(--surface-2);
     }
     .result-img {
-      width: 68px;
-      height: 68px;
-      border-radius: var(--radius-xs);
+      width: 88px;
+      height: 88px;
+      border-radius: var(--radius-sm);
       background: var(--border);
       flex-shrink: 0;
       object-fit: cover;
@@ -946,7 +946,7 @@
       margin-top: 4px;
     }
     .platform-badge {
-      font-size: 0.6rem;
+      font-size: 0.68rem;
       font-weight: 700;
       text-transform: uppercase;
       padding: 2px 6px;
@@ -1056,7 +1056,7 @@
 
     /* ─── VERIFIED BADGE ─── */
     .verified-badge {
-      font-size: 0.58rem;
+      font-size: 0.68rem;
       font-weight: 700;
       color: var(--green);
       background: rgba(52,211,153,0.1);
@@ -1237,13 +1237,18 @@
       .main { margin-left: 0; }
       .docked-input { left: 0; }
       .mobile-header { display: flex; }
-      .welcome-logo { font-size: 2.4rem; }
+      .welcome-logo { font-size: 1.8rem; }
       .welcome { padding: 24px 16px; }
       .prompt-container { max-width: 100%; }
       .verdict-text, .stat-pills, .action-bar, .provenance, .results-section, .follow-ups {
         padding-left: 0;
       }
-      .result-img { width: 56px; height: 56px; }
+      .result-img { width: 72px; height: 72px; }
+      /* Mobile font size floor — nothing below 0.75rem (12px) */
+      .smart-badge, .verified-badge, .platform-badge { font-size: 0.7rem; }
+      .stat-pill-label, .stat-pill-sub { font-size: 0.72rem; }
+      .results-label, .follow-up-label { font-size: 0.72rem; }
+      .price-cny { font-size: 0.72rem; }
     }
 
     /* ─── SCROLLBAR ─── */
@@ -1286,7 +1291,7 @@
     }
 
     /* ─── SMART BADGES ─── */
-    .smart-badge { display:inline-flex; align-items:center; gap:3px; font-size:0.58rem; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle; }
+    .smart-badge { display:inline-flex; align-items:center; gap:3px; font-size:0.68rem; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; padding:2px 7px; border-radius:4px; margin-left:6px; vertical-align:middle; }
     .badge-best-value { background:rgba(200,75,47,0.15); color:var(--accent-light); border:1px solid rgba(200,75,47,0.3); }
     .badge-top-rated { background:rgba(52,211,153,0.12); color:var(--green); border:1px solid rgba(52,211,153,0.25); }
     .badge-best-seller { background:rgba(251,191,36,0.12); color:var(--yellow); border:1px solid rgba(251,191,36,0.25); }
@@ -1397,6 +1402,13 @@
         <button class="send-btn" id="dockedSendBtn" onclick="doSearch(true)" disabled>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
+      </div>
+      <div style="display:flex;justify-content:center;gap:2px;margin-bottom:6px">
+        <button class="currency-btn" data-currency="USD" onclick="setCurrency('USD')">USD</button>
+        <button class="currency-btn" data-currency="CAD" onclick="setCurrency('CAD')">CAD</button>
+        <button class="currency-btn" data-currency="AUD" onclick="setCurrency('AUD')">AUD</button>
+        <button class="currency-btn" data-currency="EUR" onclick="setCurrency('EUR')">EUR</button>
+        <button class="currency-btn" data-currency="CNY" onclick="setCurrency('CNY')">CNY</button>
       </div>
       <div class="disclaimer">repfind is a discovery tool. Not affiliated with any agent or platform.</div>
     </div>
@@ -1655,7 +1667,7 @@ async function doSearch(fromDocked) {
     'Let me dig through the stacks...',
     'Searching the best sellers for you...',
     'Asking around the quality forums...',
-    'Scanning 24K+ listings...',
+    'Scanning 130K+ listings...',
     'Checking legit ratings and prices...',
     'Hunting for the best batches...',
   ];
@@ -1680,7 +1692,7 @@ async function doSearch(fromDocked) {
 
   // Progressive loading — show what's actually happening
   const stepTimers = [
-    setTimeout(() => updateLoadingStep(1, 'Querying 24,000+ products...'), 1200),
+    setTimeout(() => updateLoadingStep(1, 'Querying 130,000+ products...'), 1200),
     setTimeout(() => updateLoadingStep(2, 'Analyzing prices and seller ratings...'), 2500),
   ];
 
@@ -1950,7 +1962,7 @@ async function renderSearchResponse(ai, container) {
       // Empty state or results
       if (results.length === 0) {
         const list = document.getElementById('resultsList');
-        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">Our database has 24K+ products — try a broader term</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Jordan','Yeezy','Travis Scott','Lululemon'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
+        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">Our database has 130K+ products — try a broader term</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Jordan','Yeezy','Travis Scott','Lululemon'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
       } else {
         renderResults(results);
       }
@@ -2571,39 +2583,59 @@ function searchProducts(query, limit = 12) {
     
     let score = 0;
     let matchedWords = 0;
+    let allWordsExact = true;
     
     // 1. Exact full query phrase in name (highest signal)
-    if (name.includes(term)) score += 250;
+    if (name.includes(term)) score += 300;
     
     // 2. Expanded term phrase matches in name
     for (const st of searchTermList) {
-      if (st !== term && name.includes(st)) score += 180;
+      if (st !== term && name.includes(st)) score += 200;
     }
     
-    // 3. Name starts with query (very strong signal)
-    if (name.startsWith(term)) score += 120;
-    
-    // 4. Word-by-word matching with fuzzy support across name, brand, category
+    // 3. Word-by-word matching — EVERY word must match or product is rejected
     for (const w of words) {
       const nameMatch = fuzzyMatch(name, w);
       const brandMatch = fuzzyMatch(brand, w);
       const catMatch = fuzzyMatch(cat, w);
       
-      if (nameMatch === 'exact') { score += 50; matchedWords++; }
-      else if (nameMatch === 'prefix') { score += 35; matchedWords++; }
-      else if (nameMatch === 'fuzzy') { score += 25; matchedWords++; }
+      if (nameMatch === 'exact') { score += 60; matchedWords++; }
+      else if (nameMatch === 'prefix') { score += 45; matchedWords++; }
+      else if (nameMatch === 'fuzzy') { score += 30; matchedWords++; }
       else if (brandMatch === 'exact') { score += 40; matchedWords++; }
       else if (brandMatch === 'prefix') { score += 28; matchedWords++; }
       else if (catMatch === 'exact') { score += 15; matchedWords++; }
       else if (catMatch === 'prefix') { score += 10; matchedWords++; }
+      else { allWordsExact = false; }
     }
     
-    // 5. All words matched bonus (CRITICAL — "jordan 4" needs both words)
-    if (matchedWords === words.length && words.length > 1) score += 150;
-    const missingWords = words.length - matchedWords;
-    score -= missingWords * 60;
+    // HARD FILTER: If multi-word query and not all words matched, SKIP entirely
+    // This is the key fix — "Jordan 4" must have BOTH "jordan" AND "4"
+    if (words.length > 1 && matchedWords < words.length) continue;
     
-    // 6. Expanded word matches (synonyms)
+    // Also check synonyms for unmatched words
+    if (matchedWords < words.length) {
+      for (const w of words) {
+        // Check if any synonym of this word matches
+        for (const [key, syns] of Object.entries(SYNONYMS)) {
+          if (w === key || words.includes(key)) {
+            for (const syn of syns) {
+              if (name.includes(syn) || brand.includes(syn)) {
+                matchedWords++;
+                score += 40;
+                break;
+              }
+            }
+          }
+        }
+      }
+      if (matchedWords < words.length) continue;
+    }
+    
+    // 4. All words matched bonus
+    if (matchedWords >= words.length && words.length > 1) score += 150;
+    
+    // 5. Expanded word matches (synonyms)
     for (const st of searchTermList) {
       if (st !== term && !words.some(w => st.includes(w))) {
         const stWords = st.split(/\s+/);
@@ -2615,19 +2647,14 @@ function searchProducts(query, limit = 12) {
       }
     }
     
-    // 7. Category match (lower weight)
-    for (const w of words) {
-      if (cat.includes(w)) score += 8;
-    }
-    
-    // 8. Quality boosts
+    // 6. Quality boosts
     if (p.image && !p.image.includes('picsum')) score += 5;
     if (p.clicks > 0) score += Math.min(p.clicks / 100, 20);
     
-    // 9. Penalize very long names (keyword-stuffed listings)
+    // 7. Penalize very long names (keyword-stuffed listings)
     if (name.length > 80) score -= 15;
     
-    // 10. Penalize names that are just numbers or gibberish
+    // 8. Penalize names that are just numbers or gibberish
     if (/^[\d\s\W]+$/.test(name)) score -= 30;
     
     if (score > 0) {
@@ -2696,7 +2723,7 @@ function analyzeResults(results) {
 }
 
 function generateSmartVerdict(query, results, a) {
-  if (!results || results.length === 0) return { verdict: `No exact matches for <strong>"${escapeHtml(query)}"</strong> in our database of 24,000+ products. Try <strong>Jordan</strong>, <strong>Yeezy</strong>, or <strong>Travis Scott</strong>.`, stats: [], insights: [] };
+  if (!results || results.length === 0) return { verdict: `No exact matches for <strong>"${escapeHtml(query)}"</strong> in our database of 130,000+ products. Try <strong>Jordan</strong>, <strong>Yeezy</strong>, or <strong>Travis Scott</strong>.`, stats: [], insights: [] };
   if (!a) return { verdict: `Found <strong>${results.length} listings</strong>.`, stats: [], insights: [] };
   const avg = a.avgPrice.toFixed(2), min = a.minPrice.toFixed(2), max = a.maxPrice.toFixed(2);
   let parts = [`Found <strong>${a.totalResults} listings</strong> for "${escapeHtml(query)}"`];
