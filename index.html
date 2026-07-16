@@ -22,6 +22,7 @@
 
   <!-- Canonical -->
   <link rel="canonical" href="https://jack108510.github.io/repfind/">
+  <link rel="icon" href="logo.png">
 
   <!-- Structured Data -->
   <script type="application/ld+json">
@@ -1456,7 +1457,7 @@
     <p class="welcome-tagline">Search 130,000+ products across Weidian, Taobao &amp; 1688. AI verdicts on price, quality, and legitimacy.</p>
     <div class="prompt-container">
       <div class="prompt-box">
-        <input type="text" id="searchInput" placeholder="Search for any rep — e.g. Travis Scott AF1..." autofocus>
+        <input type="text" id="searchInput" placeholder="Search for any rep — e.g. Travis Scott AF1...">
         <button class="send-btn" id="sendBtn" onclick="doSearch()" disabled>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
@@ -1856,16 +1857,17 @@ async function doSearch(fromDocked) {
     stepTimers.forEach(t => clearTimeout(t));
     const ls = document.getElementById('loadingSection');
     if (ls) ls.remove();
-    const errDiv = document.createElement('div');
-    errDiv.className = 'ai-response';
-    errDiv.innerHTML = `
-      <div class="verdict-header">
-        <div class="avatar"><img src="logo.png" alt=""></div>
-        <span class="bot-name"></span>
-      </div>
-      <div class="verdict-text">Connection issue. Try again?</div>
-    `;
-    inner.appendChild(errDiv);
+
+    // If the AI webhook is blocked by CORS or unavailable, do not dead-end the user.
+    // Fall back to the in-browser product database so repfind still returns buyable links.
+    chatHistory.push({ role: 'user', content: query });
+    chatHistory.push({ role: 'assistant', content: `Showing local database results for ${query}.` });
+    await renderSearchResponse({
+      action: 'search',
+      search_query: query,
+      reply: `The AI assistant is temporarily offline, but I searched the product database directly for "${query}".`,
+    }, inner);
+    addHistory(query);
   }
 
   isSearching = false;
