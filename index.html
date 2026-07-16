@@ -2541,12 +2541,6 @@ function openDetail(productId) {
        : `https://weidian.com/item.html?itemID=${p.id}`)
     : null;
   const redditSearch = `https://www.reddit.com/r/FashionReps/search/?q=${encodeURIComponent(p.name || p.id)}&sort=relevance`;
-  const estimateUSD = parseFloat(p.priceUSD) || 0;
-  const shippingLow = Math.round(estimateUSD * 0.4);
-  const shippingHigh = Math.round(estimateUSD * 0.8);
-  const totalLow = estimateUSD + shippingLow;
-  const totalHigh = estimateUSD + shippingHigh;
-
   document.getElementById('detailHero').innerHTML = `<img src="${p.img || FALLBACK_SVG}" alt="${escapeAttr(p.name)}" referrerpolicy="no-referrer" onerror="imgFallback(this)">`;
   document.getElementById('detailContent').innerHTML = `
     <div class="detail-name">${escapeHtml(p.name)}</div>
@@ -2568,15 +2562,7 @@ function openDetail(productId) {
         <a class="detail-link" href="${redditSearch}" target="_blank" rel="noopener noreferrer">Search on r/FashionReps <span class="detail-link-arrow">↗</span></a>
       </div>
     </div>
-    <div class="detail-section">
-      <div class="detail-section-title">Estimated Total (with shipping)</div>
-      <div class="detail-estimate">
-        Product: $${estimateUSD.toFixed(2)}<br>
-        KakoBuy shipping: ~$${shippingLow}–$${shippingHigh}<br>
-        <strong>Estimated total: $${totalLow.toFixed(2)}–$${totalHigh.toFixed(2)} USD</strong><br><br>
-        Shipping varies by weight and destination. Check KakoBuy for exact rates.
-      </div>
-    </div>
+
     <div class="detail-section">
       <div class="detail-section-title">QC Tips</div>
       <div class="detail-estimate">
