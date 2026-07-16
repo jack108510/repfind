@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""CORS-safe repfind chat proxy backed by local Ollama.
+"""CORS-safe repfind chat proxy backed by Claude API.
 
-Public browser -> Cloudflare Tunnel -> this proxy -> local Ollama.
-Returns the same JSON shape the repfind frontend expects from the old n8n webhook.
+Public browser -> Cloudflare Tunnel -> this proxy -> Claude API.
+Returns JSON the repfind frontend expects.
 """
 from __future__ import annotations
 
@@ -15,40 +15,37 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HOST = os.environ.get("REPFIND_PROXY_HOST", "127.0.0.1")
 PORT = int(os.environ.get("REPFIND_PROXY_PORT", "8787"))
-OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434/api/chat")
-MODEL = os.environ.get("REPFIND_OLLAMA_MODEL", "repfind:latest")
+CLAUDE_URL = os.environ.get("CLAUDE_URL", "https://api.anthropic.com/v1/messages")
+CLAUDE_KEY = os.environ.get("CLAUDE_KEY", "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")
+CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
 ALLOWED_ORIGIN = os.environ.get("REPFIND_ALLOWED_ORIGIN", "https://jack108510.github.io")
-LOG_PATH = os.environ.get("REPFIND_PROXY_LOG", "/tmp/repfind-ollama-proxy.log")
+LOG_PATH = os.environ.get("REPFIND_PROXY_LOG", "/tmp/repfind-claude-proxy.log")
 
-SYSTEM_PROMPT = """You are the repfind shopping assistant.
-Your job is to interpret a user's rep product request and return STRICT JSON only.
+SYSTEM_PROMPT = """You are repfind, the AI rep plug for finding reps on Weidian, Taobao, and 1688.
+Confident, casual, plugged in. Short responses (1-3 sentences).
+
+Your job is to interpret a user's request and return STRICT JSON only.
 No markdown. No prose outside JSON.
 
 Schema:
 {
   "action": "search" | "clarify",
-  "search_query": "short product search query",
+  "search_query": "short product search query or null",
   "reply": "short helpful assistant sentence",
-  "chips": ["optional follow up chip", "optional follow up chip"]
+  "chips": ["optional follow-up option"]
 }
 
-Positioning:
-- repfind only pushes direct-link products from its 67K+ product database.
+CATALOG: sneakers (Nike, Jordan, Adidas, Yeezy, New Balance, Kobe, Travis Scott, Off-White, Bape, Sacai) and streetwear (hoodies, tees, jackets, pants).
+We DO NOT have: room decor, furniture, electronics, home goods, skincare, food.
+If asked about things outside our catalog, say so and redirect to sneakers or streetwear.
+
+DECISION RULES:
+- If the user gives enough detail (brand + product or colorway), SEARCH immediately.
+- SEARCH examples: triple white air forces, jordan 4 bred, travis scott jordan 1, yeezy slides, off white hoodie
+- CLARIFY examples: shoes (too vague), hoodies (what brand?), got jordans (which pair?)
+- When clarifying, offer relevant chips.
+- Keep reply under 200 characters.
 - Never mention fake ratings, seller ratings, sales counts, or quality scores.
-- Never claim a product is quality-authenticated; link verification is not QC verification.
-
-Reply style:
-- Sound like a practical shopping assistant, not a search echo.
-- For concrete requests, say what you are about to show: direct-link matches, cheapest options, higher-end options, or narrowing choices.
-- Keep reply under 140 characters.
-
-Rules:
-- The current user message always wins. Do not tell the user they "previously asked" about something unless their current message is explicitly a follow-up like "that one" or "same thing".
-- Prefer action "search" for concrete product/category requests.
-- Use a concise search_query with brand/product/category keywords only.
-- For home/room decor requests, preserve the decor intent: use search_query "room decor" or a specific home item such as "rug", "pillow", "lamp", "vase", "figurine", or "wall decor". Do not turn decor into shoes, jerseys, shirts, or unrelated fashion.
-- Use action "clarify" only when the user is genuinely ambiguous.
-- If unsure, search anyway using the best concise query.
 """
 
 
@@ -64,7 +61,6 @@ def log(msg: str) -> None:
 def cors_origin(origin: str | None) -> str:
     if origin == ALLOWED_ORIGIN:
         return origin or ALLOWED_ORIGIN
-    # Allow local smoke tests and direct curls while keeping production locked to GitHub Pages.
     if origin and (origin.startswith("http://localhost") or origin.startswith("http://127.0.0.1")):
         return origin
     return ALLOWED_ORIGIN
@@ -100,59 +96,50 @@ def extract_json(text: str) -> dict | None:
         return None
 
 
-def ask_ollama(message: str, history: list | None) -> dict:
+def ask_claude(message: str, history: list | None) -> dict:
     history = history or []
-    # Do not feed normal previous searches back into Ollama. It was over-contextualizing
-    # fresh queries (e.g. electronics after room decor) and confusing the shopper.
-    recent = []
+    msgs = []
+    for h in history[-10:]:
+        msgs.append({"role": h.get("role", "user"), "content": str(h.get("content", ""))})
+    msgs.append({"role": "user", "content": message})
 
     payload = {
-        "model": MODEL,
-        "stream": False,
-        "think": False,
-        "options": {"temperature": 0.15, "num_ctx": 2048, "num_predict": 180},
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            *recent,
-            {"role": "user", "content": message},
-        ],
+        "model": CLAUDE_MODEL,
+        "max_tokens": 400,
+        "system": SYSTEM_PROMPT,
+        "messages": msgs,
     }
     req = urllib.request.Request(
-        OLLAMA_URL,
+        CLAUDE_URL,
         data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
+        headers={
+            "Authorization": f"Bearer {CLAUDE_KEY}",
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json",
+        },
         method="POST",
     )
     with urllib.request.urlopen(req, timeout=25) as resp:
         raw = resp.read().decode("utf-8", errors="replace")
     data = json.loads(raw)
-    msg = data.get("message") or {}
-    content = msg.get("content") if isinstance(msg, dict) else ""
-    content = content or data.get("response") or ""
+    content = ""
+    for block in data.get("content", []):
+        if block.get("type") == "text":
+            content += block.get("text", "")
     parsed = extract_json(content)
     if not parsed:
-        return fallback(message, f"ollama returned non-json: {content[:200]!r}")
+        return fallback(message, f"claude returned non-json: {content[:200]!r}")
 
     action = parsed.get("action") if parsed.get("action") in {"search", "clarify"} else "search"
-    search_query = str(parsed.get("search_query") or message).strip()[:140]
-    reply = str(parsed.get("reply") or f"I searched repfind for \"{search_query}\".").strip()[:500]
+    search_query = str(parsed.get("search_query") or "").strip()[:140] or None
+    reply = str(parsed.get("reply") or "What are you looking for?").strip()[:500]
     chips = parsed.get("chips") if isinstance(parsed.get("chips"), list) else []
     chips = [str(c).strip()[:60] for c in chips[:6] if str(c).strip()]
-    vague_chip = re.compile(r"^(cheap|cheapest|higher[- ]?end|premium|modern|vintage|best|more)$", re.I)
-    chips = [c for c in chips if not vague_chip.match(c)]
-    if not chips and search_query:
-        chips = [f"{search_query} electronics", f"{search_query} accessories", f"{search_query} cases"]
-    decorish = re.search(r"\b(room|home|decor|decoration|decorative|apartment|bedroom|living room|dorm)\b", f"{message} {search_query}", re.I)
-    if decorish:
-        action = "search"
-        search_query = "room decor"
-        reply = "Finding room decor options for you."
-        chips = ["room decor rug", "room decor pillow", "room decor lamp", "room decor wall art"]
     return {"action": action, "search_query": search_query, "reply": reply, "chips": chips}
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "repfind-ollama-proxy/1.0"
+    server_version = "repfind-claude-proxy/2.0"
 
     def _headers(self, status: int = 200, content_type: str = "application/json") -> None:
         origin = self.headers.get("Origin")
@@ -171,7 +158,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path.startswith("/health") or self.path.startswith("/webhook/repfind-chat"):
             self._headers(200)
-            self.wfile.write(json.dumps({"ok": True, "model": MODEL, "service": "repfind-ollama-proxy"}).encode())
+            self.wfile.write(json.dumps({"ok": True, "model": CLAUDE_MODEL, "service": "repfind-claude-proxy"}).encode())
         else:
             self._headers(404)
             self.wfile.write(b'{"error":"not found"}')
@@ -188,16 +175,15 @@ class Handler(BaseHTTPRequestHandler):
             payload = json.loads(body) if body else {}
             message = str(payload.get("message") or payload.get("query") or "").strip()
             if not message:
-                out = {"action": "clarify", "search_query": "", "reply": "What are you looking for?", "chips": ["hoodies", "sneakers", "room decor"]}
+                out = {"action": "clarify", "search_query": None, "reply": "What are you looking for? Sneakers, hoodies, jackets?", "chips": ["Sneakers", "Hoodies", "Jackets"]}
             else:
-                out = ask_ollama(message, payload.get("history"))
+                out = ask_claude(message, payload.get("history"))
             log(f"ok path={self.path!r} msg={message[:80]!r} out={out}")
             self._headers(200)
             self.wfile.write(json.dumps(out, ensure_ascii=False).encode("utf-8"))
         except Exception as exc:
             log(f"error {type(exc).__name__}: {exc}")
             self._headers(200)
-            # Keep frontend alive even if Ollama is temporarily slow.
             try:
                 out = fallback(message, str(exc))
             except Exception:
@@ -210,6 +196,6 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
-    log(f"starting host={HOST} port={PORT} model={MODEL} ollama={OLLAMA_URL}")
-    print(f"repfind ollama proxy listening on http://{HOST}:{PORT}", flush=True)
+    log(f"starting host={HOST} port={PORT} model={CLAUDE_MODEL}")
+    print(f"repfind claude proxy listening on http://{HOST}:{PORT}", flush=True)
     httpd.serve_forever()

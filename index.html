@@ -5,21 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="no-referrer">
   <title>repfind — find the best reps, fast</title>
-  <meta name="description" content="Search 67K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings — send straight to your agent.">
+  <meta name="description" content="Search 66K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings — send straight to your agent.">
   <meta name="keywords" content="repfind, reps, replica, weidian, taobao, 1688, cnfans, kakobuy, oopbuy, travis scott, jordan, yeezy, nike">
   <meta name="author" content="repfind">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="repfind — find the best reps, fast">
-  <meta property="og:description" content="Search 67K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings.">
+  <meta property="og:description" content="Search 66K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings.">
   <meta property="og:url" content="https://jack108510.github.io/repfind/">
   <meta property="og:site_name" content="repfind">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="repfind — find the best reps, fast">
-  <meta name="twitter:description" content="Search 67K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings.">
+  <meta name="twitter:description" content="Search 66K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings.">
 
   <!-- Canonical -->
   <link rel="canonical" href="https://jack108510.github.io/repfind/">
@@ -32,7 +32,7 @@
     "@type": "WebApplication",
     "name": "repfind",
     "url": "https://jack108510.github.io/repfind/",
-    "description": "Search 67K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings.",
+    "description": "Search 66K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings.",
     "applicationCategory": "ShoppingApplication",
     "operatingSystem": "Web",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
@@ -1789,7 +1789,7 @@
   <!-- Welcome -->
   <div class="welcome" id="welcome">
     <div class="welcome-logo"><img src="logo.png" alt="repfind"></div>
-    <p class="welcome-tagline">Search 67K+ direct-buy rep links. No dead search pages. No fake ratings.</p>
+    <p class="welcome-tagline">Search 66K+ direct-buy rep links. No dead search pages. No fake ratings.</p>
     <div class="prompt-container">
       <div class="prompt-box">
         <input type="text" id="searchInput" placeholder="Search for any rep — e.g. Travis Scott AF1...">
@@ -1895,7 +1895,7 @@
   <div class="onboard-card">
     <div class="onboard-logo"><img src="logo.png" alt="repfind"></div>
     <div class="onboard-title">How repfind works</div>
-    <div class="onboard-sub">Search 67K+ direct-link rep products. We send you straight to the listing — no dead search pages.</div>
+    <div class="onboard-sub">Search 66K+ direct-link rep products. We send you straight to the listing — no dead search pages.</div>
     <div class="onboard-steps">
       <div class="onboard-step">
         <div class="onboard-step-num">1</div>
@@ -2158,7 +2158,7 @@ async function doSearch(fromDocked) {
     'Let me dig through the stacks...',
     'Searching direct-link listings...',
     'Checking what we actually have...',
-    'Scanning 67K+ direct links...',
+    'Scanning 66K+ direct links...',
     'Checking prices and direct links...',
     'Hunting for matching direct links...',
   ];
@@ -2183,7 +2183,7 @@ async function doSearch(fromDocked) {
 
   // Progressive loading — show what's actually happening
   const stepTimers = [
-    setTimeout(() => updateLoadingStep(1, 'Querying 67K+ direct-link products...'), 1200),
+    setTimeout(() => updateLoadingStep(1, 'Querying 66K+ direct-link products...'), 1200),
     setTimeout(() => updateLoadingStep(2, 'Analyzing price spread and platforms...'), 2500),
   ];
 
@@ -2488,12 +2488,10 @@ async function renderSearchResponse(ai, container) {
   streamText(document.getElementById('verdictText'), ai.reply, async () => {
     // Search real product database. Use intent-specific searches for concept queries.
     await loadProductDB();
-    const specialIntent = detectSpecialIntent(query);
-    let rawProducts = specialIntent === 'decor' ? searchDecorProducts(24) : specialIntent === 'apple_electronics' ? searchAppleElectronics(24) : searchProducts(query, 24);
+    let rawProducts = searchProducts(query, 24);
     
-    // If AI query returned too few results, try broader fallbacks — but never reduce special intents
-    // like "room decor" to a noisy single word such as "room".
-    if (!specialIntent && rawProducts.length < 6) {
+    // If AI query returned too few results, try broader fallbacks
+    if (rawProducts.length < 6) {
       // Try with the original user query (not the AI-refined one)
       const userQuery = chatHistory[chatHistory.length - 2]?.content || query;
       if (userQuery && userQuery !== query) {
@@ -2556,7 +2554,7 @@ async function renderSearchResponse(ai, container) {
       // Empty state or results
       if (results.length === 0) {
         const list = document.getElementById('resultsList');
-        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">Our database has 67K+ direct-link products — try a broader term</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Jordan','Yeezy','Travis Scott','Lululemon'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
+        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">Our database has 66K+ direct-link products — try a broader term</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Jordan','Yeezy','Travis Scott','Lululemon'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
       } else {
         renderResults(results, resultsHeader);
       }
@@ -3054,9 +3052,9 @@ function renderFollowUps(query, scope) {
   const section = root.querySelector('#followUps');
   if (!el || !section) return;
   const clean = query.trim();
-  const isDecor = detectSpecialIntent(clean) === 'decor';
-  const suffixes = isDecor ? ['rug', 'pillow', 'lamp', 'wall art', 'vase', 'figurine'] : ['hoodie', 'jacket', 'pants', 'shirt', 'shorts', 'shoes'];
-  const base = isDecor ? 'room decor' : clean;
+  const isDecor = false; // Claude now handles decor redirects — never show decor suggestions
+  const suffixes = ['hoodie', 'jacket', 'pants', 'shirt', 'shorts', 'shoes'];
+  const base = clean;
   const allSuggestions = suffixes
     .filter(suffix => !base.toLowerCase().split(/\s+/).includes(suffix))
     .map(suffix => `${base} ${suffix}`)
@@ -3596,7 +3594,7 @@ function analyzeResults(results) {
 }
 
 function generateSmartVerdict(query, results, a) {
-  if (!results || results.length === 0) return { verdict: `No exact matches for <strong>"${escapeHtml(query)}"</strong> in our 67K+ direct-link product database. Try <strong>Jordan</strong>, <strong>Yeezy</strong>, or <strong>Travis Scott</strong>.`, stats: [], insights: [] };
+  if (!results || results.length === 0) return { verdict: `No exact matches for <strong>"${escapeHtml(query)}"</strong> in our 66K+ direct-link product database. Try <strong>Jordan</strong>, <strong>Yeezy</strong>, or <strong>Travis Scott</strong>.`, stats: [], insights: [] };
   if (!a) {
     const platforms = [...new Set(results.map(r => r.platform))];
     const platNames = platforms.map(p => (PLATFORMS[p] || PLATFORMS['weidian']).label);
