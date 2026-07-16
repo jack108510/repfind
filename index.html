@@ -40,6 +40,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -377,6 +378,87 @@
       color: var(--text-dim);
       cursor: not-allowed;
     }
+
+    .auth-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 12px;
+      margin-bottom: 4px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+    }
+    .auth-status strong { color: var(--text-secondary); font-size: 0.75rem; }
+    .auth-status button {
+      border: 1px solid var(--border-light);
+      background: transparent;
+      color: var(--text-secondary);
+      border-radius: var(--radius-xs);
+      padding: 4px 7px;
+      font-size: 0.68rem;
+      cursor: pointer;
+    }
+    .auth-status button:hover { color: var(--text); background: var(--surface-2); }
+    .auth-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.68);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(3px);
+    }
+    .auth-modal.show { display: flex; }
+    .auth-card {
+      width: 420px;
+      max-width: 100%;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 22px;
+    }
+    .auth-card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin-bottom:16px; }
+    .auth-card h2 { font-size: 1.2rem; line-height: 1.2; letter-spacing: -0.03em; margin-bottom: 6px; }
+    .auth-card p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; }
+    .auth-close { background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:1.4rem; line-height:1; }
+    .auth-close:hover { color: var(--text); }
+    .auth-tabs { display:flex; gap:6px; margin:16px 0 12px; }
+    .auth-tab {
+      flex:1; border:1px solid var(--border); background:var(--surface); color:var(--text-muted);
+      border-radius:var(--radius-xs); padding:8px; font-size:0.78rem; font-weight:700; cursor:pointer;
+    }
+    .auth-tab.active { background:var(--accent); border-color:var(--accent); color:white; }
+    .auth-field { margin-bottom:10px; }
+    .auth-field label { display:block; color:var(--text-dim); font-size:0.72rem; font-weight:700; margin-bottom:5px; }
+    .auth-field input {
+      width:100%; background:var(--surface); border:1px solid var(--border-light); color:var(--text);
+      border-radius:var(--radius-xs); padding:11px 12px; font-size:0.9rem; outline:none;
+    }
+    .auth-field input:focus { border-color:var(--accent); }
+    .auth-primary, .auth-secondary {
+      width:100%; border:none; border-radius:var(--radius-sm); padding:11px 12px; font-weight:800; cursor:pointer; margin-top:8px;
+    }
+    .auth-primary { background:var(--accent); color:white; }
+    .auth-primary:hover { background:var(--accent-light); }
+    .auth-secondary { background:var(--surface); color:var(--text-secondary); border:1px solid var(--border-light); }
+    .auth-secondary:hover { background:var(--surface-2); color:var(--text); }
+    .auth-note { margin-top:12px; font-size:0.76rem; color:var(--text-dim); line-height:1.45; }
+    .auth-error { min-height:18px; margin-top:10px; color:var(--red); font-size:0.78rem; }
+    .auth-success { color:var(--green); }
+    .cart-auth-teaser {
+      padding: 44px 22px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .cart-auth-teaser h3 { color:var(--text); font-size:1rem; margin-bottom:8px; }
+    .cart-auth-teaser p { font-size:0.84rem; line-height:1.5; margin-bottom:16px; }
 
     .add-to-cart-btn {
       font-size: 0.72rem;
@@ -1329,6 +1411,7 @@
     </div>
   </div>
   <div class="sidebar-footer">
+    <div class="auth-status" id="authStatus"><strong>Guest</strong><button onclick="showAuthModal()">Sign in</button></div>
     <button class="cart-btn" onclick="toggleCart()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
       My Haul
@@ -1429,6 +1512,36 @@
       <span class="cart-total-value" id="cartTotal">$0.00</span>
     </div>
     <button class="cart-checkout-btn" id="cartCheckoutBtn" onclick="checkoutCart()" disabled>Checkout on agent site</button>
+  </div>
+</div>
+
+
+<!-- Auth Modal -->
+<div class="auth-modal" id="authModal">
+  <div class="auth-card">
+    <div class="auth-card-header">
+      <div>
+        <h2>Save your haul</h2>
+        <p>Create an account to keep your haul across devices and come back to it later.</p>
+      </div>
+      <button class="auth-close" onclick="hideAuthModal()">&times;</button>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="loginTab" onclick="setAuthMode('login')">Log in</button>
+      <button class="auth-tab" id="signupTab" onclick="setAuthMode('signup')">Sign up</button>
+    </div>
+    <div class="auth-field">
+      <label for="authEmail">Email</label>
+      <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="auth-field" id="passwordField">
+      <label for="authPassword">Password</label>
+      <input id="authPassword" type="password" placeholder="At least 6 characters" autocomplete="current-password">
+    </div>
+    <button class="auth-primary" id="authSubmitBtn" onclick="submitAuth()">Log in</button>
+    <button class="auth-secondary" onclick="sendMagicLink()">Email me a magic link</button>
+    <div class="auth-error" id="authMessage"></div>
+    <div class="auth-note">Guest hauls stay on this device only. Signed-in hauls sync to your repfind account.</div>
   </div>
 </div>
 
@@ -2568,6 +2681,125 @@ function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
 
 const SUPABASE_URL = 'https://xacehhtgvubcqdoltazg.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1TNu5hqotJ7GGQXfjliivQ_ttK51EAA';
+const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let authMode = 'login';
+let authReady = false;
+let isSyncingCart = false;
+
+function setAuthMode(mode) {
+  authMode = mode;
+  document.getElementById('loginTab')?.classList.toggle('active', mode === 'login');
+  document.getElementById('signupTab')?.classList.toggle('active', mode === 'signup');
+  const btn = document.getElementById('authSubmitBtn');
+  if (btn) btn.textContent = mode === 'login' ? 'Log in' : 'Create account';
+  const password = document.getElementById('authPassword');
+  if (password) password.autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+  setAuthMessage('');
+}
+function showAuthModal(message = '') {
+  document.getElementById('authModal')?.classList.add('show');
+  setAuthMessage(message);
+  setTimeout(() => document.getElementById('authEmail')?.focus(), 50);
+}
+function hideAuthModal() { document.getElementById('authModal')?.classList.remove('show'); }
+function setAuthMessage(message, ok = false) {
+  const el = document.getElementById('authMessage');
+  if (!el) return;
+  el.textContent = message || '';
+  el.classList.toggle('auth-success', !!ok);
+}
+function normalizeAuthError(err) {
+  const msg = err?.message || String(err || 'Auth failed');
+  if (msg.toLowerCase().includes('failed to fetch')) return 'Could not reach auth service. Try again.';
+  return msg;
+}
+async function submitAuth() {
+  if (!supabaseClient) return setAuthMessage('Auth client failed to load.');
+  const email = document.getElementById('authEmail')?.value.trim();
+  const password = document.getElementById('authPassword')?.value || '';
+  if (!email || !password) return setAuthMessage('Enter email and password.');
+  if (authMode === 'signup' && password.length < 6) return setAuthMessage('Password must be at least 6 characters.');
+  setAuthMessage(authMode === 'login' ? 'Logging in...' : 'Creating account...', true);
+  const res = authMode === 'login'
+    ? await supabaseClient.auth.signInWithPassword({ email, password })
+    : await supabaseClient.auth.signUp({ email, password, options: { emailRedirectTo: window.location.href.split('#')[0] } });
+  if (res.error) return setAuthMessage(normalizeAuthError(res.error));
+  if (authMode === 'signup' && !res.data.session) {
+    setAuthMessage('Check your email to confirm your account, then log in.', true);
+    return;
+  }
+  hideAuthModal();
+  showToast('Signed in. Haul sync enabled.');
+}
+async function sendMagicLink() {
+  if (!supabaseClient) return setAuthMessage('Auth client failed to load.');
+  const email = document.getElementById('authEmail')?.value.trim();
+  if (!email) return setAuthMessage('Enter your email first.');
+  setAuthMessage('Sending magic link...', true);
+  const { error } = await supabaseClient.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href.split('#')[0] } });
+  if (error) return setAuthMessage(normalizeAuthError(error));
+  setAuthMessage('Magic link sent. Check your email.', true);
+}
+async function signOut() {
+  if (!supabaseClient) return;
+  await supabaseClient.auth.signOut();
+  currentUser = null;
+  cart = JSON.parse(localStorage.getItem('repfind_cart') || '[]');
+  updateAuthUI(); updateCartBadge(); renderCart();
+  showToast('Signed out');
+}
+function updateAuthUI() {
+  const el = document.getElementById('authStatus');
+  if (!el) return;
+  if (currentUser) {
+    const email = currentUser.email || 'Account';
+    el.innerHTML = `<strong title="${escapeAttr(email)}">${escapeHtml(email.length > 22 ? email.slice(0, 19) + '...' : email)}</strong><button onclick="signOut()">Sign out</button>`;
+  } else {
+    el.innerHTML = '<strong>Guest</strong><button onclick="showAuthModal()">Sign in</button>';
+  }
+}
+function dbItemToCart(row) {
+  return { id: row.product_id, name: row.name, price: parseFloat(row.price_usd) || 0, priceCNY: parseFloat(row.price_cny) || 0, image: row.image_url || '', platform: row.platform || 'weidian' };
+}
+function cartItemToDb(item) {
+  return { user_id: currentUser.id, product_id: item.id, name: item.name, price_usd: item.price || 0, price_cny: item.priceCNY || 0, image_url: item.image || '', platform: item.platform || 'weidian' };
+}
+async function loadServerCart() {
+  if (!currentUser || !supabaseClient) return;
+  const { data, error } = await supabaseClient.from('repfind_haul_items').select('*').order('created_at', { ascending: true });
+  if (error) { console.error('Haul load error:', error); showToast('Haul table not ready yet'); return; }
+  cart = (data || []).map(dbItemToCart);
+  localStorage.setItem('repfind_cart', JSON.stringify(cart));
+  updateCartBadge(); renderCart();
+}
+async function syncLocalCartToServer() {
+  if (!currentUser || !supabaseClient || isSyncingCart) return;
+  const localCart = JSON.parse(localStorage.getItem('repfind_cart') || '[]');
+  if (!localCart.length) { await loadServerCart(); return; }
+  isSyncingCart = true;
+  const rows = localCart.map(cartItemToDb);
+  const { error } = await supabaseClient.from('repfind_haul_items').upsert(rows, { onConflict: 'user_id,product_id' });
+  isSyncingCart = false;
+  if (error) { console.error('Haul sync error:', error); showToast('Haul sync needs database setup'); return; }
+  await loadServerCart();
+}
+async function initAuth() {
+  if (!supabaseClient) { updateAuthUI(); return; }
+  const { data } = await supabaseClient.auth.getSession();
+  currentUser = data.session?.user || null;
+  authReady = true;
+  updateAuthUI();
+  if (currentUser) await syncLocalCartToServer();
+  supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+    currentUser = session?.user || null;
+    authReady = true;
+    updateAuthUI();
+    if (currentUser) await syncLocalCartToServer();
+    else { cart = JSON.parse(localStorage.getItem('repfind_cart') || '[]'); updateCartBadge(); renderCart(); }
+  });
+}
 
 let PRODUCT_DB = null;
 
@@ -2898,19 +3130,34 @@ let cart = JSON.parse(localStorage.getItem('repfind_cart') || '[]');
 
 function saveCart() { localStorage.setItem('repfind_cart', JSON.stringify(cart)); }
 
-function addToCart(productId, btn) {
+async function saveCartItemToServer(item) {
+  if (!currentUser || !supabaseClient) return;
+  const { error } = await supabaseClient.from('repfind_haul_items').upsert([cartItemToDb(item)], { onConflict: 'user_id,product_id' });
+  if (error) { console.error('Haul save error:', error); showToast('Saved locally. Server haul needs setup.'); }
+}
+
+async function deleteCartItemFromServer(productId) {
+  if (!currentUser || !supabaseClient) return;
+  const { error } = await supabaseClient.from('repfind_haul_items').delete().eq('user_id', currentUser.id).eq('product_id', productId);
+  if (error) { console.error('Haul delete error:', error); showToast('Removed locally. Server haul needs setup.'); }
+}
+
+async function addToCart(productId, btn) {
   const product = currentResults.find(r => r.id === productId);
   if (!product) return;
   if (cart.find(item => item.id === productId)) { showToast('Already in your haul'); return; }
-  cart.push({ id: product.id, name: product.name, price: parseFloat(product.priceUSD) || 0, priceCNY: product.priceCNY || 0, image: product.img || '', platform: product.platform || 'weidian' });
+  const item = { id: product.id, name: product.name, price: parseFloat(product.priceUSD) || 0, priceCNY: product.priceCNY || 0, image: product.img || '', platform: product.platform || 'weidian' };
+  cart.push(item);
   saveCart(); updateCartBadge(); renderCart();
+  if (currentUser) await saveCartItemToServer(item);
   if (btn) { btn.textContent = 'Added'; btn.classList.add('added'); setTimeout(() => { btn.textContent = '+ Haul'; btn.classList.remove('added'); }, 1200); }
-  showToast(`Added to haul (${cart.length} items)`);
+  showToast(currentUser ? `Saved to your haul (${cart.length} items)` : `Added locally (${cart.length} items). Sign in to sync.`);
 }
 
-function removeFromCart(productId) {
+async function removeFromCart(productId) {
   cart = cart.filter(item => item.id !== productId);
   saveCart(); updateCartBadge(); renderCart();
+  if (currentUser) await deleteCartItemFromServer(productId);
 }
 
 function updateCartBadge() {
@@ -2925,6 +3172,16 @@ function renderCart() {
   const totalEl = document.getElementById('cartTotal');
   const checkoutBtn = document.getElementById('cartCheckoutBtn');
   if (!itemsEl) return;
+  if (!currentUser) {
+    itemsEl.innerHTML = `<div class="cart-auth-teaser">
+      <h3>Save your haul</h3>
+      <p>Sign up to save your haul, sync it across devices, and unlock order tracking when it launches.</p>
+      <button class="cart-checkout-btn" onclick="showAuthModal('Sign in to open your saved haul.')">Sign up or log in</button>
+    </div>`;
+    totalEl.textContent = '$0.00';
+    if (checkoutBtn) checkoutBtn.disabled = true;
+    return;
+  }
   if (cart.length === 0) {
     itemsEl.innerHTML = '<div class="cart-empty">Your haul is empty.<br>Add products to build your order.</div>';
     totalEl.textContent = '$0.00';
@@ -2946,9 +3203,13 @@ function renderCart() {
 }
 
 function toggleCart() {
-  document.getElementById('cartPanel').classList.toggle('show');
-  document.getElementById('cartOverlay').classList.toggle('show');
-  if (document.getElementById('cartPanel').classList.contains('show')) renderCart();
+  const panel = document.getElementById('cartPanel');
+  const overlay = document.getElementById('cartOverlay');
+  const opening = !panel.classList.contains('show');
+  panel.classList.toggle('show');
+  overlay.classList.toggle('show');
+  if (opening && !currentUser) showAuthModal('Sign in to save your haul across devices.');
+  if (panel.classList.contains('show')) renderCart();
 }
 
 function checkoutCart() {
@@ -2974,8 +3235,10 @@ function checkoutCart() {
   });
 }
 
-// Init cart badge on load
+// Init auth + cart badge on load
+initAuth();
 updateCartBadge();
+renderCart();
 
 // Preload product database in background
 loadProductDB();
