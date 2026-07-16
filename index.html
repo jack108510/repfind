@@ -498,7 +498,7 @@
     .topbar {
       display: none;
     }
-    .topbar.show { display: none; }
+    .topbar.show { display: flex; }
     .topbar-logo {
       font-size: 1.4rem;
       font-weight: 900;
@@ -1455,8 +1455,7 @@
       My Haul
       <span class="cart-badge" id="cartBadge">0</span>
     </button>
-    <a class="sidebar-footer-link" href="#" onclick="newSearch();return false;">New search</a>
-    <a class="sidebar-footer-link" href="#" onclick="toggleCart();return false;">My Haul</a>
+
   </div>
 </aside>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
@@ -1658,14 +1657,7 @@ function updateAgentToggleUI() {
 }
 
 function renderAgentToggleHTML() {
-  const buttons = Object.entries(AGENTS).map(([key, agent]) => {
-    const active = selectedAgents.includes(key);
-    return `<button class="agent-toggle-btn ${active ? 'active' : ''}" data-agent="${key}" onclick="toggleAgent('${key}')">
-      <span class="agent-dot ${active ? 'on' : 'off'}" style="background:${agent.color}"></span>
-      ${agent.name}
-    </button>`;
-  }).join('');
-  return `<div class="agent-toggle"><span class="agent-toggle-label">Choose checkout agent:</span>${buttons}</div><div style="font-size:0.75rem;color:var(--text-dim);margin-top:4px;margin-bottom:8px">KakoBuy is the verified direct-link checkout for now.</div>`;
+  return ''; // KakoBuy is the only agent — no toggle needed
 }
 
 // ─── Currency conversion ───
@@ -1769,6 +1761,7 @@ function toggleSidebar() {
 }
 
 function newSearch() {
+  crossSellShown = false;
   history.replaceState(null, '', location.pathname);
   mainInput.value = '';
   dockedInputEl.value = '';
@@ -2330,6 +2323,7 @@ function renderResults(results, scope) {
     const card = document.createElement('div');
     card.className = 'result-card';
     card.dataset.platform = r.platform;
+    card.onclick = (e) => { if(e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; const lk = card.querySelector('.buy-btn'); if(lk && lk.href) window.open(lk.href, '_blank', 'noopener,noreferrer'); };
     card.style.animationDelay = `${Math.min(i * 0.06, 0.4)}s`;
     card.innerHTML = renderCardHTML(r, i);
     list.appendChild(card);
@@ -2657,6 +2651,7 @@ function renderCrossSell(query, results, container) {
     const card = document.createElement('div');
     card.className = 'result-card';
     card.dataset.platform = r.platform;
+    card.onclick = (e) => { if(e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; const lk = card.querySelector('.buy-btn'); if(lk && lk.href) window.open(lk.href, '_blank', 'noopener,noreferrer'); };
     card.style.animationDelay = `${i * 0.08}s`;
     
     // Store for cart/click lookup across searches
@@ -3292,6 +3287,7 @@ function refineResults(mode) {
     const card = document.createElement('div');
     card.className = 'result-card';
     card.dataset.platform = r.platform;
+    card.onclick = (e) => { if(e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; const lk = card.querySelector('.buy-btn'); if(lk && lk.href) window.open(lk.href, '_blank', 'noopener,noreferrer'); };
     card.style.animationDelay = `${Math.min(i * 0.04, 0.3)}s`;
     card.innerHTML = renderCardHTML(r, origIdx);
     list.appendChild(card);
@@ -3384,7 +3380,7 @@ function renderCart() {
 
   const itemRows = cart.map(item => `
     <div class="cart-item">
-      <img class="cart-item-img" src="${item.image || fallbackImg}" alt="" onerror="this.src='${fallbackImg.replace(/'/g, '\\\'')}'">
+      <img class="cart-item-img" src="${item.image || FALLBACK_SVG}" alt="" referrerpolicy="no-referrer" onerror="imgFallback(this)">
       <div class="cart-item-info">
         <div class="cart-item-name" title="${escapeAttr(item.name)}">${escapeHtml(item.name)}</div>
         <div class="cart-item-price">${formatPrice(item.priceCNY || 0, currentCurrency)}</div>
