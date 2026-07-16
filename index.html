@@ -1371,6 +1371,186 @@
       .agent-toggle-btn { font-size: 0.72rem; padding: 4px 10px; }
     }
 
+    /* ─── PRODUCT DETAIL PANEL ─── */
+    .detail-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .detail-overlay.show { display: block; opacity: 1; }
+    .detail-panel {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 420px;
+      max-width: 100%;
+      background: var(--bg);
+      border-left: 1px solid var(--border);
+      z-index: 201;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .detail-panel.show { transform: translateX(0); }
+    .detail-close {
+      position: absolute;
+      top: 12px; right: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      color: var(--text);
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      transition: background 0.15s;
+    }
+    .detail-close:hover { background: var(--surface-2); }
+    .detail-hero {
+      width: 100%;
+      height: 280px;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .detail-hero img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .detail-content {
+      padding: 20px;
+      flex: 1;
+    }
+    .detail-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+    .detail-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .detail-price-box {
+      display: flex;
+      gap: 12px;
+      align-items: baseline;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border-light);
+    }
+    .detail-price-main {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .detail-price-sub {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+    .detail-section {
+      margin-bottom: 20px;
+    }
+    .detail-section-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    .detail-link-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .detail-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      color: var(--text);
+      font-size: 0.84rem;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .detail-link:hover {
+      border-color: var(--text-dim);
+      background: var(--surface-2);
+    }
+    .detail-link-arrow {
+      color: var(--text-dim);
+      font-size: 0.8rem;
+    }
+    .detail-buy-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      margin-bottom: 8px;
+      transition: opacity 0.15s;
+    }
+    .detail-buy-btn:hover { opacity: 0.85; }
+    .detail-haul-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 12px;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: border-color 0.15s;
+    }
+    .detail-haul-btn:hover { border-color: var(--text-dim); }
+    .detail-estimate {
+      font-size: 0.76rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    @media (max-width: 480px) {
+      .detail-panel { width: 100%; }
+      .detail-hero { height: 220px; }
+      .detail-content { padding: 16px; }
+      .detail-name { font-size: 1rem; }
+      .detail-price-main { font-size: 1.3rem; }
+    }
+
     /* ─── SCROLLBAR ─── */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -1592,6 +1772,13 @@
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
+<!-- Product Detail Panel -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
+<div class="detail-panel" id="detailPanel">
+  <button class="detail-close" onclick="closeDetail()">&times;</button>
+  <div class="detail-hero" id="detailHero"></div>
+  <div class="detail-content" id="detailContent"></div>
+</div>
 
 <script>
 // ════════════════════════════════════════════════
@@ -2323,7 +2510,7 @@ function renderResults(results, scope) {
     const card = document.createElement('div');
     card.className = 'result-card';
     card.dataset.platform = r.platform;
-    card.onclick = (e) => { if(e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; const lk = card.querySelector('.buy-btn'); if(lk && lk.href) window.open(lk.href, '_blank', 'noopener,noreferrer'); };
+    card.onclick = (e) => { if(e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; var c2 = card.querySelector('.add-to-cart-btn'); if(!c2) return; var oc = c2.getAttribute('onclick') || ''; var mt = oc.match(/addToCart..([^'"]+)/); if(mt) openDetail(mt[1]); };
     card.style.animationDelay = `${Math.min(i * 0.06, 0.4)}s`;
     card.innerHTML = renderCardHTML(r, i);
     list.appendChild(card);
@@ -2341,6 +2528,78 @@ function imgFallback(img) {
   img.src = FALLBACK_SVG;
   img.classList.add('img-fallback');
 }
+
+// ─── Product Detail Panel ───
+function openDetail(productId) {
+  const p = productIndex[productId];
+  if (!p) return;
+  const plat = PLATFORMS[p.platform] || PLATFORMS['weidian'];
+  const buyLink = buildAgentLink('kakobuy', p);
+  const sourceUrl = p.id && /^\d+$/.test(p.id)
+    ? (p.platform === 'taobao' ? `https://item.taobao.com/item.htm?id=${p.id}`
+       : p.platform === '1688' ? `https://detail.1688.com/offer/${p.id}.html`
+       : `https://weidian.com/item.html?itemID=${p.id}`)
+    : null;
+  const redditSearch = `https://www.reddit.com/r/FashionReps/search/?q=${encodeURIComponent(p.name || p.id)}&sort=relevance`;
+  const estimateUSD = parseFloat(p.priceUSD) || 0;
+  const shippingLow = Math.round(estimateUSD * 0.4);
+  const shippingHigh = Math.round(estimateUSD * 0.8);
+  const totalLow = estimateUSD + shippingLow;
+  const totalHigh = estimateUSD + shippingHigh;
+
+  document.getElementById('detailHero').innerHTML = `<img src="${p.img || FALLBACK_SVG}" alt="${escapeAttr(p.name)}" referrerpolicy="no-referrer" onerror="imgFallback(this)">`;
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-name">${escapeHtml(p.name)}</div>
+    <div class="detail-meta">
+      <span class="platform-badge ${plat.class}">${plat.label}</span>
+      <span class="verified-badge">Direct Link</span>
+    </div>
+    <div class="detail-price-box">
+      <div class="detail-price-main">${formatPrice(p.priceCNY || 0, currentCurrency)}</div>
+      <div class="detail-price-sub">~$${estimateUSD.toFixed(2)} USD · ${currentCurrency} approx</div>
+    </div>
+    <a class="detail-buy-btn" href="${buyLink}" target="_blank" rel="noopener noreferrer" onclick="trackClick('${p.id}')">Open in KakoBuy</a>
+    <button class="detail-haul-btn" onclick="addToCart('${p.id}', this); closeDetail();">+ Add to Haul</button>
+    <div class="detail-section">
+      <div class="detail-section-title">Product Links</div>
+      <div class="detail-link-list">
+        ${sourceUrl ? `<a class="detail-link" href="${sourceUrl}" target="_blank" rel="noopener noreferrer">View on ${plat.label} <span class="detail-link-arrow">↗</span></a>` : ''}
+        ${sourceUrl ? `<a class="detail-link" href="https://www.kakobuy.com/item/details?url=${encodeURIComponent(sourceUrl)}&source=WD&affcode=cq43b" target="_blank" rel="noopener noreferrer">Open in KakoBuy <span class="detail-link-arrow">↗</span></a>` : ''}
+        <a class="detail-link" href="${redditSearch}" target="_blank" rel="noopener noreferrer">Search on r/FashionReps <span class="detail-link-arrow">↗</span></a>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Estimated Total (with shipping)</div>
+      <div class="detail-estimate">
+        Product: $${estimateUSD.toFixed(2)}<br>
+        KakoBuy shipping: ~$${shippingLow}–$${shippingHigh}<br>
+        <strong>Estimated total: $${totalLow.toFixed(2)}–$${totalHigh.toFixed(2)} USD</strong><br><br>
+        Shipping varies by weight and destination. Check KakoBuy for exact rates.
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">QC Tips</div>
+      <div class="detail-estimate">
+        · Search the product name on r/FashionReps for reviews<br>
+        · Ask the seller for QC photos before shipping<br>
+        · Compare with retail references<br>
+        · Higher price doesn't always mean better quality
+      </div>
+    </div>
+  `;
+  document.getElementById('detailOverlay').classList.add('show');
+  document.getElementById('detailPanel').classList.add('show');
+}
+
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.remove('show');
+  document.getElementById('detailPanel').classList.remove('show');
+}
+
+// Close detail on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeDetail();
+});
 
 function renderCardHTML(r, idx) {
   const plat = PLATFORMS[r.platform] || PLATFORMS['weidian'];
@@ -2651,7 +2910,7 @@ function renderCrossSell(query, results, container) {
     const card = document.createElement('div');
     card.className = 'result-card';
     card.dataset.platform = r.platform;
-    card.onclick = (e) => { if(e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; const lk = card.querySelector('.buy-btn'); if(lk && lk.href) window.open(lk.href, '_blank', 'noopener,noreferrer'); };
+    card.onclick = (e) => { if(e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; var c2 = card.querySelector('.add-to-cart-btn'); if(!c2) return; var oc = c2.getAttribute('onclick') || ''; var mt = oc.match(/addToCart..([^'"]+)/); if(mt) openDetail(mt[1]); };
     card.style.animationDelay = `${i * 0.08}s`;
     
     // Store for cart/click lookup across searches
@@ -3287,7 +3546,7 @@ function refineResults(mode) {
     const card = document.createElement('div');
     card.className = 'result-card';
     card.dataset.platform = r.platform;
-    card.onclick = (e) => { if(e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; const lk = card.querySelector('.buy-btn'); if(lk && lk.href) window.open(lk.href, '_blank', 'noopener,noreferrer'); };
+    card.onclick = (e) => { if(e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; var c2 = card.querySelector('.add-to-cart-btn'); if(!c2) return; var oc = c2.getAttribute('onclick') || ''; var mt = oc.match(/addToCart..([^'"]+)/); if(mt) openDetail(mt[1]); };
     card.style.animationDelay = `${Math.min(i * 0.04, 0.3)}s`;
     card.innerHTML = renderCardHTML(r, origIdx);
     list.appendChild(card);
