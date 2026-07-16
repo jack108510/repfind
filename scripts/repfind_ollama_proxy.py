@@ -100,7 +100,8 @@ def ask_ollama(message: str, history: list | None) -> dict:
     payload = {
         "model": MODEL,
         "stream": False,
-        "options": {"temperature": 0.15, "num_ctx": 2048},
+        "think": False,
+        "options": {"temperature": 0.15, "num_ctx": 2048, "num_predict": 180},
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             *recent,
