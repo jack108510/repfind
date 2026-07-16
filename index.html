@@ -1321,6 +1321,10 @@
       .docked-input { left: 0; }
       .mobile-header { display: flex; }
       .welcome-logo { font-size: 1.8rem; }
+      .welcome-logo img { height: 52px; }
+      #searchInput, #dockedSearchInput { font-size: 16px; }
+      .docked-input-inner { padding-left: 12px; padding-right: 12px; }
+      .follow-up-chips { max-height: 96px; overflow-y: auto; }
       .welcome { padding: 24px 16px; }
       .prompt-container { max-width: 100%; }
       .verdict-text, .stat-pills, .action-bar, .provenance, .results-section, .follow-ups {
@@ -1463,12 +1467,19 @@
         </button>
       </div>
       <div class="suggestions">
-        <div class="suggestion" onclick="quickSearch('Sneakers')">Sneakers</div>
-        <div class="suggestion" onclick="quickSearch('Hoodies')">Hoodies</div>
-        <div class="suggestion" onclick="quickSearch('Jackets')">Jackets</div>
-        <div class="suggestion" onclick="quickSearch('T-Shirts')">Tees</div>
-        <div class="suggestion" onclick="quickSearch('Pants')">Pants</div>
-        <div class="suggestion" onclick="quickSearch('Electronics')">Electronics</div>
+        <div class="suggestion" onclick="quickSearch('Travis Scott AF1')">Travis Scott AF1</div>
+        <div class="suggestion" onclick="quickSearch('Yeezy 350')">Yeezy 350</div>
+        <div class="suggestion" onclick="quickSearch('Jordan 4')">Jordan 4</div>
+        <div class="suggestion" onclick="quickSearch('Stussy hoodie')">Stussy Hoodie</div>
+        <div class="suggestion" onclick="quickSearch('Lululemon')">Lululemon</div>
+        <div class="suggestion" onclick="quickSearch('Chrome Hearts')">Chrome Hearts</div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:1px;margin-top:14px;flex-wrap:wrap">
+        <button class="currency-btn" data-currency="USD" onclick="setCurrency('USD')">USD</button>
+        <button class="currency-btn" data-currency="CAD" onclick="setCurrency('CAD')">CAD</button>
+        <button class="currency-btn" data-currency="AUD" onclick="setCurrency('AUD')">AUD</button>
+        <button class="currency-btn" data-currency="EUR" onclick="setCurrency('EUR')">EUR</button>
+        <button class="currency-btn" data-currency="CNY" onclick="setCurrency('CNY')">CNY</button>
       </div>
     </div>
   </div>
@@ -1692,6 +1703,10 @@ let currentPlatform = 'all';
 let isSearching = false;
 let chatHistory = []; // conversation context for AI
 let currentResults = []; // current search results for export
+let productIndex = {}; // all products seen this session by id, for cart/clicks across searches
+let activeResultsList = null;
+let activeResultsSection = null;
+let crossSellShown = false;
 let lastSearchQuery = ''; // last query for export naming
 let sessionId = sessionStorage.getItem('repfind_session') || ('sess_' + Math.random().toString(36).substr(2, 12) + Date.now().toString(36));
 sessionStorage.setItem('repfind_session', sessionId);
@@ -1722,22 +1737,28 @@ function toggleSidebar() {
 }
 
 function newSearch() {
+  history.replaceState(null, '', location.pathname);
+  mainInput.value = '';
+  dockedInputEl.value = '';
+  mainSend.disabled = true;
+  dockedSend.disabled = true;
   document.getElementById('welcome').classList.remove('hide');
   document.getElementById('chatArea').classList.remove('show');
   document.getElementById('dockedInput').classList.remove('show');
   updateCartBadge();
-  mainInput.value = '';
-  document.querySelectorAll('.currency-btn').forEach(b => {
-  b.classList.toggle('active', b.dataset.currency === currentCurrency);
-});
-mainInput.focus();
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('show');
   chatHistory = []; // reset conversation
   document.getElementById('chatInner').innerHTML = ''; // clear messages
+  mainInput.focus();
 }
 
-function quickSearch(q) { mainInput.value = q; doSearch(); }
+function quickSearch(q) {
+  dockedInputEl.value = '';
+  mainInput.value = q;
+  mainSend.disabled = false;
+  doSearch();
+}
 function getQuery() {
   return (dockedInputEl.value.trim()) || mainInput.value.trim();
 }
@@ -1749,6 +1770,7 @@ async function doSearch(fromDocked) {
   if (isSearching) return;
   const query = getQuery();
   if (!query) return;
+  history.replaceState(null, '', '?q=' + encodeURIComponent(query));
   isSearching = true;
 
   // Transition from welcome to chat view
@@ -2136,7 +2158,8 @@ async function renderSearchResponse(ai, container) {
     
     const results = transformProducts(rawProducts);
     
-    // Store for export functionality
+    // Store for export/cart functionality
+    results.forEach(r => { if (r.id) productIndex[r.id] = r; });
     currentResults = results;
     baseResults = [...results];
     lastSearchQuery = query;
@@ -2171,11 +2194,11 @@ async function renderSearchResponse(ai, container) {
         const list = document.getElementById('resultsList');
         if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">Our database has 67K+ direct-link products — try a broader term</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Jordan','Yeezy','Travis Scott','Lululemon'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
       } else {
-        renderResults(results);
+        renderResults(results, resultsHeader);
       }
 
-      wireFilters();
-      renderFollowUps(query);
+      wireFilters(resultsHeader);
+      renderFollowUps(query, resultsHeader);
 
       // Update results label
       document.getElementById('resultsLabel').textContent = results.length > 0 ? `${results.length} results` : 'No results';
@@ -2187,7 +2210,10 @@ async function renderSearchResponse(ai, container) {
       scrollToBottom();
       
       // ─── Cross-sell: suggest complementary products ───
-      renderCrossSell(query, results, container);
+      if (!crossSellShown && searchHistory.length <= 1) {
+        renderCrossSell(query, results, container);
+        crossSellShown = true;
+      }
     }, 300);
   });
 }
@@ -2254,10 +2280,13 @@ function showStats(stats) {
 }
 
 // ─── Results ───
-function renderResults(results) {
-  const list = document.getElementById('resultsList');
-  const section = document.getElementById('resultsSection');
+function renderResults(results, scope) {
+  const root = scope || document;
+  const list = root.querySelector('#resultsList');
+  const section = root.querySelector('#resultsSection');
   if (!list || !section) return;
+  activeResultsList = list;
+  activeResultsSection = section;
   section.style.display = 'block';
   list.innerHTML = '';
   results.forEach((r, i) => {
@@ -2315,7 +2344,7 @@ function renderCardHTML(r, idx) {
         </div>
         <div class="result-price" data-price-cny="${r.priceCNY || 0}">
           <div class="price-main">${formatPrice(r.priceCNY || 0, currentCurrency)}</div>
-          <div class="price-cny">${currentCurrency}</div>
+          <div class="price-cny">${currentCurrency} approx</div>
         </div>
       </div>
       <div class="result-actions">${buyBtn}${cartBtn}</div>
@@ -2332,7 +2361,7 @@ function buildBestLink(product) {
 // ─── Track Click (analytics, no popup) ───
 function trackClick(resultId) {
   // Lightweight click tracking — no agent selector popup
-  const product = currentResults.find(r => r.id === resultId);
+  const product = productIndex[resultId] || currentResults.find(r => r.id === resultId);
   if (product) {
     product.clicks = (product.clicks || 0) + 1;
   }
@@ -2346,7 +2375,7 @@ function sendToAgent(agentKey, resultId, btn) {
   const productName = card.querySelector('.result-name')?.textContent || '';
 
   // Find product in current results
-  const product = currentResults.find(r => r.id === resultId);
+  const product = productIndex[resultId] || currentResults.find(r => r.id === resultId);
   if (!product) return;
 
   const link = buildAgentLink(agentKey, product);
@@ -2586,10 +2615,8 @@ function renderCrossSell(query, results, container) {
     card.dataset.platform = r.platform;
     card.style.animationDelay = `${i * 0.08}s`;
     
-    // Store for sendToAgent
-    if (!currentResults.includes(r)) {
-      currentResults.push(r);
-    }
+    // Store for cart/click lookup across searches
+    if (r.id) productIndex[r.id] = r;
     
     card.innerHTML = renderCardHTML(r);
     listEl.appendChild(card);
@@ -2599,39 +2626,42 @@ function renderCrossSell(query, results, container) {
 }
 
 // ─── Follow-ups ───
-function renderFollowUps(query) {
-  const el = document.getElementById('followUpChips');
-  const section = document.getElementById('followUps');
+function renderFollowUps(query, scope) {
+  const root = scope || document;
+  const el = root.querySelector('#followUpChips');
+  const section = root.querySelector('#followUps');
   if (!el || !section) return;
-  const allSuggestions = [
-    `cheapest ${query}`,
-    `${query} under $30`,
-    `${query} under $50`,
-    `${query} hoodie`,
-    `${query} jacket`,
-    `${query} pants`,
-  ];
-  // Pick 3 random ones
-  const suggestions = allSuggestions.sort(() => 0.5 - Math.random()).slice(0, 3);
+  const clean = query.trim();
+  const suffixes = ['hoodie', 'jacket', 'pants', 'shirt', 'shorts', 'shoes'];
+  const allSuggestions = suffixes
+    .filter(suffix => !clean.toLowerCase().split(/\s+/).includes(suffix))
+    .map(suffix => `${clean} ${suffix}`)
+    .filter((s, idx, arr) => {
+      const normalized = s.toLowerCase().replace(/\s+/g, ' ').trim();
+      return normalized !== clean.toLowerCase() && arr.findIndex(x => x.toLowerCase().replace(/\s+/g, ' ').trim() === normalized) === idx;
+    });
+  const suggestions = allSuggestions.slice(0, 3);
   el.innerHTML = suggestions.map(s =>
     `<div class="follow-up-chip" onclick="quickSearch('${escapeAttr(s)}')">${escapeHtml(s)}</div>`
   ).join('');
-  section.style.display = 'block';
+  section.style.display = suggestions.length ? 'block' : 'none';
 }
 
 // ─── Filters ───
-function wireFilters() {
-  document.querySelectorAll('.inline-filter').forEach(btn => {
+function wireFilters(scope) {
+  const root = scope || document;
+  root.querySelectorAll('.inline-filter').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.inline-filter').forEach(b => b.classList.remove('active'));
+      root.querySelectorAll('.inline-filter').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentPlatform = btn.dataset.platform;
-      applyFilter(currentPlatform);
+      applyFilter(currentPlatform, root);
     });
   });
 }
-function applyFilter(platform) {
-  document.querySelectorAll('.result-card').forEach(card => {
+function applyFilter(platform, scope) {
+  const root = scope || document;
+  root.querySelectorAll('.result-card').forEach(card => {
     card.style.display = (platform === 'all' || card.dataset.platform === platform) ? '' : 'none';
   });
 }
@@ -2839,6 +2869,20 @@ function searchProducts(query, limit = 12) {
   if (!term) return [];
   
   const words = term.split(/\s+/).filter(w => w.length > 0);
+  const CATEGORY_HINTS = {
+    'sneakers': ['shoes', 'sneakers'],
+    'shoes': ['shoes', 'sneakers'],
+    'hoodies': ['hoodies', 'hoodies/sweaters'],
+    'hoodie': ['hoodies', 'hoodies/sweaters'],
+    'jackets': ['jackets', 'coats / jackets'],
+    'jacket': ['jackets', 'coats / jackets'],
+    'tees': ['t-shirts', 't-shirt'],
+    'tee': ['t-shirts', 't-shirt'],
+    'shirt': ['t-shirts', 't-shirt'],
+    'pants': ['pants', 'pants/shorts'],
+    'shorts': ['shorts', 'pants/shorts'],
+    'electronics': ['electronics'],
+  };
   
   // ─── Rep keyword synonyms ───
   const SYNONYMS = {
@@ -2971,14 +3015,17 @@ function searchProducts(query, limit = 12) {
       }
     }
     
-    // 6. Image presence boost
-    if (p.image && !p.image.includes('picsum')) score += 5;
+    // 6. Category-first boost for broad category searches
+    if (words.length === 1 && CATEGORY_HINTS[term]?.some(c => cat.includes(c))) score += 120;
+
+    // 7. Image presence boost
+    if (p.image && !p.image.includes('picsum')) score += 25;
     if (p.clicks > 0) score += Math.min(p.clicks / 100, 20);
     
-    // 7. Penalize very long names (keyword-stuffed listings)
+    // 8. Penalize very long names (keyword-stuffed listings)
     if (name.length > 80) score -= 15;
     
-    // 8. Penalize names that are just numbers or gibberish
+    // 9. Penalize names that are just numbers or gibberish
     if (/^[\d\s\W]+$/.test(name)) score -= 30;
     
     if (score > 0) {
@@ -3089,8 +3136,7 @@ function renderRefinementHint() {
 
 function refineResults(mode) {
   if (!baseResults.length) return;
-  const allLists = document.querySelectorAll('#resultsList');
-  const list = allLists[allLists.length - 1];
+  const list = activeResultsList;
   if (!list) return;
   let filtered = [...baseResults];
   const avg = lastAnalysis ? lastAnalysis.avgPrice : 0;
@@ -3123,7 +3169,14 @@ function generateVerdict(query, results) {
 document.querySelectorAll('.currency-btn').forEach(b => {
   b.classList.toggle('active', b.dataset.currency === currentCurrency);
 });
-mainInput.focus();
+const initialQuery = new URLSearchParams(location.search).get('q');
+if (initialQuery) {
+  mainInput.value = initialQuery;
+  mainSend.disabled = false;
+  setTimeout(() => doSearch(), 0);
+} else {
+  mainInput.focus();
+}
 
 // ════════════════════════════════════════════════
 // CART / HAUL SYSTEM
@@ -3146,7 +3199,7 @@ async function deleteCartItemFromServer(productId) {
 }
 
 async function addToCart(productId, btn) {
-  const product = currentResults.find(r => r.id === productId);
+  const product = productIndex[productId] || currentResults.find(r => r.id === productId);
   if (!product) return;
   if (cart.find(item => item.id === productId)) { showToast('Already in your haul'); return; }
   const item = { id: product.id, name: product.name, price: parseFloat(product.priceUSD) || 0, priceCNY: product.priceCNY || 0, image: product.img || '', platform: product.platform || 'weidian' };
