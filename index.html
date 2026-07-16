@@ -1318,24 +1318,56 @@
       .sidebar { transform: translateX(-100%); }
       .sidebar.open { transform: translateX(0); }
       .main { margin-left: 0; }
-      .docked-input { left: 0; }
+      .docked-input { left: 0; padding: 12px 12px 16px; }
       .mobile-header { display: flex; }
       .welcome-logo { font-size: 1.8rem; }
       .welcome-logo img { height: 52px; }
       #searchInput, #dockedSearchInput { font-size: 16px; }
-      .docked-input-inner { padding-left: 12px; padding-right: 12px; }
+      .docked-input-inner { padding-left: 0; padding-right: 0; }
       .follow-up-chips { max-height: 96px; overflow-y: auto; }
       .welcome { padding: 24px 16px; }
       .prompt-container { max-width: 100%; }
       .verdict-text, .stat-pills, .action-bar, .provenance, .results-section, .follow-ups {
         padding-left: 0;
       }
+      .result-card { padding: 10px; gap: 10px; }
       .result-img { width: 72px; height: 72px; }
       /* Mobile font size floor — nothing below 0.75rem (12px) */
       .smart-badge, .verified-badge, .platform-badge { font-size: 0.7rem; }
       .stat-pill-label, .stat-pill-sub { font-size: 0.72rem; }
       .results-label, .follow-up-label { font-size: 0.72rem; }
       .price-cny { font-size: 0.72rem; }
+      .welcome-tagline { font-size: 0.88rem; padding: 0 12px; }
+      .suggestions { gap: 4px; }
+      .suggestion { font-size: 0.76rem; padding: 5px 10px; }
+    }
+
+    @media (max-width: 480px) {
+      .welcome { padding: 16px 12px; }
+      .welcome-logo img { height: 44px; }
+      .welcome-tagline { font-size: 0.82rem; }
+      .result-card { padding: 8px; gap: 8px; border-radius: 10px; }
+      .result-img { width: 64px; height: 64px; border-radius: 6px; }
+      .result-name { font-size: 0.8rem; }
+      .result-seller { font-size: 0.7rem; }
+      .buy-btn { font-size: 0.72rem; padding: 5px 10px; }
+      .add-to-cart-btn { font-size: 0.72rem; padding: 5px 8px; }
+      .stat-pills { gap: 4px; }
+      .stat-pill { min-width: 0; padding: 6px 8px; }
+      .action-bar { flex-wrap: wrap; gap: 6px; }
+      .filter-btn { font-size: 0.7rem; padding: 4px 8px; }
+      .docked-input { padding: 8px 10px 12px; }
+      .prompt-box { padding: 4px 4px 4px 12px; }
+      #searchInput, #dockedSearchInput { font-size: 16px; padding: 10px 0; }
+      .send-btn { width: 30px; height: 30px; }
+      .suggestions { flex-wrap: wrap; justify-content: center; }
+      .suggestion { font-size: 0.72rem; padding: 4px 8px; }
+      .verdict-text { font-size: 0.88rem; }
+      .cart-item { padding: 8px 4px; gap: 8px; }
+      .cart-item-img { width: 40px; height: 40px; }
+      .cart-item-name { font-size: 0.76rem; }
+      .agent-toggle-label { font-size: 0.72rem; }
+      .agent-toggle-btn { font-size: 0.72rem; padding: 4px 10px; }
     }
 
     /* ─── SCROLLBAR ─── */
@@ -2333,7 +2365,7 @@ function renderCardHTML(r, idx) {
   // Add to cart button
   const cartBtn = `<button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart('${r.id}', this)">+ Haul</button>`;
 
-  const fallbackImg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='68' height='68'%3E%3Crect fill='%232A2A2A' width='68' height='68'/%3E%3Ctext x='34' y='38' text-anchor='middle' fill='%23555' font-size='10' font-family='sans-serif'%3Eno img%3C/text%3E%3C/svg%3E`;
+  const fallbackImg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88'%3E%3Crect fill='%231F1F1F' width='88' height='88' rx='8'/%3E%3Cg transform='translate(44,36)'%3E%3Cpath d='M-14,-2 L0,-12 L14,-2 L14,12 L-14,12 Z' fill='none' stroke='%23444' stroke-width='2' stroke-linejoin='round'/%3E%3Ccircle cx='-5' cy='0' r='3' fill='%23444'/%3E%3Cpath d='M-14,8 L-5,2 L0,6 L5,1 L14,8' fill='none' stroke='%23444' stroke-width='2' stroke-linejoin='round'/%3E%3C/g%3E%3Ctext x='44' y='62' text-anchor='middle' fill='%23666' font-size='8' font-family='system-ui,sans-serif' font-weight='600'%3EREPFIND%3C/text%3E%3C/svg%3E`;
   return `
     <img class="result-img" src="${r.img || fallbackImg}" alt="${escapeAttr(r.name)}" loading="lazy" onerror="this.src='${fallbackImg}'">
     <div class="result-body">
@@ -3340,7 +3372,7 @@ function renderCart() {
 
   const itemRows = cart.map(item => `
     <div class="cart-item">
-      <img class="cart-item-img" src="${item.image || ''}" alt="" onerror="this.style.opacity=0">
+      <img class="cart-item-img" src="${item.image || fallbackImg}" alt="" onerror="this.src='${fallbackImg.replace(/'/g, '\\\'')}'">
       <div class="cart-item-info">
         <div class="cart-item-name" title="${escapeAttr(item.name)}">${escapeHtml(item.name)}</div>
         <div class="cart-item-price">${formatPrice(item.priceCNY || 0, currentCurrency)}</div>
