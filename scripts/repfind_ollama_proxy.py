@@ -43,6 +43,7 @@ Reply style:
 - Keep reply under 140 characters.
 
 Rules:
+- The current user message always wins. Do not tell the user they "previously asked" about something unless their current message is explicitly a follow-up like "that one" or "same thing".
 - Prefer action "search" for concrete product/category requests.
 - Use a concise search_query with brand/product/category keywords only.
 - For home/room decor requests, preserve the decor intent: use search_query "room decor" or a specific home item such as "rug", "pillow", "lamp", "vase", "figurine", or "wall decor". Do not turn decor into shoes, jerseys, shirts, or unrelated fashion.
@@ -101,12 +102,9 @@ def extract_json(text: str) -> dict | None:
 
 def ask_ollama(message: str, history: list | None) -> dict:
     history = history or []
+    # Do not feed normal previous searches back into Ollama. It was over-contextualizing
+    # fresh queries (e.g. electronics after room decor) and confusing the shopper.
     recent = []
-    for item in history[-6:]:
-        role = item.get("role") if isinstance(item, dict) else None
-        content = item.get("content") if isinstance(item, dict) else None
-        if role in {"user", "assistant"} and content:
-            recent.append({"role": role, "content": str(content)[:500]})
 
     payload = {
         "model": MODEL,
@@ -139,7 +137,11 @@ def ask_ollama(message: str, history: list | None) -> dict:
     search_query = str(parsed.get("search_query") or message).strip()[:140]
     reply = str(parsed.get("reply") or f"I searched repfind for \"{search_query}\".").strip()[:500]
     chips = parsed.get("chips") if isinstance(parsed.get("chips"), list) else []
-    chips = [str(c)[:60] for c in chips[:6] if str(c).strip()]
+    chips = [str(c).strip()[:60] for c in chips[:6] if str(c).strip()]
+    vague_chip = re.compile(r"^(cheap|cheapest|higher[- ]?end|premium|modern|vintage|best|more)$", re.I)
+    chips = [c for c in chips if not vague_chip.match(c)]
+    if not chips and search_query:
+        chips = [f"{search_query} electronics", f"{search_query} accessories", f"{search_query} cases"]
     decorish = re.search(r"\b(room|home|decor|decoration|decorative|apartment|bedroom|living room|dorm)\b", f"{message} {search_query}", re.I)
     if decorish:
         action = "search"

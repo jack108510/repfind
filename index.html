@@ -1574,15 +1574,14 @@ const AFFILIATE_CODES = {
 
 const AGENTS = {
   kakobuy: { name: 'KakoBuy', color: '#C84B2F' },
-  oopbuy:  { name: 'Oopbuy',  color: '#60A5FA' },
-  cnfans:  { name: 'CNFans',  color: '#34D399' },
 };
 
 // ─── Agent Selection (user picks which sites to buy from) ───
-let selectedAgents = JSON.parse(localStorage.getItem('repfind_agents') || '["kakobuy"]');
+let selectedAgents = ['kakobuy'];
+localStorage.setItem('repfind_agents', JSON.stringify(selectedAgents));
 
 function getSelectedAgents() {
-  return selectedAgents.length > 0 ? selectedAgents : ['kakobuy'];
+  return ['kakobuy'];
 }
 
 function toggleAgent(key) {
@@ -1633,7 +1632,7 @@ function renderAgentToggleHTML() {
       ${agent.name}
     </button>`;
   }).join('');
-  return `<div class="agent-toggle"><span class="agent-toggle-label">Choose checkout agent:</span>${buttons}</div><div style="font-size:0.75rem;color:var(--text-dim);margin-top:4px;margin-bottom:8px">Choose where product buttons open. KakoBuy is the default.</div>`;
+  return `<div class="agent-toggle"><span class="agent-toggle-label">Choose checkout agent:</span>${buttons}</div><div style="font-size:0.75rem;color:var(--text-dim);margin-top:4px;margin-bottom:8px">KakoBuy is the verified direct-link checkout for now.</div>`;
 }
 
 // ─── Currency conversion ───
@@ -1780,6 +1779,9 @@ async function doSearch(fromDocked) {
   updateCartBadge();
 
   const inner = document.getElementById('chatInner');
+  // repfind is a product finder, not a long chat transcript. Keep each search clean so
+  // stale result blocks don't make the next query look broken.
+  inner.innerHTML = '';
 
   // User query bubble
   const userBubble = document.createElement('div');
@@ -2127,7 +2129,7 @@ async function renderSearchResponse(ai, container) {
     // Search real product database. Use intent-specific searches for concept queries.
     await loadProductDB();
     const specialIntent = detectSpecialIntent(query);
-    let rawProducts = specialIntent === 'decor' ? searchDecorProducts(24) : searchProducts(query, 24);
+    let rawProducts = specialIntent === 'decor' ? searchDecorProducts(24) : specialIntent === 'apple_electronics' ? searchAppleElectronics(24) : searchProducts(query, 24);
     
     // If AI query returned too few results, try broader fallbacks — but never reduce special intents
     // like "room decor" to a noisy single word such as "room".
@@ -2321,7 +2323,7 @@ function renderCardHTML(r, idx) {
 
   // Single buy button — KakoBuy is our primary affiliate
   // If user selected multiple agents, use the first one as primary
-  const primaryAgentKey = getSelectedAgents()[0] || 'kakobuy';
+  const primaryAgentKey = 'kakobuy';
   const primaryAgent = AGENTS[primaryAgentKey];
   const buyLink = buildAgentLink(primaryAgentKey, r);
   const buyBtn = buyLink === '#'
@@ -2411,21 +2413,17 @@ function exportSpreadsheet() {
 
   const query = lastSearchQuery || 'repfind';
   const rows = [
-    ['Product', 'Platform', 'Price (CNY)', 'Price (USD)', 'CNFans Link (Affiliate)', 'KakoBuy Link', 'OopBuy Link']
+    ['Product', 'Platform', 'Price (CNY)', 'Price (USD)', 'KakoBuy Direct Link']
   ];
 
   currentResults.forEach(r => {
-    const cnfansLink = buildAgentLink('cnfans', r);
     const kakobuyLink = buildAgentLink('kakobuy', r);
-    const oopbuyLink = buildAgentLink('oopbuy', r);
     rows.push([
       r.name,
       r.platform,
       '¥' + r.priceCNY,
       '$' + r.priceUSD,
-      cnfansLink,
       kakobuyLink,
-      oopbuyLink,
     ]);
   });
 
@@ -2450,7 +2448,7 @@ function exportSpreadsheet() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast(`Spreadsheet exported — ${currentResults.length} products with affiliate links`);
+  showToast(`Spreadsheet exported — ${currentResults.length} Kakobuy direct links`);
 }
 
 // ─── Google Sheet export (opens pre-filled link) ───
@@ -2461,9 +2459,9 @@ function exportToGoogleSheets() {
   }
   const query = lastSearchQuery || 'repfind';
   // Build a simple HTML table that can be pasted into Google Sheets
-  const headers = ['Product','Platform','Price (CNY)','Price (USD)','CNFans (Affiliate)','KakoBuy Link','OopBuy Link'];
+  const headers = ['Product','Platform','Price (CNY)','Price (USD)','KakoBuy Direct Link'];
   const rows = currentResults.map(r => [
-    r.name, r.platform, '¥'+r.priceCNY, '$'+r.priceUSD, buildAgentLink('cnfans', r), buildAgentLink('kakobuy', r), buildAgentLink('oopbuy', r)
+    r.name, r.platform, '¥'+r.priceCNY, '$'+r.priceUSD, buildAgentLink('kakobuy', r)
   ]);
   const tsv = [headers, ...rows].map(row => row.map(c => String(c).replace(/\t/g,' ').replace(/\n/g,' ')).join('\t')).join('\n');
   navigator.clipboard?.writeText(tsv);
@@ -2634,10 +2632,12 @@ function renderFollowUps(query, scope) {
   const section = root.querySelector('#followUps');
   if (!el || !section) return;
   const clean = query.trim();
-  const suffixes = ['hoodie', 'jacket', 'pants', 'shirt', 'shorts', 'shoes'];
+  const isDecor = detectSpecialIntent(clean) === 'decor';
+  const suffixes = isDecor ? ['rug', 'pillow', 'lamp', 'wall art', 'vase', 'figurine'] : ['hoodie', 'jacket', 'pants', 'shirt', 'shorts', 'shoes'];
+  const base = isDecor ? 'room decor' : clean;
   const allSuggestions = suffixes
-    .filter(suffix => !clean.toLowerCase().split(/\s+/).includes(suffix))
-    .map(suffix => `${clean} ${suffix}`)
+    .filter(suffix => !base.toLowerCase().split(/\s+/).includes(suffix))
+    .map(suffix => `${base} ${suffix}`)
     .filter((s, idx, arr) => {
       const normalized = s.toLowerCase().replace(/\s+/g, ' ').trim();
       return normalized !== clean.toLowerCase() && arr.findIndex(x => x.toLowerCase().replace(/\s+/g, ' ').trim() === normalized) === idx;
@@ -2867,10 +2867,16 @@ async function loadProductDB() {
 function searchProducts(query, limit = 12) {
   if (!PRODUCT_DB || PRODUCT_DB.length === 0) return [];
   
-  const term = query.toLowerCase().trim();
+  let term = query.toLowerCase().trim();
   if (!term) return [];
   
-  const words = term.split(/\s+/).filter(w => w.length > 0);
+  let words = term.split(/\s+/).filter(w => w.length > 0);
+  const STOPWORDS = new Set(['product','products','item','items','stuff','things','please','pls','want','wants','looking','look','for','show','me','some','like','id','i','i’d','i’d','im','i’m','the','a','an']);
+  const contentWords = words.filter(w => !STOPWORDS.has(w));
+  if (contentWords.length > 0) {
+    words = contentWords;
+    term = words.join(' ');
+  }
   const CATEGORY_HINTS = {
     'sneakers': ['shoes', 'sneakers'],
     'shoes': ['shoes', 'sneakers'],
@@ -2919,7 +2925,8 @@ function searchProducts(query, limit = 12) {
   
   // ─── Helper: fuzzy word match (handles typos, partial matches) ───
   function fuzzyMatch(text, word) {
-    if (text.includes(word)) return 'exact';
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (new RegExp('(^|[^a-z0-9])' + escaped + '([^a-z0-9]|$)').test(text)) return 'exact';
     // Prefix match (e.g. "jord" matches "jordan")
     const prefix = word.slice(0, Math.max(3, word.length - 1));
     if (prefix.length >= 3 && text.match(new RegExp('\\b' + prefix))) return 'prefix';
@@ -3063,6 +3070,7 @@ function detectSpecialIntent(query) {
   const q = query.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
   if (/\b(room|home|house|apartment|bedroom|living room|dorm)\b/.test(q) && /\b(decor|decoration|decorations|accessories|furnish|furniture)\b/.test(q)) return 'decor';
   if (/\b(decor|decoration|decorations|homeware|home goods|room accessories)\b/.test(q)) return 'decor';
+  if (/\bapple\b/.test(q) && /\b(product|products|electronics|tech|accessories|cases|watch|airpods|iphone|ipad)\b/.test(q)) return 'apple_electronics';
   return null;
 }
 
@@ -3095,6 +3103,38 @@ function searchDecorProducts(limit = 24) {
     if (p.image && !p.image.includes('picsum')) score += 20;
     if (parseFloat(p._priceUSD) > 0) score += 10;
     if (score > 45) scored.push({ ...p, score });
+  }
+  scored.sort((a,b) => b.score - a.score || (parseFloat(a._priceUSD)||9999) - (parseFloat(b._priceUSD)||9999));
+  const seen = new Set();
+  const out = [];
+  for (const p of scored) {
+    if (!seen.has(p.itemID)) {
+      seen.add(p.itemID);
+      out.push(p);
+      if (out.length >= limit) break;
+    }
+  }
+  return out;
+}
+
+
+function searchAppleElectronics(limit = 24) {
+  if (!PRODUCT_DB || PRODUCT_DB.length === 0) return [];
+  const include = ['apple', 'iphone', 'ipad', 'airpods', 'airpod', 'airtag', 'magsafe', 'apple watch', 'watch series', 'watch ultra', 'apple pencil', 'charging', 'charger', 'phone case', 'silicone case'];
+  const exclude = ['t-shirt','t shirt','tee','hoodie','shirt','jersey','shorts','pants','sweatpants','jacket','shoes','sneaker','dunk','air max','new balance','jordan','gucci rabbit apple','pineapple','green apple'];
+  const scored = [];
+  for (const p of PRODUCT_DB) {
+    const name = (p.name || '').toLowerCase();
+    const cat = (p.category || '').toLowerCase();
+    const text = `${name} ${cat}`;
+    if (!name || !p.itemID) continue;
+    let score = 0;
+    for (const k of include) if (text.includes(k)) score += k.includes('apple') || k.includes('iphone') || k.includes('airpod') ? 90 : 45;
+    if (exclude.some(k => text.includes(k))) score -= 220;
+    if (/电子产品|智能手表|耳机|手机|phone|electronics|smartwatch|earphones|tws|phone accessories|phone case/.test(text)) score += 80;
+    if (p.image && !p.image.includes('picsum')) score += 15;
+    if (parseFloat(p._priceUSD) > 0) score += 10;
+    if (score > 40) scored.push({ ...p, score });
   }
   scored.sort((a,b) => b.score - a.score || (parseFloat(a._priceUSD)||9999) - (parseFloat(b._priceUSD)||9999));
   const seen = new Set();
@@ -3327,9 +3367,8 @@ function toggleCart() {
 
 function checkoutCart() {
   if (cart.length === 0) return;
-  const agents = getSelectedAgents();
-  const primaryAgent = agents[0] || 'kakobuy';
-  const agentName = AGENTS[primaryAgent]?.name || 'agent';
+  const primaryAgent = 'kakobuy';
+  const agentName = AGENTS[primaryAgent]?.name || 'KakoBuy';
   
   // Build all affiliate links
   const links = cart.map(item => ({
