@@ -1154,15 +1154,6 @@
       gap: 3px;
     }
 
-    /* ─── PRICE CONTEXT ─── */
-    .price-context {
-      font-size: 0.72rem;
-      font-weight: 600;
-    }
-    .price-context.below { color: var(--green); }
-    .price-context.above { color: var(--text-dim); }
-    .price-context.near { color: var(--text-dim); }
-
     /* ─── SKELETON CARDS ─── */
     @keyframes shimmer {
       0% { background-position: -400px 0; }
@@ -1634,25 +1625,6 @@
       cursor: pointer;
     }
     .onboard-btn:hover { opacity: 0.88; }
-
-    /* ─── PRICE FILTER PILLS ─── */
-    .price-filter-bar {
-      display: flex; gap: 6px; flex-wrap: wrap;
-      margin-bottom: 8px;
-    }
-    .price-pill {
-      padding: 5px 12px;
-      border-radius: 20px;
-      border: 1px solid var(--border-light);
-      background: var(--surface);
-      color: var(--text-dim);
-      font-size: 0.74rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .price-pill:hover { border-color: var(--text-dim); }
-    .price-pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
     /* ─── DETAIL: SIZE NOTE + BETTER CHECKOUT LIST ─── */
     .detail-note-input {
@@ -2592,11 +2564,10 @@ async function renderSearchResponse(ai, container) {
       renderFollowUps(query, resultsHeader);
 
       // Update results label
-      renderPriceFilter(document.getElementById('resultsSection')); document.getElementById('resultsLabel').textContent = results.length > 0 ? `${results.length} results` : 'No results';
+      document.getElementById('resultsLabel').textContent = results.length > 0 ? `${results.length} results` : 'No results';
 
       // Refinement chips
-      const resultsSection = document.getElementById('resultsSection');
-      if (resultsSection && results.length > 0) resultsSection.insertAdjacentHTML('afterend', renderRefinementHint());
+
 
       scrollToBottom();
       
@@ -2766,20 +2737,9 @@ document.addEventListener('keydown', (e) => {
 
 function renderCardHTML(r, idx) {
   const plat = PLATFORMS[r.platform] || PLATFORMS['weidian'];
-  const badges = (typeof idx === 'number' && lastAnalysis) ? renderSmartBadges(idx, lastAnalysis) : '';
+  const badges = '';
   const isVerified = r.id && /^\d+$/.test(r.id);
   const verifiedBadge = isVerified ? '<span class="verified-badge">Direct Link</span>' : '';
-
-  // Price context vs average
-  const avg = lastAnalysis ? lastAnalysis.avgPrice : 0;
-  const price = parseFloat(r.priceUSD) || 0;
-  let priceContext = '';
-  if (avg > 0 && price > 0) {
-    const pct = ((price - avg) / avg) * 100;
-    if (pct < -8) priceContext = `<span class="price-context below">↓ ${Math.abs(Math.round(pct))}% below avg</span>`;
-    else if (pct > 8) priceContext = `<span class="price-context above">↑ ${Math.round(pct)}% above avg</span>`;
-    else priceContext = `<span class="price-context near">Near avg</span>`;
-  }
 
   // Single buy button — KakoBuy is our primary affiliate
   // If user selected multiple agents, use the first one as primary
@@ -2800,7 +2760,7 @@ function renderCardHTML(r, idx) {
       <div class="result-top">
         <div class="result-info">
           <div class="result-name" title="${escapeAttr(r.name)}">${escapeHtml(r.name)}${badges}</div>
-          <div class="result-seller">${priceContext}</div>
+          <div class="result-seller"></div>
           <div class="result-meta">
             <span class="platform-badge ${plat.class}">${plat.label}</span>
             ${verifiedBadge}
@@ -3631,23 +3591,7 @@ let lastAnalysis = null;
 let baseResults = [];
 
 function analyzeResults(results) {
-  if (!results || results.length === 0) return null;
-  const priced = results.filter(r => parseFloat(r.priceUSD) > 0);
-  const prices = priced.map(r => parseFloat(r.priceUSD));
-  const avgPrice = prices.length > 0 ? prices.reduce((a,b) => a+b, 0) / prices.length : 0;
-  const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-  const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
-  let lowestPriceIdx = -1, lowestPrice = Infinity;
-  priced.forEach((r) => {
-    const price = parseFloat(r.priceUSD);
-    if (price > 0 && price < lowestPrice) { lowestPrice = price; lowestPriceIdx = results.indexOf(r); }
-  });
-  return {
-    avgPrice, minPrice, maxPrice, priceSpread: maxPrice - minPrice,
-    lowestPriceIdx,
-    totalResults: results.length,
-    platformCount: new Set(results.map(r => r.platform)).size,
-  };
+  return null; // Budgeting analysis removed
 }
 
 function generateSmartVerdict(query, results, a) {
@@ -3687,9 +3631,7 @@ function renderSmartBadges(idx, analysis) {
   return b;
 }
 
-function renderRefinementHint() {
-  return `<div class="refinement-hint"><span>Narrow down:</span><span class="refinement-chip" onclick="refineResults('cheaper')">Under avg</span><span class="refinement-chip" onclick="refineResults('expensive')">Premium</span><span class="refinement-chip" onclick="refineResults('cheapest')">Cheapest first</span><span class="refinement-chip" onclick="refineResults('all')">Show all</span></div>`;
-}
+function renderRefinementHint() { return ''; } // Budgeting removed
 
 function refineResults(mode) {
   if (!baseResults.length) return;
@@ -3891,47 +3833,6 @@ function closeOnboarding() {
 // Show onboarding for first-time visitors
 if (!localStorage.getItem('repfind_onboarded')) {
   setTimeout(showOnboarding, 800);
-}
-
-// ─── Price Filter ───
-let activePriceFilter = null;
-function applyPriceFilter(maxPrice, btn) {
-  document.querySelectorAll('.price-pill').forEach(p => p.classList.remove('active'));
-  if (activePriceFilter === maxPrice) {
-    activePriceFilter = null;
-    btn.classList.remove('active');
-  } else {
-    activePriceFilter = maxPrice;
-    btn.classList.add('active');
-  }
-  // Re-filter visible cards
-  const cards = document.querySelectorAll('.result-card');
-  cards.forEach(card => {
-    const priceEl = card.querySelector('[data-price-cny]');
-    if (!priceEl) { card.style.display = ''; return; }
-    const cny = parseFloat(priceEl.dataset.priceCny) || 0;
-    const usd = cny * 0.14;
-    if (activePriceFilter && usd > activePriceFilter) {
-      card.style.display = 'none';
-    } else {
-      card.style.display = '';
-    }
-  });
-}
-
-function renderPriceFilter(container) {
-  if (!container) return;
-  const existing = container.querySelector('.price-filter-bar');
-  if (existing) return;
-  const bar = document.createElement('div');
-  bar.className = 'price-filter-bar';
-  bar.innerHTML = `
-    <span class="price-pill" onclick="applyPriceFilter(20, this)">Under $20</span>
-    <span class="price-pill" onclick="applyPriceFilter(40, this)">Under $40</span>
-    <span class="price-pill" onclick="applyPriceFilter(80, this)">Under $80</span>
-    <span class="price-pill" onclick="applyPriceFilter(150, this)">Under $150</span>
-  `;
-  container.insertBefore(bar, container.firstChild);
 }
 
 // ─── Better Checkout List ───
