@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
   <title>repfind — find the best reps, fast</title>
   <meta name="description" content="Search 67K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings — send straight to your agent.">
   <meta name="keywords" content="repfind, reps, replica, weidian, taobao, 1688, cnfans, kakobuy, oopbuy, travis scott, jordan, yeezy, nike">
@@ -2336,6 +2337,17 @@ function renderResults(results, scope) {
   scrollToBottom();
 }
 
+// Global image fallback — avoids broken inline onerror quotes from SVG data URIs
+const FALLBACK_SVG = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2288%22 height=%2288%22%3E%3Crect fill=%22%231F1F1F%22 width=%2288%22 height=%2288%22 rx=%228%22/%3E%3Cg transform=%22translate(44,36)%22%3E%3Cpath d=%22M-14,-2 L0,-12 L14,-2 L14,12 L-14,12 Z%22 fill=%22none%22 stroke=%22%23444%22 stroke-width=%222%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%22-5%22 cy=%220%22 r=%223%22 fill=%22%23444%22/%3E%3Cpath d=%22M-14,8 L-5,2 L0,6 L5,1 L14,8%22 fill=%22none%22 stroke=%22%23444%22 stroke-width=%222%22 stroke-linejoin=%22round%22/%3E%3C/g%3E%3Ctext x=%2244%22 y=%2262%22 text-anchor=%22middle%22 fill=%22%23666%22 font-size=%228%22 font-family=%22system-ui,sans-serif%22 font-weight=%22600%22%3EREPFIND%3C/text%3E%3C/svg%3E';
+
+function imgFallback(img) {
+  if (img.dataset.fallback) return;
+  img.dataset.fallback = '1';
+  img.onerror = null;
+  img.src = FALLBACK_SVG;
+  img.classList.add('img-fallback');
+}
+
 function renderCardHTML(r, idx) {
   const plat = PLATFORMS[r.platform] || PLATFORMS['weidian'];
   const badges = (typeof idx === 'number' && lastAnalysis) ? renderSmartBadges(idx, lastAnalysis) : '';
@@ -2365,9 +2377,9 @@ function renderCardHTML(r, idx) {
   // Add to cart button
   const cartBtn = `<button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart('${r.id}', this)">+ Haul</button>`;
 
-  const fallbackImg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88'%3E%3Crect fill='%231F1F1F' width='88' height='88' rx='8'/%3E%3Cg transform='translate(44,36)'%3E%3Cpath d='M-14,-2 L0,-12 L14,-2 L14,12 L-14,12 Z' fill='none' stroke='%23444' stroke-width='2' stroke-linejoin='round'/%3E%3Ccircle cx='-5' cy='0' r='3' fill='%23444'/%3E%3Cpath d='M-14,8 L-5,2 L0,6 L5,1 L14,8' fill='none' stroke='%23444' stroke-width='2' stroke-linejoin='round'/%3E%3C/g%3E%3Ctext x='44' y='62' text-anchor='middle' fill='%23666' font-size='8' font-family='system-ui,sans-serif' font-weight='600'%3EREPFIND%3C/text%3E%3C/svg%3E`;
+  const fallbackImg = FALLBACK_SVG;
   return `
-    <img class="result-img" src="${r.img || fallbackImg}" alt="${escapeAttr(r.name)}" loading="lazy" onerror="this.src='${fallbackImg}'">
+    <img class="result-img" src="${r.img || fallbackImg}" alt="${escapeAttr(r.name)}" loading="${(idx||0) < 8 ? 'eager' : 'lazy'}" referrerpolicy="no-referrer" onerror="imgFallback(this)">
     <div class="result-body">
       <div class="result-top">
         <div class="result-info">
