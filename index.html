@@ -1551,6 +1551,152 @@
       .detail-price-main { font-size: 1.3rem; }
     }
 
+    /* ─── KAKOBUY TOOLTIP ─── */
+    .buy-btn-wrap { position: relative; display: inline-flex; }
+    .kakobuy-info {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--surface-2);
+      border: 1px solid var(--border-light);
+      color: var(--text-dim);
+      font-size: 0.6rem;
+      font-weight: 700;
+      cursor: help;
+      margin-left: 4px;
+      vertical-align: middle;
+      position: relative;
+    }
+    .kakobuy-info:hover .kakobuy-tooltip { opacity: 1; visibility: visible; transform: translateY(0); }
+    .kakobuy-tooltip {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%) translateY(4px);
+      background: var(--surface-2);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.72rem;
+      font-weight: 400;
+      line-height: 1.4;
+      width: 220px;
+      text-align: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      z-index: 50;
+      pointer-events: none;
+      box-shadow: var(--shadow-md);
+      color: var(--text-dim);
+      white-space: normal;
+    }
+
+    /* ─── ONBOARDING MODAL ─── */
+    .onboard-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 300;
+      backdrop-filter: blur(6px);
+    }
+    .onboard-overlay.show { display: flex; align-items: center; justify-content: center; }
+    .onboard-card {
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 36px 32px;
+      max-width: 440px;
+      width: calc(100% - 32px);
+      text-align: center;
+    }
+    .onboard-logo { margin-bottom: 20px; }
+    .onboard-logo img { height: 56px; }
+    .onboard-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
+    .onboard-sub { font-size: 0.88rem; color: var(--text-dim); margin-bottom: 24px; line-height: 1.5; }
+    .onboard-steps { text-align: left; margin-bottom: 28px; display: flex; flex-direction: column; gap: 14px; }
+    .onboard-step { display: flex; gap: 14px; align-items: flex-start; }
+    .onboard-step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 800; flex-shrink: 0;
+    }
+    .onboard-step-text { font-size: 0.84rem; line-height: 1.5; padding-top: 3px; }
+    .onboard-step-text strong { font-weight: 700; }
+    .onboard-btn {
+      width: 100%; padding: 14px;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: 12px;
+      font-size: 0.92rem; font-weight: 700;
+      cursor: pointer;
+    }
+    .onboard-btn:hover { opacity: 0.88; }
+
+    /* ─── PRICE FILTER PILLS ─── */
+    .price-filter-bar {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .price-pill {
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border-light);
+      background: var(--surface);
+      color: var(--text-dim);
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .price-pill:hover { border-color: var(--text-dim); }
+    .price-pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ─── DETAIL: SIZE NOTE + BETTER CHECKOUT LIST ─── */
+    .detail-note-input {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 0.82rem;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 60px;
+    }
+    .detail-note-input:focus { outline: none; border-color: var(--text-dim); }
+    .checkout-list {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 400px;
+      width: calc(100% - 32px);
+      z-index: 300;
+      display: none;
+    }
+    .checkout-list.show { display: block; }
+    .checkout-list-title { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .checkout-list-sub { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 16px; }
+    .checkout-list-items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .checkout-list-item { display: flex; gap: 10px; align-items: center; padding: 8px; background: var(--surface); border-radius: 8px; }
+    .checkout-list-num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 0.72rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .checkout-list-name { font-size: 0.8rem; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .checkout-list-btns { display: flex; gap: 8px; }
+    .checkout-list-btn { flex: 1; padding: 12px; border-radius: 10px; font-size: 0.84rem; font-weight: 700; cursor: pointer; border: none; }
+    .checkout-list-btn.primary { background: var(--accent); color: #fff; }
+    .checkout-list-btn.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border-light); }
+
+    @media (max-width: 480px) {
+      .onboard-card { padding: 24px 20px; }
+      .checkout-list { padding: 16px; }
+    }
+
     /* ─── SCROLLBAR ─── */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -1770,6 +1916,34 @@
   </div>
 </div>
 
+
+<!-- Onboarding Modal -->
+<div class="onboard-overlay" id="onboardOverlay">
+  <div class="onboard-card">
+    <div class="onboard-logo"><img src="logo.png" alt="repfind"></div>
+    <div class="onboard-title">How repfind works</div>
+    <div class="onboard-sub">Search 67K+ direct-link rep products. We send you straight to the listing — no dead search pages.</div>
+    <div class="onboard-steps">
+      <div class="onboard-step">
+        <div class="onboard-step-num">1</div>
+        <div class="onboard-step-text"><strong>Search</strong> for any product — sneakers, hoodies, accessories, and more.</div>
+      </div>
+      <div class="onboard-step">
+        <div class="onboard-step-num">2</div>
+        <div class="onboard-step-text"><strong>Click a product</strong> to see the source listing, QC search on Reddit, and product details.</div>
+      </div>
+      <div class="onboard-step">
+        <div class="onboard-step-num">3</div>
+        <div class="onboard-step-text"><strong>Open in KakoBuy</strong> — a shipping agent that buys from Chinese sellers and ships to you. Create a free account there to checkout.</div>
+      </div>
+    </div>
+    <button class="onboard-btn" onclick="closeOnboarding()">Start searching</button>
+  </div>
+</div>
+
+<!-- Checkout List Modal -->
+<div class="detail-overlay" id="checkoutOverlay2" onclick="closeCheckoutList()"></div>
+<div class="checkout-list" id="checkoutListModal"></div>
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 <!-- Product Detail Panel -->
@@ -2418,7 +2592,7 @@ async function renderSearchResponse(ai, container) {
       renderFollowUps(query, resultsHeader);
 
       // Update results label
-      document.getElementById('resultsLabel').textContent = results.length > 0 ? `${results.length} results` : 'No results';
+      renderPriceFilter(document.getElementById('resultsSection')); document.getElementById('resultsLabel').textContent = results.length > 0 ? `${results.length} results` : 'No results';
 
       // Refinement chips
       const resultsSection = document.getElementById('resultsSection');
@@ -2555,22 +2729,25 @@ function openDetail(productId) {
     <a class="detail-buy-btn" href="${buyLink}" target="_blank" rel="noopener noreferrer" onclick="trackClick('${p.id}')">Open in KakoBuy</a>
     <button class="detail-haul-btn" onclick="addToCart('${p.id}', this); closeDetail();">+ Add to Haul</button>
     <div class="detail-section">
-      <div class="detail-section-title">Product Links</div>
-      <div class="detail-link-list">
-        ${sourceUrl ? `<a class="detail-link" href="${sourceUrl}" target="_blank" rel="noopener noreferrer">View on ${plat.label} <span class="detail-link-arrow">↗</span></a>` : ''}
-        ${sourceUrl ? `<a class="detail-link" href="https://www.kakobuy.com/item/details?url=${encodeURIComponent(sourceUrl)}&source=WD&affcode=cq43b" target="_blank" rel="noopener noreferrer">Open in KakoBuy <span class="detail-link-arrow">↗</span></a>` : ''}
-        <a class="detail-link" href="${redditSearch}" target="_blank" rel="noopener noreferrer">Search on r/FashionReps <span class="detail-link-arrow">↗</span></a>
-      </div>
-    </div>
-
-    <div class="detail-section">
-      <div class="detail-section-title">QC Tips</div>
-      <div class="detail-estimate">
-        · Search the product name on r/FashionReps for reviews<br>
+      <div class="detail-section-title">QC & Reviews</div>
+      <a class="detail-link" href="${redditSearch}" target="_blank" rel="noopener noreferrer" style="margin-bottom:8px">Search on r/FashionReps for reviews <span class="detail-link-arrow">↗</span></a>
+      <div class="detail-estimate" style="margin-top:10px">
         · Ask the seller for QC photos before shipping<br>
         · Compare with retail references<br>
         · Higher price doesn't always mean better quality
       </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Product Links</div>
+      <div class="detail-link-list">
+        ${sourceUrl ? `<a class="detail-link" href="${sourceUrl}" target="_blank" rel="noopener noreferrer">View on ${plat.label} <span class="detail-link-arrow">↗</span></a>` : ''}
+        ${sourceUrl ? `<a class="detail-link" href="https://www.kakobuy.com/item/details?url=${encodeURIComponent(sourceUrl)}&source=WD&affcode=cq43b" target="_blank" rel="noopener noreferrer">Open in KakoBuy <span class="detail-link-arrow">↗</span></a>` : ''}
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Notes for your order</div>
+      <textarea class="detail-note-input" placeholder="e.g. Size L, black colorway" oninput="this.dataset.note=this.value"></textarea>
+      <div class="detail-estimate" style="margin-top:6px;font-size:0.7rem">Copy this when checking out in KakoBuy.</div>
     </div>
   `;
   document.getElementById('detailOverlay').classList.add('show');
@@ -2611,7 +2788,7 @@ function renderCardHTML(r, idx) {
   const buyLink = buildAgentLink(primaryAgentKey, r);
   const buyBtn = buyLink === '#'
     ? `<span class="buy-btn" style="opacity:0.4;cursor:not-allowed;pointer-events:none" aria-disabled="true">Link unavailable</span>`
-    : `<a class="buy-btn" href="${buyLink}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')">Open in ${primaryAgent.name}</a>`;
+    : `<a class="buy-btn" href="${buyLink}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')">Open in ${primaryAgent.name}</a><span class="kakobuy-info" onclick="event.stopPropagation()">?<span class="kakobuy-tooltip">KakoBuy is a shipping agent — they buy from the Chinese seller on your behalf and ship it to you. Free to sign up.</span></span>`;
 
   // Add to cart button
   const cartBtn = `<button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart('${r.id}', this)">+ Haul</button>`;
@@ -3654,8 +3831,6 @@ function checkoutCart() {
   if (cart.length === 0) return;
   const primaryAgent = 'kakobuy';
   const agentName = AGENTS[primaryAgent]?.name || 'KakoBuy';
-  
-  // Build all affiliate links
   const links = cart.map(item => ({
     name: item.name,
     link: buildAgentLink(primaryAgent, item),
@@ -3668,12 +3843,101 @@ function checkoutCart() {
     return;
   }
 
-  // Copy all links to clipboard, then open the first item so the next step is obvious.
-  const text = links.map(l => `${l.name}\n${l.link}`).join('\n\n');
+  // Show numbered list modal, then copy + open first
+  const items = links.map((l, i) => `
+    <div class="checkout-list-item">
+      <div class="checkout-list-num">${i + 1}</div>
+      <div class="checkout-list-name" title="${escapeAttr(l.name)}">${escapeHtml(l.name)}</div>
+    </div>`).join('');
+  document.getElementById('checkoutListModal').innerHTML = `
+    <div class="checkout-list-title">${links.length} items in your haul</div>
+    <div class="checkout-list-sub">Copy all links below, then open them one by one in ${agentName}.</div>
+    <div class="checkout-list-items">${items}</div>
+    <div class="checkout-list-btns">
+      <button class="checkout-list-btn secondary" onclick="copyAllLinks(links2)">Copy all links</button>
+      <button class="checkout-list-btn primary" onclick="openFirstAndCopy()">Open first + copy rest</button>
+    </div>`;
+  window.links2 = links;
+  document.getElementById('checkoutOverlay2').classList.add('show');
+  document.getElementById('checkoutListModal').classList.add('show');
+}
+
+function copyAllLinks(links) {
+  const text = links.map(l => l.name + '\n' + l.link).join('\n\n');
+  Promise.resolve(navigator.clipboard?.writeText(text)).finally(() => {
+    showToast(links.length + ' links copied to clipboard');
+  });
+}
+
+function openFirstAndCopy() {
+  const links = window.links2 || [];
+  if (!links.length) return;
+  const text = links.map(l => l.name + '\n' + l.link).join('\n\n');
   Promise.resolve(navigator.clipboard?.writeText(text)).finally(() => {
     window.open(links[0].link, '_blank', 'noopener,noreferrer');
-    showToast(`${links.length} links copied — first item opened in ${agentName}`);
+    closeCheckoutList();
+    showToast(links.length + ' links copied — first item opened in KakoBuy');
   });
+}
+
+// ─── Onboarding ───
+function showOnboarding() {
+  document.getElementById('onboardOverlay').classList.add('show');
+}
+function closeOnboarding() {
+  document.getElementById('onboardOverlay').classList.remove('show');
+  localStorage.setItem('repfind_onboarded', '1');
+}
+// Show onboarding for first-time visitors
+if (!localStorage.getItem('repfind_onboarded')) {
+  setTimeout(showOnboarding, 800);
+}
+
+// ─── Price Filter ───
+let activePriceFilter = null;
+function applyPriceFilter(maxPrice, btn) {
+  document.querySelectorAll('.price-pill').forEach(p => p.classList.remove('active'));
+  if (activePriceFilter === maxPrice) {
+    activePriceFilter = null;
+    btn.classList.remove('active');
+  } else {
+    activePriceFilter = maxPrice;
+    btn.classList.add('active');
+  }
+  // Re-filter visible cards
+  const cards = document.querySelectorAll('.result-card');
+  cards.forEach(card => {
+    const priceEl = card.querySelector('[data-price-cny]');
+    if (!priceEl) { card.style.display = ''; return; }
+    const cny = parseFloat(priceEl.dataset.priceCny) || 0;
+    const usd = cny * 0.14;
+    if (activePriceFilter && usd > activePriceFilter) {
+      card.style.display = 'none';
+    } else {
+      card.style.display = '';
+    }
+  });
+}
+
+function renderPriceFilter(container) {
+  if (!container) return;
+  const existing = container.querySelector('.price-filter-bar');
+  if (existing) return;
+  const bar = document.createElement('div');
+  bar.className = 'price-filter-bar';
+  bar.innerHTML = `
+    <span class="price-pill" onclick="applyPriceFilter(20, this)">Under $20</span>
+    <span class="price-pill" onclick="applyPriceFilter(40, this)">Under $40</span>
+    <span class="price-pill" onclick="applyPriceFilter(80, this)">Under $80</span>
+    <span class="price-pill" onclick="applyPriceFilter(150, this)">Under $150</span>
+  `;
+  container.insertBefore(bar, container.firstChild);
+}
+
+// ─── Better Checkout List ───
+function closeCheckoutList() {
+  document.getElementById('checkoutOverlay2').classList.remove('show');
+  document.getElementById('checkoutListModal').classList.remove('show');
 }
 
 // Init auth + cart badge on load
