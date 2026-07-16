@@ -1560,7 +1560,8 @@
       vertical-align: middle;
       position: relative;
     }
-    .kakobuy-info:hover .kakobuy-tooltip { opacity: 1; visibility: visible; transform: translateY(0); }
+    .kakobuy-info:hover .kakobuy-tooltip,
+    .kakobuy-info.tapped .kakobuy-tooltip { opacity: 1; visibility: visible; transform: translateY(0); }
     .kakobuy-tooltip {
       position: absolute;
       bottom: calc(100% + 8px);
@@ -2695,7 +2696,7 @@ function openDetail(productId) {
     </div>
     <div class="detail-price-box">
       <div class="detail-price-main">${formatPrice(p.priceCNY || 0, currentCurrency)}</div>
-      <div class="detail-price-sub">~$${parseFloat(p.priceUSD || 0).toFixed(2)} USD · ${currentCurrency} approx</div>
+      <div class="detail-price-sub">${currentCurrency} approximate</div>
     </div>
     <a class="detail-buy-btn" href="${buyLink}" target="_blank" rel="noopener noreferrer" onclick="trackClick('${p.id}')">Open in KakoBuy</a>
     <button class="detail-haul-btn" onclick="addToCart('${p.id}', this); closeDetail();">+ Add to Haul</button>
@@ -2748,7 +2749,7 @@ function renderCardHTML(r, idx) {
   const buyLink = buildAgentLink(primaryAgentKey, r);
   const buyBtn = buyLink === '#'
     ? `<span class="buy-btn" style="opacity:0.4;cursor:not-allowed;pointer-events:none" aria-disabled="true">Link unavailable</span>`
-    : `<a class="buy-btn" href="${buyLink}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')">Open in ${primaryAgent.name}</a><span class="kakobuy-info" onclick="event.stopPropagation()">?<span class="kakobuy-tooltip">KakoBuy is a shipping agent — they buy from the Chinese seller on your behalf and ship it to you. Free to sign up.</span></span>`;
+    : `<a class="buy-btn" href="${buyLink}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')">Open in ${primaryAgent.name}</a><span class="kakobuy-info" onclick="event.stopPropagation();this.classList.toggle('tapped')">?<span class="kakobuy-tooltip">KakoBuy is a shipping agent — they buy from the Chinese seller on your behalf and ship it to you. Free to sign up.</span></span>`;
 
   // Add to cart button
   const cartBtn = `<button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart('${r.id}', this)">+ Haul</button>`;
@@ -3596,7 +3597,11 @@ function analyzeResults(results) {
 
 function generateSmartVerdict(query, results, a) {
   if (!results || results.length === 0) return { verdict: `No exact matches for <strong>"${escapeHtml(query)}"</strong> in our 67K+ direct-link product database. Try <strong>Jordan</strong>, <strong>Yeezy</strong>, or <strong>Travis Scott</strong>.`, stats: [], insights: [] };
-  if (!a) return { verdict: `Found <strong>${results.length} listings</strong>.`, stats: [], insights: [] };
+  if (!a) {
+    const platforms = [...new Set(results.map(r => r.platform))];
+    const platNames = platforms.map(p => (PLATFORMS[p] || PLATFORMS['weidian']).label);
+    return { verdict: `Found <strong>${results.length} ${escapeHtml(query)}</strong> listings across ${platNames.join(' and ')}.`, stats: [], insights: [] };
+  }
   const avg = a.avgPrice.toFixed(2), min = a.minPrice.toFixed(2), max = a.maxPrice.toFixed(2);
   let parts = [`Found <strong>${a.totalResults} listings</strong> for "${escapeHtml(query)}"`];
   if (a.priceSpread > 20) parts.push(`Prices range from <strong>$${min}</strong> to <strong>$${max}</strong> — a <strong>$${a.priceSpread.toFixed(0)} spread</strong>`);
