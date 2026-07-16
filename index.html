@@ -1494,7 +1494,7 @@
         <button class="currency-btn" data-currency="EUR" onclick="setCurrency('EUR')">EUR</button>
         <button class="currency-btn" data-currency="CNY" onclick="setCurrency('CNY')">CNY</button>
       </div>
-      <div class="disclaimer">repfind is a discovery tool. Not affiliated with any agent or platform.</div>
+      <div class="disclaimer">repfind is a discovery tool. Not affiliated with any agent or platform. Prices are approximate.</div>
     </div>
   </div>
 </div>
@@ -1512,8 +1512,8 @@
       <span>Estimated total</span>
       <span class="cart-total-value" id="cartTotal">$0.00</span>
     </div>
-    <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:8px">Opens the first item and copies the rest of your direct links.</div>
-    <button class="cart-checkout-btn" id="cartCheckoutBtn" onclick="checkoutCart()" disabled>Checkout on agent site</button>
+    <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:8px">1 item: opens direct link. Multiple items: opens first and copies all links.</div>
+    <button class="cart-checkout-btn" id="cartCheckoutBtn" onclick="checkoutCart()" disabled>Open on agent site</button>
   </div>
 </div>
 
@@ -1622,7 +1622,7 @@ function renderAgentToggleHTML() {
       ${agent.name}
     </button>`;
   }).join('');
-  return `<div class="agent-toggle"><span class="agent-toggle-label">Choose checkout agent:</span>${buttons}</div>`;
+  return `<div class="agent-toggle"><span class="agent-toggle-label">Choose checkout agent:</span>${buttons}</div><div style="font-size:0.75rem;color:var(--text-dim);margin-top:4px;margin-bottom:8px">Choose where product buttons open. KakoBuy is the default.</div>`;
 }
 
 // ─── Currency conversion ───
@@ -1862,7 +1862,7 @@ async function doSearch(fromDocked) {
     await renderSearchResponse({
       action: 'search',
       search_query: query,
-      reply: `The AI assistant is temporarily offline, but I searched the product database directly for "${query}".`,
+      reply: `Searching the product database directly for "${query}".`,
     }, inner);
     addHistory(query);
   }
@@ -2153,7 +2153,7 @@ async function renderSearchResponse(ai, container) {
       const provEl = document.getElementById('provenance');
       const provText = document.getElementById('provenanceText');
       if (results.length > 0) {
-        provText.innerHTML = `<strong style="color:var(--text-muted)">${results.length} listings</strong> from real sellers <span class="dot-sep"></span> <span>${new Set(results.map(r => r.platform)).size} platforms</span> <span class="dot-sep"></span> <span>Live data</span>`;
+        provText.innerHTML = `<strong style="color:var(--text-muted)">${results.length} listings</strong> from direct-link database <span class="dot-sep"></span> <span>${new Set(results.map(r => r.platform)).size} platforms</span>`;
       } else {
         provText.innerHTML = `No products found for "${escapeHtml(query)}". Try a different search term.`;
       }
@@ -2187,7 +2187,7 @@ async function renderSearchResponse(ai, container) {
       scrollToBottom();
       
       // ─── Cross-sell: suggest complementary products ───
-      setTimeout(() => renderCrossSell(query, results, container), 1500);
+      renderCrossSell(query, results, container);
     }, 300);
   });
 }
@@ -2293,7 +2293,9 @@ function renderCardHTML(r, idx) {
   const primaryAgentKey = getSelectedAgents()[0] || 'kakobuy';
   const primaryAgent = AGENTS[primaryAgentKey];
   const buyLink = buildAgentLink(primaryAgentKey, r);
-  const buyBtn = `<a class="buy-btn" href="${buyLink}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')">Open in ${primaryAgent.name}</a>`;
+  const buyBtn = buyLink === '#'
+    ? `<span class="buy-btn" style="opacity:0.4;cursor:not-allowed;pointer-events:none" aria-disabled="true">Link unavailable</span>`
+    : `<a class="buy-btn" href="${buyLink}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')">Open in ${primaryAgent.name}</a>`;
 
   // Add to cart button
   const cartBtn = `<button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart('${r.id}', this)">+ Haul</button>`;
@@ -2601,14 +2603,13 @@ function renderFollowUps(query) {
   const el = document.getElementById('followUpChips');
   const section = document.getElementById('followUps');
   if (!el || !section) return;
-  // Conversational follow-ups that feel like a knowledgeable friend
   const allSuggestions = [
-    `best ${query} batch?`,
-    `is ${query} worth it?`,
-    `${query} vs retail`,
     `cheapest ${query}`,
-    `${query} sizing`,
-    `any good ${query} under $30?`,
+    `${query} under $30`,
+    `${query} under $50`,
+    `${query} hoodie`,
+    `${query} jacket`,
+    `${query} pants`,
   ];
   // Pick 3 random ones
   const suggestions = allSuggestions.sort(() => 0.5 - Math.random()).slice(0, 3);
@@ -2820,7 +2821,7 @@ async function loadProductDB() {
       platform: p[4] || 'weidian',
       itemID: p[5] || '',
       _priceUSD: p[1] || 0,
-      _priceCNY: p[1] ? Math.round(parseFloat(p[1]) * 7.25) : 0,
+      _priceCNY: p[1] ? Math.round(parseFloat(p[1]) / EXCHANGE_RATES.USD) : 0,
     }));
     console.log(`Loaded ${PRODUCT_DB.length} products`);
     return PRODUCT_DB;
@@ -3053,7 +3054,7 @@ function generateSmartVerdict(query, results, a) {
   if (a.priceSpread > 20) parts.push(`Prices range from <strong>$${min}</strong> to <strong>$${max}</strong> — a <strong>$${a.priceSpread.toFixed(0)} spread</strong>`);
   else if (a.avgPrice > 0) parts.push(`Prices cluster around <strong>$${avg}</strong>`);
   const stats = a.avgPrice > 0 ? [
-    { label: 'Avg Price', value: `$${avg}`, sub: `¥${Math.round(a.avgPrice * 7.25)}`, class: 'accent' },
+    { label: 'Avg Price', value: `$${avg}`, sub: `¥${Math.round(a.avgPrice / EXCHANGE_RATES.USD)}`, class: 'accent' },
     { label: 'Price Range', value: `$${min}–$${max}`, class: '' },
     { label: 'Listings', value: `${a.totalResults}`, class: 'green' },
   ] : [{ label: 'Listings', value: `${a.totalResults}`, class: 'accent' }];
@@ -3197,10 +3198,14 @@ function renderCart() {
       </div>
       <button class="cart-item-remove" onclick="removeFromCart('${item.id}')">&times;</button>
     </div>`).join('');
-  itemsEl.innerHTML = `${authTeaser}${itemRows}`;
+  const guestNotice = !currentUser ? `<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px;font-size:0.82rem;color:var(--text-dim)">Sign in to sync your haul across devices. <button style="background:none;border:none;color:var(--accent-light);cursor:pointer;font-size:0.82rem;padding:0;text-decoration:underline" onclick="showAuthModal('Sign in to sync your haul across devices.')">Sign in</button></div>` : '';
+  itemsEl.innerHTML = `${itemRows}${guestNotice}`;
   const total = cart.reduce((sum, item) => sum + (item.priceCNY || 0), 0);
   totalEl.textContent = formatPrice(total, currentCurrency);
-  if (checkoutBtn) checkoutBtn.disabled = false;
+  if (checkoutBtn) {
+    checkoutBtn.disabled = false;
+    checkoutBtn.textContent = cart.length === 1 ? 'Open direct product link' : 'Open first link + copy haul links';
+  }
 }
 
 function toggleCart() {
