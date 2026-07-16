@@ -2124,12 +2124,14 @@ async function renderSearchResponse(ai, container) {
 
   // Stream the AI reply first
   streamText(document.getElementById('verdictText'), ai.reply, async () => {
-    // Search real product database
+    // Search real product database. Use intent-specific searches for concept queries.
     await loadProductDB();
-    let rawProducts = searchProducts(query, 24);
+    const specialIntent = detectSpecialIntent(query);
+    let rawProducts = specialIntent === 'decor' ? searchDecorProducts(24) : searchProducts(query, 24);
     
-    // If AI query returned too few results, try broader fallbacks
-    if (rawProducts.length < 6) {
+    // If AI query returned too few results, try broader fallbacks — but never reduce special intents
+    // like "room decor" to a noisy single word such as "room".
+    if (!specialIntent && rawProducts.length < 6) {
       // Try with the original user query (not the AI-refined one)
       const userQuery = chatHistory[chatHistory.length - 2]?.content || query;
       if (userQuery && userQuery !== query) {
@@ -3051,6 +3053,60 @@ function searchProducts(query, limit = 12) {
   }
   
   return results;
+}
+
+
+// ─── Intent-specific search patches ───
+// Some buyer phrases are concepts, not literal product names. "room decor" should not match
+// "mushroom" or "Trophy Room" shoes just because they contain "room".
+function detectSpecialIntent(query) {
+  const q = query.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (/\b(room|home|house|apartment|bedroom|living room|dorm)\b/.test(q) && /\b(decor|decoration|decorations|accessories|furnish|furniture)\b/.test(q)) return 'decor';
+  if (/\b(decor|decoration|decorations|homeware|home goods|room accessories)\b/.test(q)) return 'decor';
+  return null;
+}
+
+function searchDecorProducts(limit = 24) {
+  if (!PRODUCT_DB || PRODUCT_DB.length === 0) return [];
+  const include = [
+    'decor', 'decorative', 'decoration', 'ornament', 'statue', 'sculpture', 'figurine', 'bobblehead',
+    'rug', 'carpet', 'mat', 'pillow', 'cushion', 'blanket', 'throw', 'lamp', 'light', 'lantern',
+    'vase', 'incense', 'candle', 'mirror', 'clock', 'poster', 'wall art', 'storage', 'organizer',
+    'table lamp', 'desk lamp', 'chair cushion'
+  ];
+  const strong = ['rug','pillow','cushion','blanket','lamp','vase','incense','candle','statue','sculpture','figurine','ornament','decorative','decor','mirror','clock','poster','wall art','storage','organizer'];
+  const apparelNeg = [
+    't-shirt','t shirt','tee','hoodie','shirt','jersey','shorts','pants','sweatpants','jacket','shoes','sneaker','sunglasses','ring','belt','bag','hat','cap','socks','slippers','boots','watch','necklace'
+  ];
+  const scored = [];
+  for (const p of PRODUCT_DB) {
+    const name = (p.name || '').toLowerCase();
+    const cat = (p.category || '').toLowerCase();
+    const text = `${name} ${cat}`;
+    if (!name || !p.itemID) continue;
+    let score = 0;
+    for (const k of include) {
+      if (text.includes(k)) score += strong.includes(k) ? 80 : 45;
+    }
+    // Keep fashion products out unless they are explicitly home/decor objects like rugs/pillows/lamps.
+    const hasStrongHomeSignal = strong.some(k => text.includes(k));
+    if (apparelNeg.some(k => text.includes(k)) && !hasStrongHomeSignal) score -= 180;
+    if (/\b(trophy room|showroom|mushroom|bedroom athletics|living room best quality)\b/.test(text)) score -= 160;
+    if (p.image && !p.image.includes('picsum')) score += 20;
+    if (parseFloat(p._priceUSD) > 0) score += 10;
+    if (score > 45) scored.push({ ...p, score });
+  }
+  scored.sort((a,b) => b.score - a.score || (parseFloat(a._priceUSD)||9999) - (parseFloat(b._priceUSD)||9999));
+  const seen = new Set();
+  const out = [];
+  for (const p of scored) {
+    if (!seen.has(p.itemID)) {
+      seen.add(p.itemID);
+      out.push(p);
+      if (out.length >= limit) break;
+    }
+  }
+  return out;
 }
 
 function transformProducts(rawProducts) {
