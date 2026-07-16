@@ -45,6 +45,7 @@ Reply style:
 Rules:
 - Prefer action "search" for concrete product/category requests.
 - Use a concise search_query with brand/product/category keywords only.
+- For home/room decor requests, preserve the decor intent: use search_query "room decor" or a specific home item such as "rug", "pillow", "lamp", "vase", "figurine", or "wall decor". Do not turn decor into shoes, jerseys, shirts, or unrelated fashion.
 - Use action "clarify" only when the user is genuinely ambiguous.
 - If unsure, search anyway using the best concise query.
 """
@@ -139,6 +140,12 @@ def ask_ollama(message: str, history: list | None) -> dict:
     reply = str(parsed.get("reply") or f"I searched repfind for \"{search_query}\".").strip()[:500]
     chips = parsed.get("chips") if isinstance(parsed.get("chips"), list) else []
     chips = [str(c)[:60] for c in chips[:6] if str(c).strip()]
+    decorish = re.search(r"\b(room|home|decor|decoration|decorative|apartment|bedroom|living room|dorm)\b", f"{message} {search_query}", re.I)
+    if decorish:
+        action = "search"
+        search_query = "room decor"
+        reply = "Finding room decor options for you."
+        chips = ["room decor rug", "room decor pillow", "room decor lamp", "room decor wall art"]
     return {"action": action, "search_query": search_query, "reply": reply, "chips": chips}
 
 
