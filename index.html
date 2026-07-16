@@ -3406,9 +3406,13 @@ function searchProducts(query, limit = 12) {
       else { allWordsExact = false; }
     }
     
-    // HARD FILTER: If multi-word query and not all words matched, SKIP entirely
-    // This is the key fix — "Jordan 4" must have BOTH "jordan" AND "4"
-    if (words.length > 1 && matchedWords < words.length) continue;
+    // SOFT FILTER: Require at least 60% of words to match, or at least 2 for short queries
+    // This keeps "Jordan 4" strict but allows "new balance 550 white green" to find NB 550s
+    const minMatch = words.length <= 2 ? words.length : Math.max(2, Math.ceil(words.length * 0.6));
+    if (matchedWords < minMatch) continue;
+    
+    // Penalty for unmatched words — pushes partial matches lower in results
+    if (matchedWords < words.length) score -= (words.length - matchedWords) * 25;
     
     // Also check synonyms for unmatched words
     if (matchedWords < words.length) {
