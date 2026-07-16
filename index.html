@@ -2550,7 +2550,7 @@ function openDetail(productId) {
     </div>
     <div class="detail-price-box">
       <div class="detail-price-main">${formatPrice(p.priceCNY || 0, currentCurrency)}</div>
-      <div class="detail-price-sub">~$${estimateUSD.toFixed(2)} USD · ${currentCurrency} approx</div>
+      <div class="detail-price-sub">~$${parseFloat(p.priceUSD || 0).toFixed(2)} USD · ${currentCurrency} approx</div>
     </div>
     <a class="detail-buy-btn" href="${buyLink}" target="_blank" rel="noopener noreferrer" onclick="trackClick('${p.id}')">Open in KakoBuy</a>
     <button class="detail-haul-btn" onclick="addToCart('${p.id}', this); closeDetail();">+ Add to Haul</button>
