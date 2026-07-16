@@ -2768,7 +2768,7 @@ function cartItemToDb(item) {
 }
 async function loadServerCart() {
   if (!currentUser || !supabaseClient) return;
-  const { data, error } = await supabaseClient.from('repfind_haul_items').select('*').order('created_at', { ascending: true });
+  const { data, error } = await supabaseClient.from('repfind_haul_items').select('*').order('created_at', { ascending: false });
   if (error) { console.error('Haul load error:', error); showToast('Haul table not ready yet'); return; }
   cart = (data || []).map(dbItemToCart);
   localStorage.setItem('repfind_cart', JSON.stringify(cart));
@@ -2779,11 +2779,18 @@ async function syncLocalCartToServer() {
   const localCart = JSON.parse(localStorage.getItem('repfind_cart') || '[]');
   if (!localCart.length) { await loadServerCart(); return; }
   isSyncingCart = true;
-  const rows = localCart.map(cartItemToDb);
-  const { error } = await supabaseClient.from('repfind_haul_items').upsert(rows, { onConflict: 'user_id,product_id' });
-  isSyncingCart = false;
-  if (error) { console.error('Haul sync error:', error); showToast('Haul sync needs database setup'); return; }
-  await loadServerCart();
+  try {
+    const rows = localCart.map(cartItemToDb).filter(row => row.product_id);
+    if (!rows.length) { cart = []; saveCart(); updateCartBadge(); renderCart(); return; }
+    const { error } = await supabaseClient.from('repfind_haul_items').upsert(rows, { onConflict: 'user_id,product_id' });
+    if (error) { console.error('Haul sync error:', error); showToast('Haul sync needs database setup'); return; }
+    await loadServerCart();
+  } catch (err) {
+    console.error('Haul sync exception:', err);
+    showToast('Haul sync failed. Saved locally.');
+  } finally {
+    isSyncingCart = false;
+  }
 }
 async function initAuth() {
   if (!supabaseClient) { updateAuthUI(); return; }
@@ -3206,9 +3213,12 @@ function toggleCart() {
   const panel = document.getElementById('cartPanel');
   const overlay = document.getElementById('cartOverlay');
   const opening = !panel.classList.contains('show');
+  if (opening && !currentUser) {
+    showAuthModal('Sign in to save your haul across devices.');
+    return;
+  }
   panel.classList.toggle('show');
   overlay.classList.toggle('show');
-  if (opening && !currentUser) showAuthModal('Sign in to save your haul across devices.');
   if (panel.classList.contains('show')) renderCart();
 }
 
