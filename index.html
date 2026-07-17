@@ -1727,7 +1727,7 @@
       box-shadow: var(--shadow-lg);
       opacity: 0;
       transition: all var(--transition);
-      z-index: 200;
+      z-index: 350;
       pointer-events: none;
     }
     .toast.show {
@@ -2060,6 +2060,7 @@ function setCurrency(curr) {
   document.querySelectorAll('.currency-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.currency === curr);
   });
+  renderCart(); // update cart panel prices if open
 }
 
 // ─── Affiliate Link Builder ───
@@ -2148,6 +2149,7 @@ function toggleSidebar() {
 }
 
 function newSearch() {
+  isSearching = false; // reset stuck search state
   crossSellShown = false;
   history.replaceState(null, '', location.pathname);
   mainInput.value = '';
@@ -2262,25 +2264,26 @@ async function doSearch(fromDocked) {
     });
     clearTimeout(timer);
 
+    if (!response.ok) throw new Error(`Webhook HTTP ${response.status}`);
     const ai = await response.json();
+    if (!ai?.reply) throw new Error('No reply from webhook');
 
-    // Update conversation history
-    chatHistory.push({ role: 'user', content: query });
-    chatHistory.push({ role: 'assistant', content: ai.reply });
-
-    // Remove loading
     // Remove loading + clear progressive timers
     stepTimers.forEach(t => clearTimeout(t));
     const ls = document.getElementById('loadingSection');
     if (ls) ls.remove();
 
+    // Update conversation history (after we know the response is valid)
+    chatHistory.push({ role: 'user', content: query });
+    chatHistory.push({ role: 'assistant', content: ai.reply });
+
     if (ai.action === 'search' && ai.search_query) {
       // AI says search - show results with the refined query
-      renderSearchResponse(ai, inner);
+      await renderSearchResponse(ai, inner);
       trackSearch(query, 'search', 0);
     } else if (ai.action === 'clarify') {
       // AI wants to clarify - search our DB first, offer data-driven narrowing
-      renderDataDrivenClarify(query, ai, inner);
+      await renderDataDrivenClarify(query, ai, inner);
       trackSearch(query, 'clarify', 0);
     } else {
       renderChatResponse(ai, inner);
@@ -2297,8 +2300,11 @@ async function doSearch(fromDocked) {
 
     // If the AI webhook is blocked by CORS or unavailable, do not dead-end the user.
     // Fall back to the in-browser product database so repfind still returns buyable links.
-    chatHistory.push({ role: 'user', content: query });
-    chatHistory.push({ role: 'assistant', content: `Showing local database results for ${query}.` });
+    // Deduplicate: only push if try block didn't already add this query
+    if (chatHistory[chatHistory.length - 1]?.content !== query) {
+      chatHistory.push({ role: 'user', content: query });
+      chatHistory.push({ role: 'assistant', content: `Showing local database results for ${query}.` });
+    }
     await renderSearchResponse({
       action: 'search',
       search_query: query,
@@ -2670,6 +2676,10 @@ async function renderSearchResponse(ai, container) {
 
 // ─── Stream text ───
 function streamText(el, html, callback) {
+  if (!html) { if (callback) setTimeout(callback, 100); return; }
+  // Sanitize: only allow safe inline tags, strip everything else (XSS protection)
+  const safeHtml = String(html).replace(/<(?!\/?(strong|em|b|i|br|span)\b)[^>]*>/gi, '');
+  html = safeHtml;
   const tokens = [];
   let i = 0;
   while (i < html.length) {
@@ -3358,31 +3368,43 @@ async function initAuth() {
 }
 
 let PRODUCT_DB = null;
+let _productDBPromise = null;
 
 async function loadProductDB() {
   if (PRODUCT_DB) return PRODUCT_DB;
-  try {
-    const resp = await fetch('data/products.json');
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const raw = await resp.json();
-    // raw is array of: [name, price_usd, category, image, platform, itemID]
-    PRODUCT_DB = raw.map(p => ({
-      name: p[0],
-      price: p[1] ? `$${p[1]}` : '',
-      category: p[2] || '',
-      image: p[3] || '',
-      platform: p[4] || 'weidian',
-      itemID: p[5] || '',
-      _priceUSD: p[1] || 0,
-      _priceCNY: p[1] ? Math.round(parseFloat(p[1]) / EXCHANGE_RATES.USD) : 0,
-    }));
-    console.log(`Loaded ${PRODUCT_DB.length} products`);
-    return PRODUCT_DB;
-  } catch (err) {
-    console.error('Product DB load error:', err);
-    PRODUCT_DB = [];
-    return PRODUCT_DB;
-  }
+  if (_productDBPromise) return _productDBPromise;
+  _productDBPromise = (async () => {
+    try {
+      const resp = await fetch('data/products.json');
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const raw = await resp.json();
+      // raw is array of: [name, price_usd, category, image, platform, itemID]
+      // Deduplicate: assign synthetic IDs to products sharing an itemID
+      const seenIds = new Map();
+      PRODUCT_DB = raw.map(p => {
+        let id = String(p[5] || '');
+        if (seenIds.has(id)) { id = id + '_' + seenIds.get(id); seenIds.set(p[5], seenIds.get(p[5]) + 1); }
+        else seenIds.set(id, 1);
+        return {
+          name: p[0],
+          price: p[1] ? `$${p[1]}` : '',
+          category: p[2] || '',
+          image: p[3] || '',
+          platform: p[4] || 'weidian',
+          itemID: id,
+          _priceUSD: p[1] || 0,
+          _priceCNY: p[1] ? Math.round(parseFloat(p[1]) / EXCHANGE_RATES.USD) : 0,
+        };
+      });
+      console.log(`Loaded ${PRODUCT_DB.length} products`);
+      return PRODUCT_DB;
+    } catch (err) {
+      console.error('Product DB load error:', err);
+      PRODUCT_DB = [];
+      return PRODUCT_DB;
+    }
+  })();
+  return _productDBPromise;
 }
 
 // ════════════════════════════════════════════════
@@ -3976,10 +3998,11 @@ function openFirstAndCopy() {
   const links = window.links2 || [];
   if (!links.length) return;
   const text = links.map(l => l.name + '\n' + l.link).join('\n\n');
+  const agentName = AGENTS[selectedAgents[0] || 'kakobuy']?.name || 'KakoBuy';
   Promise.resolve(navigator.clipboard?.writeText(text)).finally(() => {
     window.open(links[0].link, '_blank', 'noopener,noreferrer');
     closeCheckoutList();
-    showToast(links.length + ' links copied - first item opened in ${agentName}');
+    showToast(`${links.length} links copied - first item opened in ${agentName}`);
   });
 }
 
