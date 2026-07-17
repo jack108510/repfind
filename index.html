@@ -3339,17 +3339,19 @@ async function loadProductDB() {
   }
 }
 
+// ════════════════════════════════════════════════
+// TWO-PHASE SEARCH: Recall (find candidates) → Rank (sort by relevance)
+// ════════════════════════════════════════════════
 function searchProducts(query, limit = 12) {
   if (!PRODUCT_DB || PRODUCT_DB.length === 0) return [];
-  
-  // Strip punctuation that breaks matching (apostrophes, question marks, etc.)
-  // "jordan 4's?" → "jordan 4s" → then singularized below
+
+  // ─── Query normalization (shared by both phases) ───
   let term = query.toLowerCase().trim()
-    .replace(/['']/g, '')      // strip apostrophes: 4's → 4s, yeezy's → yeezys
-    .replace(/\?/g, '')         // strip question marks
+    .replace(/['']/g, '')
+    .replace(/\?/g, '')
     .replace(/\s+/g, ' ');
   if (!term) return [];
-  
+
   let words = term.split(/\s+/).filter(w => w.length > 0);
   const STOPWORDS = new Set(['product','products','item','items','stuff','things','please','pls','want','wants','looking','look','for','show','me','some','like','id','i',"i'd",'im',"i'm",'the','a','an']);
   const contentWords = words.filter(w => !STOPWORDS.has(w));
@@ -3436,128 +3438,126 @@ function searchProducts(query, limit = 12) {
     return null;
   }
 
-  // ─── Scoring ───
-  const scored = [];
+  // ════════════════════════════════════════════════
+  // PHASE 1: RECALL — Cast wide, find all possible candidates
+  // Goal: never miss a relevant product. Loose matching is fine here;
+  // Phase 2 will sort out the garbage.
+  // ════════════════════════════════════════════════
+  const candidates = [];
   for (const p of PRODUCT_DB) {
     const name = (p.name || '').toLowerCase();
     const cat = (p.category || '').toLowerCase();
-    const brand = (p._category || p.category || '').toLowerCase();
-
     if (!name) continue;
 
-    let score = 0;
     let matchedWords = 0;
-    let allWordsExact = true;
+    const matchTypes = {};
 
-    // 1. Exact full query phrase in name (highest signal)
-    if (name.includes(term)) score += 300;
-
-    // 2. Expanded term phrase matches in name
-    for (const st of searchTermList) {
-      if (st !== term && name.includes(st)) score += 200;
-    }
-
-    // 3. Word-by-word matching - EVERY word must match or product is rejected
     for (const w of words) {
-      const nameMatch = fuzzyMatch(name, w);
-      const brandMatch = fuzzyMatch(brand, w);
-      const catMatch = fuzzyMatch(cat, w);
-
-      if (nameMatch === 'exact') { score += 60; matchedWords++; }
-      else if (nameMatch === 'prefix') { score += 45; matchedWords++; }
-      else if (nameMatch === 'fuzzy') { score += 30; matchedWords++; }
-      else if (brandMatch === 'exact') { score += 40; matchedWords++; }
-      else if (brandMatch === 'prefix') { score += 28; matchedWords++; }
-      else if (catMatch === 'exact') { score += 15; matchedWords++; }
-      else if (catMatch === 'prefix') { score += 10; matchedWords++; }
-      else { allWordsExact = false; }
+      const nm = fuzzyMatch(name, w);
+      const cm = fuzzyMatch(cat, w);
+      if (nm === 'exact') { matchedWords++; matchTypes[w] = 'name_exact'; }
+      else if (nm === 'prefix') { matchedWords++; matchTypes[w] = 'name_prefix'; }
+      else if (nm === 'fuzzy') { matchedWords++; matchTypes[w] = 'name_fuzzy'; }
+      else if (cm === 'exact') { matchedWords++; matchTypes[w] = 'cat_exact'; }
+      else if (cm === 'prefix') { matchedWords++; matchTypes[w] = 'cat_prefix'; }
     }
 
-    // SOFT FILTER: Require at least 60% of words to match, or at least 2 for short queries
-    // This keeps "Jordan 4" strict but allows "new balance 550 white green" to find NB 550s
-    const minMatch = words.length <= 2 ? words.length : Math.max(2, Math.ceil(words.length * 0.6));
-    if (matchedWords < minMatch) continue;
-
-    // Penalty for unmatched words - pushes partial matches lower in results
-    if (matchedWords < words.length) score -= (words.length - matchedWords) * 25;
-
-    // Also check synonyms for unmatched words
-    if (matchedWords < words.length) {
-      for (const w of words) {
-        // Check if any synonym of this word matches
-        for (const [key, syns] of Object.entries(SYNONYMS)) {
-          if (w === key || words.includes(key)) {
-            for (const syn of syns) {
-              if (name.includes(syn) || brand.includes(syn)) {
-                matchedWords++;
-                score += 40;
-                break;
-              }
-            }
+    // Check synonyms for any unmatched words
+    for (const w of words) {
+      if (matchTypes[w]) continue;
+      for (const [key, syns] of Object.entries(SYNONYMS)) {
+        if (w === key || words.includes(key)) {
+          for (const syn of syns) {
+            if (name.includes(syn)) { matchedWords++; matchTypes[w] = 'synonym'; break; }
           }
         }
       }
-      if (matchedWords < words.length) continue;
     }
 
-    // 4. All words matched bonus
-    if (matchedWords >= words.length && words.length > 1) score += 150;
-
-    // 5. Expanded word matches (synonyms)
-    for (const st of searchTermList) {
-      if (st !== term && !words.some(w => st.includes(w))) {
-        const stWords = st.split(/\s+/);
-        let stMatch = true;
-        for (const sw of stWords) {
-          if (!name.includes(sw)) { stMatch = false; break; }
+    // Accept if full term or any synonym phrase appears in name (even if word-by-word missed)
+    if (matchedWords === 0) {
+      if (name.includes(term)) matchedWords = 1;
+      else {
+        for (const st of searchTermList) {
+          if (st !== term && name.includes(st)) { matchedWords = 1; break; }
         }
-        if (stMatch) score += 60;
       }
     }
 
-    // 6. Category-first boost for broad category searches
-    if (words.length === 1 && CATEGORY_HINTS[term]?.some(c => cat.includes(c))) score += 120;
+    // Relaxed threshold: at least 1 match for short queries, 40% for long queries
+    const minMatch = words.length <= 2 ? 1 : Math.max(1, Math.ceil(words.length * 0.4));
+    if (matchedWords < minMatch) continue;
 
-    // 7. Image presence boost
-    if (p.image && !p.image.includes('picsum')) score += 25;
-    if (p.clicks > 0) score += Math.min(p.clicks / 100, 20);
-
-    // 8. Penalize very long names (keyword-stuffed listings)
-    if (name.length > 80) score -= 15;
-
-    // 9. Penalize names that are just numbers or gibberish
-    if (/^[\d\s\W]+$/.test(name)) score -= 30;
-
-    // ═══ RELEVANCE RANKING IMPROVEMENTS ═══
-
-    // A. Exact name match — product name IS the query (huge boost)
-    const nameWords = name.split(/\s+/);
-    if (name === term) score += 250;
-    else if (name.startsWith(term)) score += 150;
-
-    // B. Query density — what % of the product name is the search query?
-    // "Jordan 4 Bred" (3 words) for query "jordan 4 bred" = 100% density
-    // "Air Jordan 4 Retro Bred Reimagined Quality BS112" = ~40% density
-    if (nameWords.length > 0) {
-      score += Math.round((matchedWords / nameWords.length) * 100);
-    }
-
-    // C. Brand recognition boost — real brands rank above generic items
-    const BRANDS = ['nike','jordan','air jordan','yeezy','adidas','new balance','dunk','air max','air force','travis scott','off white','off-white','louis vuitton','lv ','dior','balenciaga','bape','chrome hearts','fear of god','fog','kobe','amiri','cdg','comme des garcons','versace','givenchy','prada','gucci','patek','phillippe','rolex','audemars','hublot','cartier','nb ','samba','gazelle','campus','mamba','travis','cactus jack'];
-    if (BRANDS.some(b => name.includes(b))) score += 40;
-
-    // D. Penalize generic "Design" prefix (print-on-demand, not real reps)
-    if (name.startsWith('design ')) score -= 50;
-
-    // E. Penalize BS#### / CNFans Spreadsheet / Best Quality suffixes (keyword stuffing)
-    if (/bs\d{3,}|cnfans spreadsheet|best quality/i.test(name)) score -= 20;
-
-    if (score > 0) {
-      scored.push({ ...p, score });
-    }
+    candidates.push({ ...p, _matchedWords: matchedWords, _totalWords: words.length, _matchTypes: matchTypes });
   }
 
-    // Sort by score (desc), then by name length (asc) for tie-breaker
+  // ════════════════════════════════════════════════
+  // PHASE 2: RANK — Sort candidates by relevance, best on top
+  // This is where precision lives. Weak recall matches score near zero
+  // and sink to the bottom; exact matches dominate the top.
+  // ════════════════════════════════════════════════
+  const BRANDS = ['nike','jordan','air jordan','yeezy','adidas','new balance','dunk','air max','air force','travis scott','off white','off-white','louis vuitton','lv ','dior','balenciaga','bape','chrome hearts','fear of god','fog','kobe','amiri','cdg','comme des garcons','versace','givenchy','prada','gucci','patek','phillippe','rolex','audemars','hublot','cartier','nb ','samba','gazelle','campus','mamba','travis','cactus jack'];
+
+  const scored = [];
+  for (const p of candidates) {
+    const name = (p.name || '').toLowerCase();
+    const cat = (p.category || '').toLowerCase();
+    const nameWords = name.split(/\s+/);
+    const mw = p._matchedWords;
+    const tw = p._totalWords;
+    const mt = p._matchTypes;
+    let score = 0;
+
+    // ── TIER 1: Word match quality (how well did each word match?) ──
+    for (const w of words) {
+      const t = mt[w];
+      if (t === 'name_exact') score += 100;
+      else if (t === 'name_prefix') score += 70;
+      else if (t === 'name_fuzzy') score += 50;
+      else if (t === 'synonym') score += 60;
+      else if (t === 'cat_exact') score += 25;
+      else if (t === 'cat_prefix') score += 15;
+    }
+
+    // ── TIER 2: Phrase / exact match (the strongest relevance signals) ──
+    if (name === term) score += 400;                    // name IS the query
+    else if (name.startsWith(term)) score += 250;       // name starts with query
+    else if (name.includes(term)) score += 200;         // query is a substring of name
+
+    for (const st of searchTermList) {
+      if (st !== term && name.includes(st)) score += 150; // synonym phrase match
+    }
+
+    // ── TIER 3: Completeness (did all query words match?) ──
+    if (mw >= tw) score += 200;                         // every word matched
+    else if (mw >= tw * 0.6) score += 100;              // most words matched
+    if (mw < tw) score -= (tw - mw) * 40;               // penalize missing words
+
+    // ── TIER 4: Query density — query words vs total name length ──
+    // "Jordan 4 Bred" (3-word name, 3-word query) = 100% density
+    // "Air Jordan 4 Retro Bred Reimagined Quality BS112" = ~37% density
+    if (nameWords.length > 0) {
+      score += Math.round((mw / nameWords.length) * 150);
+    }
+
+    // ── TIER 5: Quality signals ──
+    if (BRANDS.some(b => name.includes(b))) score += 50;    // recognized brand
+    if (p.image && !p.image.includes('picsum')) score += 20; // has real image
+    if (p.clicks > 0) score += Math.min(p.clicks / 100, 15); // popularity
+    if (name.length > 80) score -= 20;                       // keyword stuffing
+    if (/^[\d\s\W]+$/.test(name)) score -= 30;                // gibberish name
+
+    // ── TIER 6: Demotions ──
+    if (name.startsWith('design ')) score -= 60;              // print-on-demand junk
+    if (/bs\d{3,}|cnfans spreadsheet|best quality/i.test(name)) score -= 25; // SEO stuffing
+
+    // ── Broad category boost (single-word searches) ──
+    if (words.length === 1 && CATEGORY_HINTS[term]?.some(c => cat.includes(c))) score += 80;
+
+    if (score > 0) scored.push({ ...p, score });
+  }
+
+  // Sort by score (desc), then by name length (asc) for tie-breaker
   scored.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     return (a.name || '').length - (b.name || '').length;
