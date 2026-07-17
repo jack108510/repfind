@@ -1792,7 +1792,7 @@
     <p class="welcome-tagline">Search 66K+ direct-buy rep links. No dead search pages. No fake ratings.</p>
     <div class="prompt-container">
       <div class="prompt-box">
-        <input type="text" id="searchInput" placeholder="Search for any rep — e.g. Travis Scott AF1...">
+        <input type="text" id="searchInput" placeholder="Search — Patek, Jordan, designer bags, room decor...">
         <button class="send-btn" id="sendBtn" onclick="doSearch()" disabled>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
@@ -1949,10 +1949,6 @@ let savedAgents = ['kakobuy'];
 try { savedAgents = JSON.parse(localStorage.getItem('repfind_agents')) || ['kakobuy']; } catch(e) {}
 let selectedAgents = savedAgents;
 localStorage.setItem('repfind_agents', JSON.stringify(selectedAgents));
-
-function getSelectedAgents() {
-  return ['kakobuy'];
-}
 
 function toggleAgent(key) {
   if (selectedAgents.includes(key)) {
@@ -2857,11 +2853,11 @@ function exportSpreadsheet() {
 
   const query = lastSearchQuery || 'repfind';
   const rows = [
-    ['Product', 'Platform', 'Price (CNY)', 'Price (USD)', 'KakoBuy Direct Link']
+    ['Product', 'Platform', 'Price (CNY)', 'Price (USD)', 'Agent Direct Link']
   ];
 
   currentResults.forEach(r => {
-    const kakobuyLink = buildAgentLink('kakobuy', r);
+    const kakobuyLink = buildAgentLink(selectedAgents[0] || 'kakobuy', r);
     rows.push([
       r.name,
       r.platform,
@@ -2903,9 +2899,9 @@ function exportToGoogleSheets() {
   }
   const query = lastSearchQuery || 'repfind';
   // Build a simple HTML table that can be pasted into Google Sheets
-  const headers = ['Product','Platform','Price (CNY)','Price (USD)','KakoBuy Direct Link'];
+  const headers = ['Product','Platform','Price (CNY)','Price (USD)','Agent Direct Link'];
   const rows = currentResults.map(r => [
-    r.name, r.platform, '¥'+r.priceCNY, '$'+r.priceUSD, buildAgentLink('kakobuy', r)
+    r.name, r.platform, '¥'+r.priceCNY, '$'+r.priceUSD, buildAgentLink(selectedAgents[0] || 'kakobuy', r)
   ]);
   const tsv = [headers, ...rows].map(row => row.map(c => String(c).replace(/\t/g,' ').replace(/\n/g,' ')).join('\t')).join('\n');
   navigator.clipboard?.writeText(tsv);
@@ -3850,7 +3846,7 @@ function openFirstAndCopy() {
   Promise.resolve(navigator.clipboard?.writeText(text)).finally(() => {
     window.open(links[0].link, '_blank', 'noopener,noreferrer');
     closeCheckoutList();
-    showToast(links.length + ' links copied — first item opened in KakoBuy');
+    showToast(links.length + ' links copied — first item opened in ${agentName}');
   });
 }
 
