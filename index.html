@@ -2311,16 +2311,28 @@ function updateLoadingStep(step, text) {
 async function renderDataDrivenClarify(query, ai, container) {
   await loadProductDB();
 
-  // Search our actual database for this query
-  let rawProducts = searchProducts(query, 50);
+  // Check for special intent first
+  const intent = detectSpecialIntent(query);
+  let rawProducts = [];
+  
+  if (intent === 'decor') {
+    rawProducts = searchDecorProducts(50);
+  } else if (intent === 'apple_electronics') {
+    rawProducts = searchAppleElectronics(50);
+  } else {
+    // Search our actual database for this query
+    rawProducts = searchProducts(query, 50);
 
-  // If no results, try the AI's suggested chips as fallback searches
-  if (rawProducts.length === 0 && ai.chips && ai.chips.length) {
-    for (const chip of ai.chips) {
-      const chipResults = searchProducts(chip, 30);
-      if (chipResults.length > 0) {
-        rawProducts = chipResults;
-        break;
+    // If no results, try the AI's suggested chips as fallback searches
+    if (rawProducts.length === 0 && ai.chips && ai.chips.length) {
+      for (const chip of ai.chips) {
+        // Don't use chip fallbacks for concept queries we don't have data for
+        if (detectSpecialIntent(chip)) continue;
+        const chipResults = searchProducts(chip, 30);
+        if (chipResults.length > 0) {
+          rawProducts = chipResults;
+          break;
+        }
       }
     }
   }
@@ -2495,31 +2507,48 @@ async function renderSearchResponse(ai, container) {
   streamText(document.getElementById('verdictText'), ai.reply, async () => {
     // Search real product database. Use intent-specific searches for concept queries.
     await loadProductDB();
-    let rawProducts = searchProducts(query, 24);
+    let rawProducts = [];
+    let intentNote = '';
     
-    // If AI query returned too few results, try broader fallbacks
-    if (rawProducts.length < 6) {
-      // Try with the original user query (not the AI-refined one)
-      const userQuery = chatHistory[chatHistory.length - 2]?.content || query;
-      if (userQuery && userQuery !== query) {
-        const fallback = searchProducts(userQuery, 24);
-        if (fallback.length > rawProducts.length) {
-          rawProducts = fallback;
-        }
-      }
+    // Check for special intent (decor, apple electronics) before regular search
+    const intent = detectSpecialIntent(query);
+    const userQuery = chatHistory[chatHistory.length - 2]?.content || query;
+    const intentFromUser = detectSpecialIntent(userQuery);
+    
+    if (intent === 'decor' || intentFromUser === 'decor') {
+      rawProducts = searchDecorProducts(24);
+      intentNote = 'decor';
+    } else if (intent === 'apple_electronics' || intentFromUser === 'apple_electronics') {
+      rawProducts = searchAppleElectronics(24);
+      intentNote = 'apple_electronics';
+    } else {
+      rawProducts = searchProducts(query, 24);
       
-      // Still too few? Try each word individually
-      if (rawProducts.length < 4) {
-        const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-        const bestWord = words.sort((a,b) => {
-          const ac = searchProducts(a, 100).length;
-          const bc = searchProducts(b, 100).length;
-          return bc - ac;
-        })[0];
-        if (bestWord) {
-          const wordResults = searchProducts(bestWord, 24);
-          if (wordResults.length > rawProducts.length) {
-            rawProducts = wordResults;
+      // If AI query returned too few results, try broader fallbacks
+      if (rawProducts.length < 6) {
+        // Try with the original user query (not the AI-refined one)
+        if (userQuery && userQuery !== query) {
+          const fallback = searchProducts(userQuery, 24);
+          if (fallback.length > rawProducts.length) {
+            rawProducts = fallback;
+          }
+        }
+        
+        // Still too few? Try each word individually
+        // BUT: only for fashion/sneaker queries — don't fall back to shoe results
+        // for concept queries like "room decor" that we don't have data for
+        if (rawProducts.length < 4 && !detectSpecialIntent(query) && !detectSpecialIntent(userQuery)) {
+          const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+          const bestWord = words.sort((a,b) => {
+            const ac = searchProducts(a, 100).length;
+            const bc = searchProducts(b, 100).length;
+            return bc - ac;
+          })[0];
+          if (bestWord) {
+            const wordResults = searchProducts(bestWord, 24);
+            if (wordResults.length > rawProducts.length) {
+              rawProducts = wordResults;
+            }
           }
         }
       }
@@ -2547,7 +2576,11 @@ async function renderSearchResponse(ai, container) {
       if (results.length > 0) {
         provText.innerHTML = `<strong style="color:var(--text-muted)">${results.length} listings</strong> from direct-link database <span class="dot-sep"></span> <span>${new Set(results.map(r => r.platform)).size} platforms</span>`;
       } else {
-        provText.innerHTML = `No products found for "${escapeHtml(query)}". Try a different search term.`;
+        provText.innerHTML = intentNote === 'decor'
+          ? `Our database focuses on reps & fashion — we don't have home decor listings yet. Try searching for <strong>sneakers, hoodies, or accessories</strong>.`
+          : intentNote === 'apple_electronics'
+          ? `No Apple electronics in our direct-link database yet. Try searching for <strong>sneakers, hoodies, or accessories</strong>.`
+          : `No products found for "${escapeHtml(query)}". Try a different search term.`;
       }
       provEl.style.display = 'flex';
 
@@ -2561,7 +2594,7 @@ async function renderSearchResponse(ai, container) {
       // Empty state or results
       if (results.length === 0) {
         const list = document.getElementById('resultsList');
-        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">Our database has 66K+ direct-link products — try a broader term</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Patek Philippe','Designer Bags','Chrome Hearts','Jordan 4','Room Decor'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
+        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">${intentNote ? 'Our database focuses on reps & fashion — try these instead' : 'Our database has 66K+ direct-link products — try a broader term'}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Patek Philippe','Designer Bags','Chrome Hearts','Jordan 4','Travis Scott'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
       } else {
         renderResults(results, resultsHeader);
       }
@@ -3527,10 +3560,15 @@ function searchDecorProducts(limit = 24) {
     'vase', 'incense', 'candle', 'mirror', 'clock', 'poster', 'wall art', 'storage', 'organizer',
     'table lamp', 'desk lamp', 'chair cushion'
   ];
-  const strong = ['rug','pillow','cushion','blanket','lamp','vase','incense','candle','statue','sculpture','figurine','ornament','decorative','decor','mirror','clock','poster','wall art','storage','organizer'];
+  // Strong decor signals — these override apparel penalties
+  const strong = ['rug','pillow','cushion','blanket','lamp','vase','incense','candle','statue','sculpture','figurine','ornament','decorative','decor','mirror','clock','wall art'];
+  // Items that are "poster" but printed on clothing — must not be treated as wall decor
+  const posterOnClothing = ['t-shirt','t shirt','tee','hoodie','shirt','jersey','sweatshirt','zip-up','zip up'];
   const apparelNeg = [
     't-shirt','t shirt','tee','hoodie','shirt','jersey','shorts','pants','sweatpants','jacket','shoes','sneaker','sunglasses','ring','belt','bag','hat','cap','socks','slippers','boots','watch','necklace'
   ];
+  // Fashion/sneaker categories (lowercase to match cat.toLowerCase()) that should never appear in decor results
+  const fashionCats = ['t恤','球衣','卫衣','短裤','休闲套装','polo衫','袜子','棒球帽','衬衫','牛仔裤','夹克','毛衣','运动服饰','运动套装','运动裤','太阳镜','背心','项链','手链','拖鞋','长裤','戒指','老爹鞋','跑步鞋','air zoom','nike','jordan','adidas','new balance','yeezy','泳装','睡衣','信封包','板鞋'];
   const scored = [];
   for (const p of PRODUCT_DB) {
     const name = (p.name || '').toLowerCase();
@@ -3541,9 +3579,15 @@ function searchDecorProducts(limit = 24) {
     for (const k of include) {
       if (text.includes(k)) score += strong.includes(k) ? 80 : 45;
     }
+    // "Poster" only counts if it's an actual wall poster, not printed on clothing
+    const hasPoster = text.includes('poster');
+    const isPosterOnShirt = posterOnClothing.some(k => text.includes(k));
+    if (hasPoster && isPosterOnShirt) score -= 60; // remove the poster bonus
     // Keep fashion products out unless they are explicitly home/decor objects like rugs/pillows/lamps.
     const hasStrongHomeSignal = strong.some(k => text.includes(k));
     if (apparelNeg.some(k => text.includes(k)) && !hasStrongHomeSignal) score -= 180;
+    // Hard-exclude any product in a fashion/sneaker category
+    if (fashionCats.some(k => cat.includes(k))) score -= 200;
     if (/\b(trophy room|showroom|mushroom|bedroom athletics|living room best quality)\b/.test(text)) score -= 160;
     if (p.image && !p.image.includes('picsum')) score += 20;
     if (parseFloat(p._priceUSD) > 0) score += 10;
