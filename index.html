@@ -1798,12 +1798,12 @@
         </button>
       </div>
       <div class="suggestions">
+        <div class="suggestion" onclick="quickSearch('Patek Philippe watch')">Patek Philippe</div>
+        <div class="suggestion" onclick="quickSearch('Chrome Hearts glasses')">Chrome Hearts Glasses</div>
+        <div class="suggestion" onclick="quickSearch('designer bags')">Designer Bags</div>
         <div class="suggestion" onclick="quickSearch('Travis Scott AF1')">Travis Scott AF1</div>
-        <div class="suggestion" onclick="quickSearch('Yeezy 350')">Yeezy 350</div>
         <div class="suggestion" onclick="quickSearch('Jordan 4')">Jordan 4</div>
-        <div class="suggestion" onclick="quickSearch('Stussy hoodie')">Stussy Hoodie</div>
-        <div class="suggestion" onclick="quickSearch('Lululemon')">Lululemon</div>
-        <div class="suggestion" onclick="quickSearch('Chrome Hearts')">Chrome Hearts</div>
+        <div class="suggestion" onclick="quickSearch('room decor')">Room Decor</div>
       </div>
       <div style="display:flex;justify-content:center;gap:1px;margin-top:14px;flex-wrap:wrap">
         <button class="currency-btn" data-currency="USD" onclick="setCurrency('USD')">USD</button>
@@ -1907,7 +1907,7 @@
       </div>
       <div class="onboard-step">
         <div class="onboard-step-num">3</div>
-        <div class="onboard-step-text"><strong>Open in KakoBuy</strong> — a shipping agent that buys from Chinese sellers and ships to you. Create a free account there to checkout.</div>
+        <div class="onboard-step-text"><strong>Open in an agent</strong> — shipping agents like KakoBuy, CNFans, or OopBuy buy from Chinese sellers on your behalf and ship to you. Pick whichever you prefer.</div>
       </div>
     </div>
     <button class="onboard-btn" onclick="closeOnboarding()">Start searching</button>
@@ -1940,10 +1940,14 @@ const AFFILIATE_CODES = {
 
 const AGENTS = {
   kakobuy: { name: 'KakoBuy', color: '#C84B2F' },
+  cnfans:  { name: 'CNFans',  color: '#4A90D9' },
+  oopbuy:  { name: 'OopBuy',  color: '#E8843C' },
 };
 
 // ─── Agent Selection (user picks which sites to buy from) ───
-let selectedAgents = ['kakobuy'];
+let savedAgents = ['kakobuy'];
+try { savedAgents = JSON.parse(localStorage.getItem('repfind_agents')) || ['kakobuy']; } catch(e) {}
+let selectedAgents = savedAgents;
 localStorage.setItem('repfind_agents', JSON.stringify(selectedAgents));
 
 function getSelectedAgents() {
@@ -1991,7 +1995,14 @@ function updateAgentToggleUI() {
 }
 
 function renderAgentToggleHTML() {
-  return ''; // KakoBuy is the only agent — no toggle needed
+  const buttons = Object.entries(AGENTS).map(([key, agent]) => {
+    const active = selectedAgents.includes(key);
+    return `<button class="agent-toggle-btn ${active ? 'active' : ''}" data-agent="${key}" onclick="toggleAgent('${key}')">
+      <span class="agent-dot ${active ? 'on' : 'off'}" style="background:${agent.color}"></span>
+      ${agent.name}
+    </button>`;
+  }).join('');
+  return `<div class="agent-toggle"><span class="agent-toggle-label">Checkout with:</span>${buttons}</div>`;
 }
 
 // ─── Currency conversion ───
@@ -2554,7 +2565,7 @@ async function renderSearchResponse(ai, container) {
       // Empty state or results
       if (results.length === 0) {
         const list = document.getElementById('resultsList');
-        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">Our database has 66K+ direct-link products — try a broader term</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Jordan','Yeezy','Travis Scott','Lululemon'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
+        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">Our database has 66K+ direct-link products — try a broader term</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Patek Philippe','Designer Bags','Chrome Hearts','Jordan 4','Room Decor'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
       } else {
         renderResults(results, resultsHeader);
       }
@@ -2678,13 +2689,26 @@ function openDetail(productId) {
   const p = productIndex[productId];
   if (!p) return;
   const plat = PLATFORMS[p.platform] || PLATFORMS['weidian'];
-  const buyLink = buildAgentLink('kakobuy', p);
   const sourceUrl = p.id && /^\d+$/.test(p.id)
     ? (p.platform === 'taobao' ? `https://item.taobao.com/item.htm?id=${p.id}`
        : p.platform === '1688' ? `https://detail.1688.com/offer/${p.id}.html`
        : `https://weidian.com/item.html?itemID=${p.id}`)
     : null;
   const redditSearch = `https://www.reddit.com/r/FashionReps/search/?q=${encodeURIComponent(p.name || p.id)}&sort=relevance`;
+  // Build buy buttons for all selected agents
+  const detailBuyBtns = selectedAgents.map(key => {
+    const agent = AGENTS[key];
+    const link = buildAgentLink(key, p);
+    if (link === '#') return '';
+    return `<a class="detail-buy-btn" href="${link}" target="_blank" rel="noopener noreferrer" onclick="trackClick('${p.id}')" style="margin-bottom:6px">Open in ${agent.name}</a>`;
+  }).filter(Boolean).join('') || `<div style="color:var(--text-dim);font-size:0.82rem;text-align:center;padding:12px">No direct link available</div>`;
+  // Build agent links for the links section
+  const agentLinks = selectedAgents.map(key => {
+    const agent = AGENTS[key];
+    const link = buildAgentLink(key, p);
+    if (link === '#') return '';
+    return `<a class="detail-link" href="${link}" target="_blank" rel="noopener noreferrer">Open in ${agent.name} <span class="detail-link-arrow">↗</span></a>`;
+  }).filter(Boolean).join('');
   document.getElementById('detailHero').innerHTML = `<img src="${p.img || FALLBACK_SVG}" alt="${escapeAttr(p.name)}" referrerpolicy="no-referrer" onerror="imgFallback(this)">`;
   document.getElementById('detailContent').innerHTML = `
     <div class="detail-name">${escapeHtml(p.name)}</div>
@@ -2696,7 +2720,7 @@ function openDetail(productId) {
       <div class="detail-price-main">${formatPrice(p.priceCNY || 0, currentCurrency)}</div>
       <div class="detail-price-sub">${currentCurrency} approximate</div>
     </div>
-    <a class="detail-buy-btn" href="${buyLink}" target="_blank" rel="noopener noreferrer" onclick="trackClick('${p.id}')">Open in KakoBuy</a>
+    ${detailBuyBtns}
     <button class="detail-haul-btn" onclick="addToCart('${p.id}', this); closeDetail();">+ Add to Haul</button>
     <div class="detail-section">
       <div class="detail-section-title">QC & Reviews</div>
@@ -2711,13 +2735,13 @@ function openDetail(productId) {
       <div class="detail-section-title">Product Links</div>
       <div class="detail-link-list">
         ${sourceUrl ? `<a class="detail-link" href="${sourceUrl}" target="_blank" rel="noopener noreferrer">View on ${plat.label} <span class="detail-link-arrow">↗</span></a>` : ''}
-        ${sourceUrl ? `<a class="detail-link" href="https://www.kakobuy.com/item/details?url=${encodeURIComponent(sourceUrl)}&source=WD&affcode=cq43b" target="_blank" rel="noopener noreferrer">Open in KakoBuy <span class="detail-link-arrow">↗</span></a>` : ''}
+        ${agentLinks}
       </div>
     </div>
     <div class="detail-section">
       <div class="detail-section-title">Notes for your order</div>
       <textarea class="detail-note-input" placeholder="e.g. Size L, black colorway" oninput="this.dataset.note=this.value"></textarea>
-      <div class="detail-estimate" style="margin-top:6px;font-size:0.7rem">Copy this when checking out in KakoBuy.</div>
+      <div class="detail-estimate" style="margin-top:6px;font-size:0.7rem">Copy this when checking out.</div>
     </div>
   `;
   document.getElementById('detailOverlay').classList.add('show');
@@ -2740,14 +2764,15 @@ function renderCardHTML(r, idx) {
   const isVerified = r.id && /^\d+$/.test(r.id);
   const verifiedBadge = isVerified ? '<span class="verified-badge">Direct Link</span>' : '';
 
-  // Single buy button — KakoBuy is our primary affiliate
-  // If user selected multiple agents, use the first one as primary
-  const primaryAgentKey = 'kakobuy';
-  const primaryAgent = AGENTS[primaryAgentKey];
-  const buyLink = buildAgentLink(primaryAgentKey, r);
-  const buyBtn = buyLink === '#'
-    ? `<span class="buy-btn" style="opacity:0.4;cursor:not-allowed;pointer-events:none" aria-disabled="true">Link unavailable</span>`
-    : `<a class="buy-btn" href="${buyLink}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')">Open in ${primaryAgent.name}</a><span class="kakobuy-info" onclick="event.stopPropagation();this.classList.toggle('tapped')">?<span class="kakobuy-tooltip">KakoBuy is a shipping agent — they buy from the Chinese seller on your behalf and ship it to you. Free to sign up.</span></span>`;
+  // Buy buttons for all selected agents
+  const agentButtons = selectedAgents.map(key => {
+    const agent = AGENTS[key];
+    const link = buildAgentLink(key, r);
+    if (link === '#') return '';
+    return `<a class="buy-btn" href="${link}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')">Open in ${agent.name}</a>`;
+  }).filter(Boolean).join(' ');
+  const buyBtn = agentButtons || `<span class="buy-btn" style="opacity:0.4;cursor:not-allowed;pointer-events:none" aria-disabled="true">Link unavailable</span>`;
+  const infoIcon = `<span class="kakobuy-info" onclick="event.stopPropagation();this.classList.toggle('tapped')">?<span class="kakobuy-tooltip">Shipping agents (KakoBuy, CNFans, OopBuy) buy from the Chinese seller on your behalf and ship to you. Pick whichever you prefer.</span></span>`;
 
   // Add to cart button
   const cartBtn = `<button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart('${r.id}', this)">+ Haul</button>`;
@@ -2770,7 +2795,7 @@ function renderCardHTML(r, idx) {
           <div class="price-cny">${currentCurrency} approx</div>
         </div>
       </div>
-      <div class="result-actions">${buyBtn}${cartBtn}</div>
+      <div class="result-actions">${buyBtn}${infoIcon}${cartBtn}</div>
     </div>
   `;
 }
@@ -3778,7 +3803,7 @@ function toggleCart() {
 
 function checkoutCart() {
   if (cart.length === 0) return;
-  const primaryAgent = 'kakobuy';
+  const primaryAgent = selectedAgents[0] || 'kakobuy';
   const agentName = AGENTS[primaryAgent]?.name || 'KakoBuy';
   const links = cart.map(item => ({
     name: item.name,
