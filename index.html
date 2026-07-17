@@ -2231,11 +2231,14 @@ async function doSearch(fromDocked) {
     if (ai.action === 'search' && ai.search_query) {
       // AI says search - show results with the refined query
       renderSearchResponse(ai, inner);
+      trackSearch(query, 'search', 0);
     } else if (ai.action === 'clarify') {
       // AI wants to clarify - search our DB first, offer data-driven narrowing
       renderDataDrivenClarify(query, ai, inner);
+      trackSearch(query, 'clarify', 0);
     } else {
       renderChatResponse(ai, inner);
+      trackSearch(query, ai.action || 'chat', 0);
     }
 
     addHistory(query);
@@ -2841,6 +2844,7 @@ function trackClick(resultId) {
   const product = productIndex[resultId] || currentResults.find(r => r.id === resultId);
   if (product) {
     product.clicks = (product.clicks || 0) + 1;
+    trackEvent('agent_click', { product: product.name, platform: product.platform, agent: selectedAgents.join(',') });
   }
 }
 
@@ -3230,6 +3234,7 @@ async function submitAuth() {
   if (res.error) return setAuthMessage(normalizeAuthError(res.error));
   hideAuthModal();
   showToast('Signed in. Haul sync enabled.');
+  trackEvent(authMode === 'login' ? 'login' : 'signup', { method: 'password' });
 }
 async function sendMagicLink() {
   if (!supabaseClient) return setAuthMessage('Auth client failed to load.');
@@ -3793,6 +3798,7 @@ async function addToCart(productId, btn) {
   if (currentUser) await saveCartItemToServer(item);
   if (btn) { btn.textContent = 'Added'; btn.classList.add('added'); setTimeout(() => { btn.textContent = '+ Haul'; btn.classList.remove('added'); }, 1200); }
   showToast(`Saved to your haul (${cart.length} items)`);
+  trackEvent('haul_add', { product: item.name, platform: item.platform, price_usd: item.price });
 }
 
 async function removeFromCart(productId) {
@@ -3927,6 +3933,63 @@ function closeCheckoutList() {
 }
 
 // Init auth + cart badge on load
+// ════════════════════════════════════════════════
+// ANALYTICS — Supabase-backed, no external deps
+// ════════════════════════════════════════════════
+const ANALYTICS_SESSION = (function() {
+  let s = sessionStorage.getItem('rf_sid');
+  if (!s) { s = Date.now().toString(36) + Math.random().toString(36).slice(2, 8); sessionStorage.setItem('rf_sid', s); }
+  return s;
+})();
+const ANALYTICS_DEVICE = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : (/iPad|Tablet/i.test(navigator.userAgent) ? 'tablet' : 'desktop');
+
+async function trackPageView() {
+  if (!supabaseClient) return;
+  try {
+    await supabaseClient.from('repfind_page_views').insert({
+      session_id: ANALYTICS_SESSION,
+      user_id: currentUser?.id || null,
+      path: location.pathname + location.search,
+      referrer: document.referrer || null,
+      device: ANALYTICS_DEVICE,
+    });
+  } catch(e) { /* silent fail */ }
+}
+
+async function trackSearch(query, action, resultCount) {
+  if (!supabaseClient) return;
+  try {
+    await supabaseClient.from('repfind_searches').insert({
+      session_id: ANALYTICS_SESSION,
+      user_id: currentUser?.id || null,
+      query: (query || '').slice(0, 200),
+      action: action || 'search',
+      result_count: resultCount || 0,
+    });
+  } catch(e) { /* silent fail */ }
+}
+
+async function trackEvent(type, data) {
+  if (!supabaseClient) return;
+  try {
+    await supabaseClient.from('repfind_events').insert({
+      session_id: ANALYTICS_SESSION,
+      user_id: currentUser?.id || null,
+      event_type: type,
+      event_data: data || {},
+    });
+  } catch(e) { /* silent fail */ }
+}
+
+// Track page view on load
+trackPageView();
+// Track on SPA-style navigations (hash/route changes)
+let _lastPath = location.pathname + location.search;
+setInterval(() => {
+  const p = location.pathname + location.search;
+  if (p !== _lastPath) { _lastPath = p; trackPageView(); }
+}, 2000);
+
 initAuth();
 updateCartBadge();
 renderCart();
