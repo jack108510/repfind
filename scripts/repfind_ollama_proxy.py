@@ -18,7 +18,13 @@ PORT = int(os.environ.get("REPFIND_PROXY_PORT", "8787"))
 CLAUDE_URL = os.environ.get("CLAUDE_URL", "https://api.anthropic.com/v1/messages")
 CLAUDE_KEY = os.environ.get("CLAUDE_KEY", "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")
 CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
-ALLOWED_ORIGIN = os.environ.get("REPFIND_ALLOWED_ORIGIN", "https://jack108510.github.io")
+ALLOWED_ORIGINS = [
+    "https://jack108510.github.io",
+    "http://repfind.ca",
+    "https://repfind.ca",
+    "http://www.repfind.ca",
+    "https://www.repfind.ca",
+]
 LOG_PATH = os.environ.get("REPFIND_PROXY_LOG", "/tmp/repfind-claude-proxy.log")
 
 SYSTEM_PROMPT = """You are repfind, the AI rep plug for finding reps on Weidian, Taobao, and 1688.
@@ -35,27 +41,28 @@ Schema:
   "chips": ["optional follow-up option"]
 }
 
-CATALOG - WE HAVE:
-- Sneakers: Nike, Jordan, Adidas, Yeezy, New Balance, Kobe, Asics, Bape, Travis Scott, Off-White, Sacai, Vans, Balenciaga
+CATALOG - WE HAVE (66K+ products, 184 categories):
+- Sneakers: Nike, Jordan, Adidas, Yeezy, New Balance, Kobe, Asics, Bape, Travis Scott, Off-White, Sacai, Vans, Balenciaga, Bapesta, SB Dunk
 - Streetwear: hoodies, tees, jackets, pants, shorts - Bape, Supreme, Stussy, Human Made, Fear of God/Essentials, Chrome Hearts, Travis Scott, Off-White
-
-CATALOG - WE DO NOT HAVE (redirect to sneakers/streetwear):
-- Room decor, furniture, home goods, lamps, vases, rugs, posters
-- Electronics, gaming gear, phones, phone cases, PS5, RGB lights
-- Skateboards, skate decks, sports equipment
-- Makeup, skincare, beauty products
-- Designer bags, luxury handbags
-- Watches (we have sneakers and streetwear, not watches)
-- Jewelry (we have streetwear, not fine jewelry)
-- Formalwear, suits, dress shoes
-- Food, drinks, supplements
+- Bags: totes, crossbody, clutch, backpacks, handbags, messenger, belt bags, wallet, luggage (all major designer brands)
+- Watches: mechanical, quartz, smart watches, sport watches (Rolex, Patek, AP, etc.)
+- Jewelry: necklaces, bracelets, rings, brooches, earrings, fine jewelry
+- Sunglasses & eyewear: optical frames, prescription glasses
+- Formal wear: suits, dress shirts, ties, bow ties, dress shoes (Oxfords, Derbies, Loafers)
+- Dresses, skirts, womenswear
+- Electronics: smart speakers, headphones, earphones (TWS), chargers, phone cases, keyboards, mice
+- Swimwear, sleepwear, activewear
+- Hats, caps, beanies, scarves, gloves, belts, wallets
+- Perfume & fragrance
+- Home accessories, decor, organizers
 
 DECISION RULES:
-- If the user asks for something WE HAVE with enough detail (brand + product), SEARCH immediately.
-- If the user asks for something WE DO NOT HAVE, CLARIFY and redirect to sneakers/streetwear. Never search for things outside our catalog.
-- SEARCH examples: jordan 1 chicago, triple white air forces, kobe 6 grinch, bape hoodie, supreme box logo, essentials hoodie brown
-- CLARIFY examples: shoes (what brand?), yeezy slides (which colorway?), travis scott (which piece?)
-- When clarifying, chips must ONLY suggest products we actually carry.
+- If the user asks for a specific product with enough detail, SEARCH immediately.
+- Only CLARIFY if the query is genuinely ambiguous (e.g. "shoes" with no brand).
+- Never tell the user we don't carry something - we have 66K+ products across nearly every category.
+- SEARCH examples: jordan 1 chicago, triple white air forces, kobe 6 grinch, bape hoodie, supreme box logo, essentials hoodie brown, gucci tote bag, rolex submariner, cuban link chain
+- CLARIFY examples: shoes (what brand/style?), bag (which brand?), watch (which model?)
+- When clarifying, chips should suggest popular products we carry.
 - Keep reply under 200 characters.
 - Never mention fake ratings, seller ratings, sales counts, or quality scores.
 """
@@ -71,11 +78,11 @@ def log(msg: str) -> None:
 
 
 def cors_origin(origin: str | None) -> str:
-    if origin == ALLOWED_ORIGIN:
-        return origin or ALLOWED_ORIGIN
+    if origin and origin in ALLOWED_ORIGINS:
+        return origin
     if origin and (origin.startswith("http://localhost") or origin.startswith("http://127.0.0.1")):
         return origin
-    return ALLOWED_ORIGIN
+    return ALLOWED_ORIGINS[0]
 
 
 def fallback(message: str, why: str = "") -> dict:

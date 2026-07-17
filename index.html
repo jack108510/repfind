@@ -2577,9 +2577,9 @@ async function renderSearchResponse(ai, container) {
         provText.innerHTML = `<strong style="color:var(--text-muted)">${results.length} listings</strong> from direct-link database <span class="dot-sep"></span> <span>${new Set(results.map(r => r.platform)).size} platforms</span>`;
       } else {
         provText.innerHTML = intentNote === 'decor'
-          ? `Our database focuses on reps & fashion - we don't have home decor listings yet. Try searching for <strong>sneakers, hoodies, or accessories</strong>.`
+          ? `No decor results yet, but we have 66K+ products. Try searching for sneakers, bags, watches, or jewelry.`
           : intentNote === 'apple_electronics'
-          ? `No Apple electronics in our direct-link database yet. Try searching for <strong>sneakers, hoodies, or accessories</strong>.`
+          ? `No Apple electronics yet, but we have 66K+ products. Try searching for sneakers, bags, watches, or jewelry.`
           : `No products found for "${escapeHtml(query)}". Try a different search term.`;
       }
       provEl.style.display = 'flex';
@@ -3228,10 +3228,6 @@ async function submitAuth() {
     ? await supabaseClient.auth.signInWithPassword({ email, password })
     : await supabaseClient.auth.signUp({ email, password, options: { emailRedirectTo: window.location.href.split('#')[0] } });
   if (res.error) return setAuthMessage(normalizeAuthError(res.error));
-  if (authMode === 'signup' && !res.data.session) {
-    setAuthMessage('Check your email to confirm your account, then log in.', true);
-    return;
-  }
   hideAuthModal();
   showToast('Signed in. Haul sync enabled.');
 }
