@@ -3528,6 +3528,30 @@ function searchProducts(query, limit = 12) {
     // 9. Penalize names that are just numbers or gibberish
     if (/^[\d\s\W]+$/.test(name)) score -= 30;
 
+    // ═══ RELEVANCE RANKING IMPROVEMENTS ═══
+
+    // A. Exact name match — product name IS the query (huge boost)
+    const nameWords = name.split(/\s+/);
+    if (name === term) score += 250;
+    else if (name.startsWith(term)) score += 150;
+
+    // B. Query density — what % of the product name is the search query?
+    // "Jordan 4 Bred" (3 words) for query "jordan 4 bred" = 100% density
+    // "Air Jordan 4 Retro Bred Reimagined Quality BS112" = ~40% density
+    if (nameWords.length > 0) {
+      score += Math.round((matchedWords / nameWords.length) * 100);
+    }
+
+    // C. Brand recognition boost — real brands rank above generic items
+    const BRANDS = ['nike','jordan','air jordan','yeezy','adidas','new balance','dunk','air max','air force','travis scott','off white','off-white','louis vuitton','lv ','dior','balenciaga','bape','chrome hearts','fear of god','fog','kobe','amiri','cdg','comme des garcons','versace','givenchy','prada','gucci','patek','phillippe','rolex','audemars','hublot','cartier','nb ','samba','gazelle','campus','mamba','travis','cactus jack'];
+    if (BRANDS.some(b => name.includes(b))) score += 40;
+
+    // D. Penalize generic "Design" prefix (print-on-demand, not real reps)
+    if (name.startsWith('design ')) score -= 50;
+
+    // E. Penalize BS#### / CNFans Spreadsheet / Best Quality suffixes (keyword stuffing)
+    if (/bs\d{3,}|cnfans spreadsheet|best quality/i.test(name)) score -= 20;
+
     if (score > 0) {
       scored.push({ ...p, score });
     }
