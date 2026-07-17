@@ -3350,7 +3350,7 @@ function searchProducts(query, limit = 12) {
   if (!term) return [];
   
   let words = term.split(/\s+/).filter(w => w.length > 0);
-  const STOPWORDS = new Set(['product','products','item','items','stuff','things','please','pls','want','wants','looking','look','for','show','me','some','like','id','i','i'd','i'd','im','i'm','the','a','an']);
+  const STOPWORDS = new Set(['product','products','item','items','stuff','things','please','pls','want','wants','looking','look','for','show','me','some','like','id','i',"i'd",'im',"i'm",'the','a','an']);
   const contentWords = words.filter(w => !STOPWORDS.has(w));
   if (contentWords.length > 0) {
     words = contentWords;
