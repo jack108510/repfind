@@ -3783,6 +3783,11 @@ async function deleteCartItemFromServer(productId) {
 }
 
 async function addToCart(productId, btn) {
+  // Must be signed in to add to haul
+  if (!currentUser) {
+    showAuthModal('Sign up to save products to your haul and sync across devices.');
+    return;
+  }
   const product = productIndex[productId] || currentResults.find(r => r.id === productId);
   if (!product) return;
   if (cart.find(item => item.id === productId)) { showToast('Already in your haul'); return; }
@@ -3791,7 +3796,7 @@ async function addToCart(productId, btn) {
   saveCart(); updateCartBadge(); renderCart();
   if (currentUser) await saveCartItemToServer(item);
   if (btn) { btn.textContent = 'Added'; btn.classList.add('added'); setTimeout(() => { btn.textContent = '+ Haul'; btn.classList.remove('added'); }, 1200); }
-  showToast(currentUser ? `Saved to your haul (${cart.length} items)` : `Added locally (${cart.length} items). Sign in to sync.`);
+  showToast(`Saved to your haul (${cart.length} items)`);
 }
 
 async function removeFromCart(productId) {
