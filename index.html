@@ -2067,27 +2067,38 @@ function setCurrency(curr) {
 // FI-code products (no real ID) fall back to search by name.
 function buildAgentLink(agentKey, product) {
   const id = product.id || product.itemID;
-  const name = encodeURIComponent(product.name || id || 'rep');
+  const platform = (product.platform || 'weidian').toLowerCase();
   const ref = AFFILIATE_CODES[agentKey];
 
-  // If we have a numeric Weidian ID, build direct product links
-  if (id && /^\d+$/.test(id)) {
-    const sourceUrl = `https://weidian.com/item.html?itemID=${id}`;
-    switch(agentKey) {
-      case 'cnfans':
-        return `https://cnfans.com/product?platform=WEIDIAN&id=${id}&ref=${ref}`;
-      case 'kakobuy':
-        return `https://www.kakobuy.com/item/details?url=${encodeURIComponent(sourceUrl)}&source=WD&affcode=${ref}`;
-      case 'oopbuy':
-        return `https://oopbuy.com/product/weidian/${id}?inviteCode=${ref}`;
-      default:
-        return '#';
-    }
+  if (!id || !/^\d+$/.test(id)) return '#';
+
+  // Build source URL and platform label per product platform
+  let sourceUrl, sourceLabel, cnfansPlatform;
+  if (platform === 'taobao') {
+    sourceUrl = `https://item.taobao.com/item.htm?id=${id}`;
+    sourceLabel = 'TB';
+    cnfansPlatform = 'TAOBAO';
+  } else if (platform === '1688') {
+    sourceUrl = `https://detail.1688.com/offer/${id}.html`;
+    sourceLabel = '1688';
+    cnfansPlatform = 'ALI1688';
+  } else {
+    // Weidian (default)
+    sourceUrl = `https://weidian.com/item.html?itemID=${id}`;
+    sourceLabel = 'WD';
+    cnfansPlatform = 'WEIDIAN';
   }
 
-  // No real direct ID - do not create search-fallback affiliate links.
-  // repfind only pushes direct-link products.
-  return '#';
+  switch(agentKey) {
+    case 'cnfans':
+      return `https://cnfans.com/product?platform=${cnfansPlatform}&id=${id}&ref=${ref}`;
+    case 'kakobuy':
+      return `https://www.kakobuy.com/item/details?url=${encodeURIComponent(sourceUrl)}&source=${sourceLabel}&affcode=${ref}`;
+    case 'oopbuy':
+      return `https://oopbuy.com/product/${platform === 'taobao' ? 'taobao' : platform === '1688' ? '1688' : 'weidian'}/${id}?inviteCode=${ref}`;
+    default:
+      return '#';
+  }
 }
 const PLATFORMS = {
   weidian: { label: 'Weidian', class: 'platform-weidian' },
