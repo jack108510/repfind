@@ -4,21 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="no-referrer">
-  <title>repfind — find the best reps, fast</title>
-  <meta name="description" content="Search 66K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings — send straight to your agent.">
+  <title>repfind - find the best reps, fast</title>
+  <meta name="description" content="Search 66K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings - send straight to your agent.">
   <meta name="keywords" content="repfind, reps, replica, weidian, taobao, 1688, cnfans, kakobuy, oopbuy, travis scott, jordan, yeezy, nike">
   <meta name="author" content="repfind">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="repfind — find the best reps, fast">
+  <meta property="og:title" content="repfind - find the best reps, fast">
   <meta property="og:description" content="Search 66K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings.">
   <meta property="og:url" content="https://repfind.ca/">
   <meta property="og:site_name" content="repfind">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="repfind — find the best reps, fast">
+  <meta name="twitter:title" content="repfind - find the best reps, fast">
   <meta name="twitter:description" content="Search 66K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings.">
 
   <!-- Canonical -->
@@ -1324,7 +1324,7 @@
       }
       .result-card { padding: 10px; gap: 10px; }
       .result-img { width: 72px; height: 72px; }
-      /* Mobile font size floor — nothing below 0.75rem (12px) */
+      /* Mobile font size floor - nothing below 0.75rem (12px) */
       .smart-badge, .verified-badge, .platform-badge { font-size: 0.7rem; }
       .stat-pill-label, .stat-pill-sub { font-size: 0.72rem; }
       .results-label, .follow-up-label { font-size: 0.72rem; }
@@ -1792,7 +1792,7 @@
     <p class="welcome-tagline">Search 66K+ direct-buy rep links. No dead search pages. No fake ratings.</p>
     <div class="prompt-container">
       <div class="prompt-box">
-        <input type="text" id="searchInput" placeholder="Search — Patek, Jordan, designer bags, room decor...">
+        <input type="text" id="searchInput" placeholder="Search - Patek, Jordan, designer bags, room decor...">
         <button class="send-btn" id="sendBtn" onclick="doSearch()" disabled>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
@@ -1895,11 +1895,11 @@
   <div class="onboard-card">
     <div class="onboard-logo"><img src="logo.png" alt="repfind"></div>
     <div class="onboard-title">How repfind works</div>
-    <div class="onboard-sub">Search 66K+ direct-link rep products. We send you straight to the listing — no dead search pages.</div>
+    <div class="onboard-sub">Search 66K+ direct-link rep products. We send you straight to the listing - no dead search pages.</div>
     <div class="onboard-steps">
       <div class="onboard-step">
         <div class="onboard-step-num">1</div>
-        <div class="onboard-step-text"><strong>Search</strong> for any product — sneakers, hoodies, accessories, and more.</div>
+        <div class="onboard-step-text"><strong>Search</strong> for any product - sneakers, hoodies, accessories, and more.</div>
       </div>
       <div class="onboard-step">
         <div class="onboard-step-num">2</div>
@@ -1907,7 +1907,7 @@
       </div>
       <div class="onboard-step">
         <div class="onboard-step-num">3</div>
-        <div class="onboard-step-text"><strong>Open in an agent</strong> — shipping agents like KakoBuy, CNFans, or OopBuy buy from Chinese sellers on your behalf and ship to you. Pick whichever you prefer.</div>
+        <div class="onboard-step-text"><strong>Open in an agent</strong> - shipping agents like KakoBuy, CNFans, or OopBuy buy from Chinese sellers on your behalf and ship to you. Pick whichever you prefer.</div>
       </div>
     </div>
     <button class="onboard-btn" onclick="closeOnboarding()">Start searching</button>
@@ -1929,7 +1929,7 @@
 
 <script>
 // ════════════════════════════════════════════════
-// repfind — Premium AI Search UX
+// repfind - Premium AI Search UX
 // ════════════════════════════════════════════════
 
 const AFFILIATE_CODES = {
@@ -2028,7 +2028,7 @@ function setCurrency(curr) {
 }
 
 // ─── Affiliate Link Builder ───
-// BS-code products now have real Weidian item IDs — use direct product links.
+// BS-code products now have real Weidian item IDs - use direct product links.
 // FI-code products (no real ID) fall back to search by name.
 function buildAgentLink(agentKey, product) {
   const id = product.id || product.itemID;
@@ -2050,7 +2050,7 @@ function buildAgentLink(agentKey, product) {
     }
   }
 
-  // No real direct ID — do not create search-fallback affiliate links.
+  // No real direct ID - do not create search-fallback affiliate links.
   // repfind only pushes direct-link products.
   return '#';
 }
@@ -2170,7 +2170,7 @@ async function doSearch(fromDocked) {
     'Hunting for matching direct links...',
   ];
   const thinkMsg = thinkingMsgs[Math.floor(Math.random() * thinkingMsgs.length)];
-  
+
   loadingDiv.innerHTML = `
     <div class="loading-header">
       <div class="avatar"><img src="logo.png" alt=""></div>
@@ -2188,7 +2188,7 @@ async function doSearch(fromDocked) {
   inner.appendChild(loadingDiv);
   scrollToBottom();
 
-  // Progressive loading — show what's actually happening
+  // Progressive loading - show what's actually happening
   const stepTimers = [
     setTimeout(() => updateLoadingStep(1, 'Querying 66K+ direct-link products...'), 1200),
     setTimeout(() => updateLoadingStep(2, 'Analyzing price spread and platforms...'), 2500),
@@ -2229,10 +2229,10 @@ async function doSearch(fromDocked) {
     if (ls) ls.remove();
 
     if (ai.action === 'search' && ai.search_query) {
-      // AI says search — show results with the refined query
+      // AI says search - show results with the refined query
       renderSearchResponse(ai, inner);
     } else if (ai.action === 'clarify') {
-      // AI wants to clarify — search our DB first, offer data-driven narrowing
+      // AI wants to clarify - search our DB first, offer data-driven narrowing
       renderDataDrivenClarify(query, ai, inner);
     } else {
       renderChatResponse(ai, inner);
@@ -2306,7 +2306,7 @@ function updateLoadingStep(step, text) {
 }
 
 // ════════════════════════════════════════════════
-// DATA-DRIVEN CLARIFICATION — search DB first, narrow by real categories
+// DATA-DRIVEN CLARIFICATION - search DB first, narrow by real categories
 // ════════════════════════════════════════════════
 async function renderDataDrivenClarify(query, ai, container) {
   await loadProductDB();
@@ -2314,7 +2314,7 @@ async function renderDataDrivenClarify(query, ai, container) {
   // Check for special intent first
   const intent = detectSpecialIntent(query);
   let rawProducts = [];
-  
+
   if (intent === 'decor') {
     rawProducts = searchDecorProducts(50);
   } else if (intent === 'apple_electronics') {
@@ -2337,7 +2337,7 @@ async function renderDataDrivenClarify(query, ai, container) {
     }
   }
 
-  // If still no results — show the AI's conversational reply
+  // If still no results - show the AI's conversational reply
   if (rawProducts.length === 0) {
     renderChatResponse(ai, container);
     return;
@@ -2357,12 +2357,12 @@ async function renderDataDrivenClarify(query, ai, container) {
   const sortedCats = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1]);
 
   // DECISION: show results directly or offer narrowing?
-  // If 1 dominant category (>60% of results) OR fewer than 15 results — just show them
+  // If 1 dominant category (>60% of results) OR fewer than 15 results - just show them
   const topCat = sortedCats[0];
   const isDominant = topCat && topCat[1] / rawProducts.length > 0.6;
 
   if (isDominant || rawProducts.length <= 15 || sortedCats.length <= 1) {
-    // Enough focus — show results directly
+    // Enough focus - show results directly
     const fakeSearchResponse = {
       ...ai,
       action: 'search',
@@ -2373,7 +2373,7 @@ async function renderDataDrivenClarify(query, ai, container) {
     return;
   }
 
-  // Multiple categories — offer data-driven narrowing
+  // Multiple categories - offer data-driven narrowing
   const responseDiv = document.createElement('div');
   responseDiv.className = 'ai-response';
 
@@ -2411,7 +2411,7 @@ function forceSearch(query) {
 }
 
 // ════════════════════════════════════════════════
-// RENDER — CONVERSATIONAL (clarify)
+// RENDER - CONVERSATIONAL (clarify)
 // ════════════════════════════════════════════════
 function renderChatResponse(ai, container) {
   const responseDiv = document.createElement('div');
@@ -2442,11 +2442,11 @@ function renderChatResponse(ai, container) {
 }
 
 // ════════════════════════════════════════════════
-// RENDER — SEARCH RESULTS (after AI confirms)
+// RENDER - SEARCH RESULTS (after AI confirms)
 // ════════════════════════════════════════════════
 async function renderSearchResponse(ai, container) {
   const query = ai.search_query;
-  
+
   // Show loading state for results
   const resultsHeader = document.createElement('div');
   resultsHeader.className = 'ai-response';
@@ -2509,12 +2509,12 @@ async function renderSearchResponse(ai, container) {
     await loadProductDB();
     let rawProducts = [];
     let intentNote = '';
-    
+
     // Check for special intent (decor, apple electronics) before regular search
     const intent = detectSpecialIntent(query);
     const userQuery = chatHistory[chatHistory.length - 2]?.content || query;
     const intentFromUser = detectSpecialIntent(userQuery);
-    
+
     if (intent === 'decor' || intentFromUser === 'decor') {
       rawProducts = searchDecorProducts(24);
       intentNote = 'decor';
@@ -2523,7 +2523,7 @@ async function renderSearchResponse(ai, container) {
       intentNote = 'apple_electronics';
     } else {
       rawProducts = searchProducts(query, 24);
-      
+
       // If AI query returned too few results, try broader fallbacks
       if (rawProducts.length < 6) {
         // Try with the original user query (not the AI-refined one)
@@ -2533,9 +2533,9 @@ async function renderSearchResponse(ai, container) {
             rawProducts = fallback;
           }
         }
-        
+
         // Still too few? Try each word individually
-        // BUT: only for fashion/sneaker queries — don't fall back to shoe results
+        // BUT: only for fashion/sneaker queries - don't fall back to shoe results
         // for concept queries like "room decor" that we don't have data for
         if (rawProducts.length < 4 && !detectSpecialIntent(query) && !detectSpecialIntent(userQuery)) {
           const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
@@ -2553,23 +2553,23 @@ async function renderSearchResponse(ai, container) {
         }
       }
     }
-    
+
     const results = transformProducts(rawProducts);
-    
+
     // Store for export/cart functionality
     results.forEach(r => { if (r.id) productIndex[r.id] = r; });
     currentResults = results;
     baseResults = [...results];
     lastSearchQuery = query;
-    
+
     const verdict = generateVerdict(query, results);
-    
+
     // Show stats
     showStats(verdict.stats);
-    
+
     setTimeout(() => {
       document.getElementById('actionBar').style.display = 'flex';
-      
+
       // Update provenance
       const provEl = document.getElementById('provenance');
       const provText = document.getElementById('provenanceText');
@@ -2577,7 +2577,7 @@ async function renderSearchResponse(ai, container) {
         provText.innerHTML = `<strong style="color:var(--text-muted)">${results.length} listings</strong> from direct-link database <span class="dot-sep"></span> <span>${new Set(results.map(r => r.platform)).size} platforms</span>`;
       } else {
         provText.innerHTML = intentNote === 'decor'
-          ? `Our database focuses on reps & fashion — we don't have home decor listings yet. Try searching for <strong>sneakers, hoodies, or accessories</strong>.`
+          ? `Our database focuses on reps & fashion - we don't have home decor listings yet. Try searching for <strong>sneakers, hoodies, or accessories</strong>.`
           : intentNote === 'apple_electronics'
           ? `No Apple electronics in our direct-link database yet. Try searching for <strong>sneakers, hoodies, or accessories</strong>.`
           : `No products found for "${escapeHtml(query)}". Try a different search term.`;
@@ -2588,13 +2588,13 @@ async function renderSearchResponse(ai, container) {
       const statPills = document.getElementById('statPills');
       if (verdict.insights && statPills) statPills.insertAdjacentHTML('afterend', renderInsights(verdict.insights));
 
-      // Agent toggle — inject before results
+      // Agent toggle - inject before results
       if (statPills) statPills.insertAdjacentHTML('beforebegin', renderAgentToggleHTML());
 
       // Empty state or results
       if (results.length === 0) {
         const list = document.getElementById('resultsList');
-        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">${intentNote ? 'Our database focuses on reps & fashion — try these instead' : 'Our database has 66K+ direct-link products — try a broader term'}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Patek Philippe','Designer Bags','Chrome Hearts','Jordan 4','Travis Scott'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
+        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">${intentNote ? 'Our database focuses on reps & fashion - try these instead' : 'Our database has 66K+ direct-link products - try a broader term'}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Patek Philippe','Designer Bags','Chrome Hearts','Jordan 4','Travis Scott'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
       } else {
         renderResults(results, resultsHeader);
       }
@@ -2609,7 +2609,7 @@ async function renderSearchResponse(ai, container) {
 
 
       scrollToBottom();
-      
+
       // ─── Cross-sell: suggest complementary products ───
       if (!crossSellShown && searchHistory.length <= 1) {
         renderCrossSell(query, results, container);
@@ -2702,7 +2702,7 @@ function renderResults(results, scope) {
   scrollToBottom();
 }
 
-// Global image fallback — avoids broken inline onerror quotes from SVG data URIs
+// Global image fallback - avoids broken inline onerror quotes from SVG data URIs
 const FALLBACK_SVG = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2288%22 height=%2288%22%3E%3Crect fill=%22%231F1F1F%22 width=%2288%22 height=%2288%22 rx=%228%22/%3E%3Cg transform=%22translate(44,36)%22%3E%3Cpath d=%22M-14,-2 L0,-12 L14,-2 L14,12 L-14,12 Z%22 fill=%22none%22 stroke=%22%23444%22 stroke-width=%222%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%22-5%22 cy=%220%22 r=%223%22 fill=%22%23444%22/%3E%3Cpath d=%22M-14,8 L-5,2 L0,6 L5,1 L14,8%22 fill=%22none%22 stroke=%22%23444%22 stroke-width=%222%22 stroke-linejoin=%22round%22/%3E%3C/g%3E%3Ctext x=%2244%22 y=%2262%22 text-anchor=%22middle%22 fill=%22%23666%22 font-size=%228%22 font-family=%22system-ui,sans-serif%22 font-weight=%22600%22%3EREPFIND%3C/text%3E%3C/svg%3E';
 
 function imgFallback(img) {
@@ -2837,7 +2837,7 @@ function buildBestLink(product) {
 
 // ─── Track Click (analytics, no popup) ───
 function trackClick(resultId) {
-  // Lightweight click tracking — no agent selector popup
+  // Lightweight click tracking - no agent selector popup
   const product = productIndex[resultId] || currentResults.find(r => r.id === resultId);
   if (product) {
     product.clicks = (product.clicks || 0) + 1;
@@ -2921,7 +2921,7 @@ function exportSpreadsheet() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast(`Spreadsheet exported — ${currentResults.length} Kakobuy direct links`);
+  showToast(`Spreadsheet exported - ${currentResults.length} Kakobuy direct links`);
 }
 
 // ─── Google Sheet export (opens pre-filled link) ───
@@ -2938,7 +2938,7 @@ function exportToGoogleSheets() {
   ]);
   const tsv = [headers, ...rows].map(row => row.map(c => String(c).replace(/\t/g,' ').replace(/\n/g,' ')).join('\t')).join('\n');
   navigator.clipboard?.writeText(tsv);
-  showToast('Copied to clipboard — paste into Google Sheets!');
+  showToast('Copied to clipboard - paste into Google Sheets!');
 }
 
 // ─── Copy verdict ───
@@ -2960,7 +2960,7 @@ function regenerateSearch() {
 // ─── Cross-sell: suggest complementary products ───
 function renderCrossSell(query, results, container) {
   if (!PRODUCT_DB || results.length === 0) return;
-  
+
   // Map product categories to complementary categories
   const CROSSSELL_MAP = {
     'shoes': [
@@ -3012,14 +3012,14 @@ function renderCrossSell(query, results, container) {
       { cat: 'Shoes', label: 'Want shoes that complete the same look?' },
     ],
   };
-  
+
   // Detect what category the user searched for
   const queryLower = query.toLowerCase();
   const resultCats = results.map(r => (r._category || '').toLowerCase());
-  
+
   let crossSellCat = null;
   let crossSellLabel = null;
-  
+
   // Check result categories against our map
   for (const result of results) {
     const cat = (result._category || '').toLowerCase();
@@ -3032,7 +3032,7 @@ function renderCrossSell(query, results, container) {
     }
     if (crossSellCat) break;
   }
-  
+
   // Also check query directly
   if (!crossSellCat) {
     const QUERY_MAP = {
@@ -3055,15 +3055,15 @@ function renderCrossSell(query, results, container) {
       }
     }
   }
-  
+
   if (!crossSellCat) return;
-  
+
   // Search for complementary products
   const crossSellResults = searchProducts(crossSellCat, 3);
   if (crossSellResults.length === 0) return;
-  
+
   const crossSellProducts = transformProducts(crossSellResults.map(p => ({ ...p, _category: crossSellCat })));
-  
+
   // Render the cross-sell section
   const crossSellDiv = document.createElement('div');
   crossSellDiv.className = 'ai-response';
@@ -3079,7 +3079,7 @@ function renderCrossSell(query, results, container) {
     </div>
   `;
   container.appendChild(crossSellDiv);
-  
+
   // Render the cross-sell product cards
   const listEl = crossSellDiv.querySelector('#crossSellList');
   crossSellProducts.forEach((r, i) => {
@@ -3088,14 +3088,14 @@ function renderCrossSell(query, results, container) {
     card.dataset.platform = r.platform;
     card.onclick = (e) => { if(e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; var c2 = card.querySelector('.add-to-cart-btn'); if(!c2) return; var oc = c2.getAttribute('onclick') || ''; var mt = oc.match(/addToCart..([^'"]+)/); if(mt) openDetail(mt[1]); };
     card.style.animationDelay = `${i * 0.08}s`;
-    
+
     // Store for cart/click lookup across searches
     if (r.id) productIndex[r.id] = r;
-    
+
     card.innerHTML = renderCardHTML(r);
     listEl.appendChild(card);
   });
-  
+
   scrollToBottom();
 }
 
@@ -3106,7 +3106,7 @@ function renderFollowUps(query, scope) {
   const section = root.querySelector('#followUps');
   if (!el || !section) return;
   const clean = query.trim();
-  const isDecor = false; // Claude now handles decor redirects — never show decor suggestions
+  const isDecor = false; // Claude now handles decor redirects - never show decor suggestions
   const suffixes = ['hoodie', 'jacket', 'pants', 'shirt', 'shorts', 'shoes'];
   const base = clean;
   const allSuggestions = suffixes
@@ -3178,7 +3178,7 @@ function escapeHtml(str) {
 function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
 
 // ════════════════════════════════════════════════
-// REAL PRODUCT DATABASE — 67,944 direct-link products from static JSON
+// REAL PRODUCT DATABASE - 67,944 direct-link products from static JSON
 // ════════════════════════════════════════════════
 
 const SUPABASE_URL = 'https://xacehhtgvubcqdoltazg.supabase.co';
@@ -3341,16 +3341,28 @@ async function loadProductDB() {
 function searchProducts(query, limit = 12) {
   if (!PRODUCT_DB || PRODUCT_DB.length === 0) return [];
   
-  let term = query.toLowerCase().trim();
+  // Strip punctuation that breaks matching (apostrophes, question marks, etc.)
+  // "jordan 4's?" → "jordan 4s" → then singularized below
+  let term = query.toLowerCase().trim()
+    .replace(/['']/g, '')      // strip apostrophes: 4's → 4s, yeezy's → yeezys
+    .replace(/\?/g, '')         // strip question marks
+    .replace(/\s+/g, ' ');
   if (!term) return [];
   
   let words = term.split(/\s+/).filter(w => w.length > 0);
-  const STOPWORDS = new Set(['product','products','item','items','stuff','things','please','pls','want','wants','looking','look','for','show','me','some','like','id','i','i’d','i’d','im','i’m','the','a','an']);
+  const STOPWORDS = new Set(['product','products','item','items','stuff','things','please','pls','want','wants','looking','look','for','show','me','some','like','id','i','i'd','i'd','im','i'm','the','a','an']);
   const contentWords = words.filter(w => !STOPWORDS.has(w));
   if (contentWords.length > 0) {
     words = contentWords;
     term = words.join(' ');
   }
+  
+  // Singularize / normalize common plural forms: "4s"→"4", "11s"→"11", "1s"→"1"
+  words = words.map(w => {
+    const m = w.match(/^(\d+)s$/);
+    return m ? m[1] : w;
+  });
+  term = words.join(' ');
   const CATEGORY_HINTS = {
     'sneakers': ['shoes', 'sneakers'],
     'shoes': ['shoes', 'sneakers'],
@@ -3365,7 +3377,7 @@ function searchProducts(query, limit = 12) {
     'shorts': ['shorts', 'pants/shorts'],
     'electronics': ['electronics'],
   };
-  
+
   // ─── Rep keyword synonyms ───
   const SYNONYMS = {
     'af1': ['air force 1', 'air force one'],
@@ -3387,7 +3399,7 @@ function searchProducts(query, limit = 12) {
     'pk': ['pk god', 'pkbatch'],
     'og': ['og batch'],
   };
-  
+
   // Expand query with synonyms
   const expandedTerms = new Set([term]);
   for (const [key, syns] of Object.entries(SYNONYMS)) {
@@ -3396,7 +3408,7 @@ function searchProducts(query, limit = 12) {
     }
   }
   const searchTermList = [...expandedTerms];
-  
+
   // ─── Helper: fuzzy word match (handles typos, partial matches) ───
   function fuzzyMatch(text, word) {
     const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -3422,34 +3434,34 @@ function searchProducts(query, limit = 12) {
     }
     return null;
   }
-  
+
   // ─── Scoring ───
   const scored = [];
   for (const p of PRODUCT_DB) {
     const name = (p.name || '').toLowerCase();
     const cat = (p.category || '').toLowerCase();
     const brand = (p._category || p.category || '').toLowerCase();
-    
+
     if (!name) continue;
-    
+
     let score = 0;
     let matchedWords = 0;
     let allWordsExact = true;
-    
+
     // 1. Exact full query phrase in name (highest signal)
     if (name.includes(term)) score += 300;
-    
+
     // 2. Expanded term phrase matches in name
     for (const st of searchTermList) {
       if (st !== term && name.includes(st)) score += 200;
     }
-    
-    // 3. Word-by-word matching — EVERY word must match or product is rejected
+
+    // 3. Word-by-word matching - EVERY word must match or product is rejected
     for (const w of words) {
       const nameMatch = fuzzyMatch(name, w);
       const brandMatch = fuzzyMatch(brand, w);
       const catMatch = fuzzyMatch(cat, w);
-      
+
       if (nameMatch === 'exact') { score += 60; matchedWords++; }
       else if (nameMatch === 'prefix') { score += 45; matchedWords++; }
       else if (nameMatch === 'fuzzy') { score += 30; matchedWords++; }
@@ -3459,15 +3471,15 @@ function searchProducts(query, limit = 12) {
       else if (catMatch === 'prefix') { score += 10; matchedWords++; }
       else { allWordsExact = false; }
     }
-    
+
     // SOFT FILTER: Require at least 60% of words to match, or at least 2 for short queries
     // This keeps "Jordan 4" strict but allows "new balance 550 white green" to find NB 550s
     const minMatch = words.length <= 2 ? words.length : Math.max(2, Math.ceil(words.length * 0.6));
     if (matchedWords < minMatch) continue;
-    
-    // Penalty for unmatched words — pushes partial matches lower in results
+
+    // Penalty for unmatched words - pushes partial matches lower in results
     if (matchedWords < words.length) score -= (words.length - matchedWords) * 25;
-    
+
     // Also check synonyms for unmatched words
     if (matchedWords < words.length) {
       for (const w of words) {
@@ -3486,10 +3498,10 @@ function searchProducts(query, limit = 12) {
       }
       if (matchedWords < words.length) continue;
     }
-    
+
     // 4. All words matched bonus
     if (matchedWords >= words.length && words.length > 1) score += 150;
-    
+
     // 5. Expanded word matches (synonyms)
     for (const st of searchTermList) {
       if (st !== term && !words.some(w => st.includes(w))) {
@@ -3501,31 +3513,31 @@ function searchProducts(query, limit = 12) {
         if (stMatch) score += 60;
       }
     }
-    
+
     // 6. Category-first boost for broad category searches
     if (words.length === 1 && CATEGORY_HINTS[term]?.some(c => cat.includes(c))) score += 120;
 
     // 7. Image presence boost
     if (p.image && !p.image.includes('picsum')) score += 25;
     if (p.clicks > 0) score += Math.min(p.clicks / 100, 20);
-    
+
     // 8. Penalize very long names (keyword-stuffed listings)
     if (name.length > 80) score -= 15;
-    
+
     // 9. Penalize names that are just numbers or gibberish
     if (/^[\d\s\W]+$/.test(name)) score -= 30;
-    
+
     if (score > 0) {
       scored.push({ ...p, score });
     }
   }
-  
+
     // Sort by score (desc), then by name length (asc) for tie-breaker
   scored.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     return (a.name || '').length - (b.name || '').length;
   });
-  
+
   // Deduplicate by itemID (keep highest scoring)
   const seen = new Set();
   const results = [];
@@ -3536,7 +3548,7 @@ function searchProducts(query, limit = 12) {
       if (results.length >= limit) break;
     }
   }
-  
+
   return results;
 }
 
@@ -3560,9 +3572,9 @@ function searchDecorProducts(limit = 24) {
     'vase', 'incense', 'candle', 'mirror', 'clock', 'poster', 'wall art', 'storage', 'organizer',
     'table lamp', 'desk lamp', 'chair cushion'
   ];
-  // Strong decor signals — these override apparel penalties
+  // Strong decor signals - these override apparel penalties
   const strong = ['rug','pillow','cushion','blanket','lamp','vase','incense','candle','statue','sculpture','figurine','ornament','decorative','decor','mirror','clock','wall art'];
-  // Items that are "poster" but printed on clothing — must not be treated as wall decor
+  // Items that are "poster" but printed on clothing - must not be treated as wall decor
   const posterOnClothing = ['t-shirt','t shirt','tee','hoodie','shirt','jersey','sweatshirt','zip-up','zip up'];
   const apparelNeg = [
     't-shirt','t shirt','tee','hoodie','shirt','jersey','shorts','pants','sweatpants','jacket','shoes','sneaker','sunglasses','ring','belt','bag','hat','cap','socks','slippers','boots','watch','necklace'
@@ -3652,7 +3664,7 @@ function transformProducts(rawProducts) {
 }
 
 // ════════════════════════════════════════════════
-// AI ANALYSIS ENGINE — Smart verdicts, badges, insights, refinement
+// AI ANALYSIS ENGINE - Smart verdicts, badges, insights, refinement
 // ════════════════════════════════════════════════
 
 let lastAnalysis = null;
@@ -3671,20 +3683,20 @@ function generateSmartVerdict(query, results, a) {
   }
   const avg = a.avgPrice.toFixed(2), min = a.minPrice.toFixed(2), max = a.maxPrice.toFixed(2);
   let parts = [`Found <strong>${a.totalResults} listings</strong> for "${escapeHtml(query)}"`];
-  if (a.priceSpread > 20) parts.push(`Prices range from <strong>$${min}</strong> to <strong>$${max}</strong> — a <strong>$${a.priceSpread.toFixed(0)} spread</strong>`);
+  if (a.priceSpread > 20) parts.push(`Prices range from <strong>$${min}</strong> to <strong>$${max}</strong> - a <strong>$${a.priceSpread.toFixed(0)} spread</strong>`);
   else if (a.avgPrice > 0) parts.push(`Prices cluster around <strong>$${avg}</strong>`);
   const stats = a.avgPrice > 0 ? [
     { label: 'Avg Price', value: `$${avg}`, sub: `¥${Math.round(a.avgPrice / EXCHANGE_RATES.USD)}`, class: 'accent' },
-    { label: 'Price Range', value: `$${min}–$${max}`, class: '' },
+    { label: 'Price Range', value: `$${min}-$${max}`, class: '' },
     { label: 'Listings', value: `${a.totalResults}`, class: 'green' },
   ] : [{ label: 'Listings', value: `${a.totalResults}`, class: 'accent' }];
   const insights = [];
   if (a.lowestPriceIdx >= 0 && a.avgPrice > 0) {
     const p = results[a.lowestPriceIdx]; const price = parseFloat(p.priceUSD) || 0;
     const pctBelow = Math.round((1 - price / a.avgPrice) * 100);
-    if (pctBelow > 5) insights.push({ type: 'deal', icon: '$', text: `<strong>Lowest price:</strong> ${escapeHtml(p.name)} at $${price.toFixed(2)} — ${pctBelow}% below the $${avg} average.` });
+    if (pctBelow > 5) insights.push({ type: 'deal', icon: '$', text: `<strong>Lowest price:</strong> ${escapeHtml(p.name)} at $${price.toFixed(2)} - ${pctBelow}% below the $${avg} average.` });
   }
-  if (a.priceSpread > 30 && a.totalResults >= 4) insights.push({ type: 'info', icon: 'i', text: `Big price gap ($${min} to $${max}). Higher price doesn't always mean better quality — do your own QC research.` });
+  if (a.priceSpread > 30 && a.totalResults >= 4) insights.push({ type: 'info', icon: 'i', text: `Big price gap ($${min} to $${max}). Higher price doesn't always mean better quality - do your own QC research.` });
   return { verdict: parts.join('. ') + '.', stats, insights };
 }
 
@@ -3890,7 +3902,7 @@ function openFirstAndCopy() {
   Promise.resolve(navigator.clipboard?.writeText(text)).finally(() => {
     window.open(links[0].link, '_blank', 'noopener,noreferrer');
     closeCheckoutList();
-    showToast(links.length + ' links copied — first item opened in ${agentName}');
+    showToast(links.length + ' links copied - first item opened in ${agentName}');
   });
 }
 
