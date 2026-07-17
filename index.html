@@ -154,6 +154,7 @@
     .new-search-btn:hover {
       background: var(--surface);
       color: var(--text);
+      border-color: var(--border);
     }
     .new-search-btn svg {
       opacity: 0.7;
@@ -182,10 +183,12 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      border-left: 2px solid transparent;
     }
     .history-item:hover {
       background: var(--surface);
       color: var(--text);
+      border-left-color: var(--border-light);
     }
     .history-item svg {
       opacity: 0.4;
@@ -227,6 +230,7 @@
     .cart-btn:hover {
       background: var(--surface);
       color: var(--text);
+      border-color: var(--border);
     }
     .cart-badge {
       background: var(--accent);
@@ -527,6 +531,10 @@
     }
 
     /* ─── WELCOME ─── */
+    @keyframes welcomeIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
     .welcome {
       flex: 1;
       display: flex;
@@ -545,6 +553,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      animation: welcomeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
     }
     .welcome-logo img {
       height: 96px;
@@ -558,7 +567,14 @@
       margin-bottom: 40px;
       max-width: 420px;
       text-align: center;
-      line-height: 1.5;
+      line-height: 1.6;
+      animation: welcomeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.08s backwards;
+    }
+    .prompt-container {
+      animation: welcomeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.15s backwards;
+    }
+    .suggestions {
+      animation: welcomeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.22s backwards;
     }
 
     /* ─── PROMPT ─── */
@@ -576,11 +592,14 @@
       align-items: center;
       gap: 10px;
       transition: border-color var(--transition), box-shadow var(--transition);
-      box-shadow: var(--shadow-sm);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+    .prompt-box:hover:not(:focus-within) {
+      border-color: var(--surface-3);
     }
     .prompt-box:focus-within {
-      border-color: var(--text-dim);
-      box-shadow: 0 0 0 1px var(--text-dim), var(--shadow-md);
+      border-color: rgba(255,255,255,0.22);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 4px 20px rgba(0,0,0,0.4);
     }
     .prompt-box input {
       flex: 1;
@@ -876,10 +895,11 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 8px 14px;
-      transition: border-color var(--transition);
+      transition: border-color var(--transition), background var(--transition);
     }
     .stat-pill:hover {
       border-color: var(--border-light);
+      background: var(--surface-2);
     }
     .stat-pill-icon {
       width: 28px;
@@ -931,9 +951,12 @@
       margin-bottom: 14px;
       position: sticky;
       top: 0;
-      background: var(--bg);
+      background: rgba(26,26,26,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       z-index: 10;
       padding: 8px 0;
+      border-bottom: 1px solid transparent;
     }
     .results-label {
       font-size: 0.76rem;
@@ -988,14 +1011,24 @@
     .result-card:hover {
       border-color: var(--border-light);
       background: var(--surface-2);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+    }
+    .result-card:active {
+      transform: translateY(0);
+      box-shadow: none;
     }
     .result-img {
       width: 88px;
       height: 88px;
       border-radius: var(--radius-sm);
-      background: var(--border);
+      background: var(--surface-3);
       flex-shrink: 0;
       object-fit: cover;
+      transition: opacity var(--transition);
+    }
+    .result-card:hover .result-img {
+      opacity: 0.9;
     }
     .result-body {
       flex: 1;
@@ -1169,7 +1202,7 @@
       margin-bottom: 8px;
     }
     .skeleton-img {
-      width: 68px; height: 68px;
+      width: 88px; height: 88px;
       border-radius: var(--radius-xs);
       background: linear-gradient(90deg, var(--border) 25%, var(--surface-hover) 50%, var(--border) 75%);
       background-size: 800px 100%;
@@ -1245,11 +1278,13 @@
       cursor: pointer;
       transition: all var(--transition);
       font-weight: 450;
+      will-change: transform;
     }
     .follow-up-chip:hover {
       background: var(--surface-2);
       border-color: var(--border-light);
       color: var(--text);
+      transform: translateY(-1px);
     }
 
     /* ─── DOCKED INPUT ─── */
@@ -1259,7 +1294,7 @@
       left: 260px;
       right: 0;
       padding: 16px 24px 20px;
-      background: linear-gradient(to top, var(--bg) 50%, transparent);
+      background: linear-gradient(to top, var(--bg) 60%, transparent);
       display: none;
       z-index: 50;
     }
@@ -1671,9 +1706,9 @@
     }
 
     /* ─── SCROLLBAR ─── */
-    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 
     /* ─── TOAST ─── */
