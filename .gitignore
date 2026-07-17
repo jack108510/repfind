@@ -1,2 +1,14 @@
 supabase/.temp/
 data/products.json.bak
+
+# Screenshot/carousel working files
+carousel_assets/
+node_modules/
+*.png
+*.jpg
+*.jpeg
+.DS_Store
+
+# Local env
+.env
+.env.local
