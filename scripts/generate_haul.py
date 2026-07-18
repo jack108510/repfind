@@ -187,36 +187,66 @@ def load_logo(max_size=120):
     return None
 
 
-def make_cover_placeholder(output_path, picks):
-    """Slide 1: Minimal placeholder cover — Jack designs the real one."""
+def make_cover(output_path, picks):
+    """Slide 1: Dark Hero cover — dramatic, minimal, logo-forward."""
     img = Image.new('RGB', (W, H), BG)
     draw = ImageDraw.Draw(img)
 
-    logo = load_logo(120)
-    if logo:
-        img.paste(logo, ((W - logo.width) // 2, 500), logo)
+    # Subtle radial gradient (lighter in center)
+    overlay = Image.new('RGB', (W, H), BG)
+    overlay_draw = ImageDraw.Draw(overlay)
+    for r in range(600, 0, -10):
+        alpha = max(0, 15 - r // 50)
+        overlay_draw.ellipse(
+            [W // 2 - r, H // 2 - r, W // 2 + r, H // 2 + r],
+            fill=(BG[0] + alpha, BG[1] + alpha, BG[2] + alpha),
+        )
+    img = Image.blend(img, overlay, 0.3)
+    draw = ImageDraw.Draw(img)
 
-    font_title = get_font(64)
-    font_sub = get_font(34)
-    font_brand = get_font(30)
-    font_date = get_font(24)
+    # Logo centered, slightly above center
+    logo_big = load_logo(140)
+    if logo_big:
+        img.paste(logo_big, ((W - logo_big.width) // 2, 200), logo_big)
 
-    title = "HAUL OF THE DAY"
-    bbox = draw.textbbox((0, 0), title, font=font_title)
-    draw.text(((W - (bbox[2]-bbox[0])) / 2, 680), title, fill=WHITE, font=font_title)
+    # "repfind" wordmark
+    font_brand = get_font(42)
+    bbox = draw.textbbox((0, 0), "repfind", font=font_brand)
+    draw.text(((W - (bbox[2] - bbox[0])) / 2, 370), "repfind", fill=WHITE, font=font_brand)
 
-    today = date.today().strftime("%B %-d")
-    bbox = draw.textbbox((0, 0), today, font=font_sub)
-    draw.text(((W - (bbox[2]-bbox[0])) / 2, 770), today, fill=GRAY, font=font_sub)
+    # Big title — two lines
+    font_title = get_font(82)
+    title1 = "HAUL OF"
+    title2 = "THE DAY"
+    bbox = draw.textbbox((0, 0), title1, font=font_title)
+    draw.text(((W - (bbox[2] - bbox[0])) / 2, 500), title1, fill=WHITE, font=font_title)
+    bbox = draw.textbbox((0, 0), title2, font=font_title)
+    draw.text(((W - (bbox[2] - bbox[0])) / 2, 590), title2, fill=WHITE, font=font_title)
 
+    # Divider line
+    draw.line([(int(W * 0.3), 740), (int(W * 0.7), 740)], fill=DIM, width=2)
+
+    # Stats line
     total = sum(p['price'] for p in picks.values())
-    value_text = f"${total:.0f} VALUE · 5 REPS"
-    bbox = draw.textbbox((0, 0), value_text, font=font_brand)
-    draw.text(((W - (bbox[2]-bbox[0])) / 2, 850), value_text, fill=GRAY, font=font_brand)
+    font_stats = get_font(32)
+    stats = f"5 REPS  ·  ${total:.0f} VALUE"
+    bbox = draw.textbbox((0, 0), stats, font=font_stats)
+    draw.text(((W - (bbox[2] - bbox[0])) / 2, 780), stats, fill=GRAY, font=font_stats)
 
-    swipe = "swipe →"
-    bbox = draw.textbbox((0, 0), swipe, font=font_date)
-    draw.text(((W - (bbox[2]-bbox[0])) / 2, H - 120), swipe, fill=DIM, font=font_date)
+    # Category tags
+    font_tag = get_font(22)
+    cats = " · ".join(picks.keys())
+    bbox = draw.textbbox((0, 0), cats, font=font_tag)
+    draw.text(((W - (bbox[2] - bbox[0])) / 2, 840), cats, fill=DIM, font=font_tag)
+
+    # Bottom URL + swipe
+    font_url = get_font(30)
+    bbox = draw.textbbox((0, 0), "repfind.ca", font=font_url)
+    draw.text(((W - (bbox[2] - bbox[0])) / 2, H - 140), "repfind.ca", fill=WHITE, font=font_url)
+
+    font_swipe = get_font(24)
+    bbox = draw.textbbox((0, 0), "swipe →", font=font_swipe)
+    draw.text(((W - (bbox[2] - bbox[0])) / 2, H - 80), "swipe →", fill=GRAY, font=font_swipe)
 
     img.save(output_path, quality=95)
 
@@ -415,7 +445,7 @@ def generate_haul(output_dir=None, seed=None):
 
     # 4. Generate slides
     total_slides = len(picks) + 2  # cover + products + end
-    make_cover_placeholder(str(slides_dir / "01_cover.jpg"), picks)
+    make_cover(str(slides_dir / "01_cover.jpg"), picks)
     print(f"✓ Slide 1: Cover")
 
     cats = list(picks.keys())
