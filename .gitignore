@@ -1,6 +1,9 @@
 supabase/.temp/
 data/products.json.bak
 
+# Haul generator output (daily carousels — too large for git)
+scripts/output/
+
 # Screenshot/carousel working files
 carousel_assets/
 node_modules/
