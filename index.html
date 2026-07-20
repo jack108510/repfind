@@ -2345,14 +2345,12 @@ function updateLoadingStep(step, text) {
 async function renderDataDrivenClarify(query, ai, container) {
   await loadProductDB();
 
-  // Check for special intent first
-  const intent = detectSpecialIntent(query);
+  // Check for category intent first (decor, electronics, bags, etc.)
+  const intent = detectCategoryIntent(query);
   let rawProducts = [];
 
-  if (intent === 'decor') {
-    rawProducts = searchDecorProducts(50);
-  } else if (intent === 'apple_electronics') {
-    rawProducts = searchAppleElectronics(50);
+  if (intent && CATEGORY_TAXONOMY[intent]) {
+    rawProducts = searchByCategory(intent, 50);
   } else {
     // Search our actual database for this query
     rawProducts = searchProducts(query, 50);
@@ -2360,9 +2358,10 @@ async function renderDataDrivenClarify(query, ai, container) {
     // If no results, try the AI's suggested chips as fallback searches
     if (rawProducts.length === 0 && ai.chips && ai.chips.length) {
       for (const chip of ai.chips) {
-        // Don't use chip fallbacks for concept queries we don't have data for
-        if (detectSpecialIntent(chip)) continue;
-        const chipResults = searchProducts(chip, 30);
+        const chipIntent = detectCategoryIntent(chip);
+        const chipResults = chipIntent && CATEGORY_TAXONOMY[chipIntent]
+          ? searchByCategory(chipIntent, 30)
+          : searchProducts(chip, 30);
         if (chipResults.length > 0) {
           rawProducts = chipResults;
           break;
@@ -2544,17 +2543,15 @@ async function renderSearchResponse(ai, container) {
     let rawProducts = [];
     let intentNote = '';
 
-    // Check for special intent (decor, apple electronics) before regular search
-    const intent = detectSpecialIntent(query);
+    // Detect category intent (decor, electronics, bags, watches, jewelry, etc.)
+    const intent = detectCategoryIntent(query);
     const userQuery = chatHistory[chatHistory.length - 2]?.content || query;
-    const intentFromUser = detectSpecialIntent(userQuery);
+    const intentFromUser = detectCategoryIntent(userQuery);
+    const activeIntent = intent || intentFromUser;
 
-    if (intent === 'decor' || intentFromUser === 'decor') {
-      rawProducts = searchDecorProducts(24);
-      intentNote = 'decor';
-    } else if (intent === 'apple_electronics' || intentFromUser === 'apple_electronics') {
-      rawProducts = searchAppleElectronics(24);
-      intentNote = 'apple_electronics';
+    if (activeIntent && CATEGORY_TAXONOMY[activeIntent]) {
+      rawProducts = searchByCategory(activeIntent, 24);
+      intentNote = activeIntent;
     } else {
       rawProducts = searchProducts(query, 24);
 
@@ -2568,10 +2565,9 @@ async function renderSearchResponse(ai, container) {
           }
         }
 
-        // Still too few? Try each word individually
-        // BUT: only for fashion/sneaker queries - don't fall back to shoe results
-        // for concept queries like "room decor" that we don't have data for
-        if (rawProducts.length < 4 && !detectSpecialIntent(query) && !detectSpecialIntent(userQuery)) {
+        // Still too few? Try each word individually — but skip if it was a category intent
+        // (category searches that returned 0 mean we genuinely don't carry it)
+        if (rawProducts.length < 4 && !intent && !intentFromUser) {
           const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
           const bestWord = words.sort((a,b) => {
             const ac = searchProducts(a, 100).length;
@@ -2610,10 +2606,9 @@ async function renderSearchResponse(ai, container) {
       if (results.length > 0) {
         provText.innerHTML = `<strong style="color:var(--text-muted)">${results.length} listings</strong> from direct-link database <span class="dot-sep"></span> <span>${new Set(results.map(r => r.platform)).size} platforms</span>`;
       } else {
-        provText.innerHTML = intentNote === 'decor'
-          ? `No decor results yet, but we have 66K+ products. Try searching for sneakers, bags, watches, or jewelry.`
-          : intentNote === 'apple_electronics'
-          ? `No Apple electronics yet, but we have 66K+ products. Try searching for sneakers, bags, watches, or jewelry.`
+        const catCfg = intentNote ? CATEGORY_TAXONOMY[intentNote] : null;
+        provText.innerHTML = catCfg
+          ? `No ${catCfg.label.toLowerCase()} found — but we carry ${catCfg.stats}.`
           : `No products found for "${escapeHtml(query)}". Try a different search term.`;
       }
       provEl.style.display = 'flex';
@@ -2628,7 +2623,10 @@ async function renderSearchResponse(ai, container) {
       // Empty state or results
       if (results.length === 0) {
         const list = document.getElementById('resultsList');
-        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">${intentNote ? 'Our database focuses on reps & fashion - try these instead' : 'Our database has 66K+ direct-link products - try a broader term'}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Patek Philippe','Designer Bags','Chrome Hearts','Jordan 4','Travis Scott'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
+        const catCfg2 = intentNote ? CATEGORY_TAXONOMY[intentNote] : null;
+        const emptyNote = catCfg2 ? `We carry ${catCfg2.stats}. Try one of these:` : 'Our database has 66K+ direct-link products — try a broader term';
+        const emptySuggestions = catCfg2 ? catCfg2.suggestions : ['Patek Philippe','Designer Bags','Chrome Hearts','Jordan 4','Travis Scott'];
+        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">${emptyNote}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${emptySuggestions.map(s => `<span class="follow-up-chip" onclick="quickSearch('${escapeAttr(s)}')" style="cursor:pointer">${escapeHtml(s)}</span>`).join('')}</div></div>`;
       } else {
         renderResults(results, resultsHeader);
       }
@@ -3414,18 +3412,51 @@ function searchProducts(query, limit = 12) {
   });
   term = words.join(' ');
   const CATEGORY_HINTS = {
-    'sneakers': ['shoes', 'sneakers'],
-    'shoes': ['shoes', 'sneakers'],
-    'hoodies': ['hoodies', 'hoodies/sweaters'],
-    'hoodie': ['hoodies', 'hoodies/sweaters'],
-    'jackets': ['jackets', 'coats / jackets'],
-    'jacket': ['jackets', 'coats / jackets'],
-    'tees': ['t-shirts', 't-shirt'],
-    'tee': ['t-shirts', 't-shirt'],
-    'shirt': ['t-shirts', 't-shirt'],
-    'pants': ['pants', 'pants/shorts'],
-    'shorts': ['shorts', 'pants/shorts'],
-    'electronics': ['electronics'],
+    'sneakers': ['老爹鞋','跑步鞋','篮球鞋','休闲鞋','板鞋','乐福鞋','运动鞋'],
+    'shoes': ['老爹鞋','跑步鞋','篮球鞋','休闲鞋','板鞋','乐福鞋','运动鞋','高跟鞋','细跟鞋','靴子','马丁靴'],
+    'hoodie': ['卫衣'],
+    'hoodies': ['卫衣'],
+    'jacket': ['夹克','防风夹克','羽绒服','皮衣','派克大衣'],
+    'jackets': ['夹克','防风夹克','羽绒服','皮衣','派克大衣'],
+    'tee': ['t恤'],
+    'tees': ['t恤'],
+    'shirt': ['t恤','衬衫','polo衫'],
+    'shirts': ['t恤','衬衫','polo衫'],
+    'jeans': ['牛仔裤'],
+    'pants': ['牛仔裤','运动裤','长裤','打底裤'],
+    'shorts': ['短裤'],
+    'bag': ['斜挎包','托特包','链条包','手提包','双肩包','旅行袋','腰包','腋下包'],
+    'bags': ['斜挎包','托特包','链条包','手提包','双肩包','旅行袋','腰包','腋下包'],
+    'wallet': ['长款钱包','短款钱包','卡包','钱包'],
+    'wallets': ['长款钱包','短款钱包','卡包','钱包'],
+    'backpack': ['双肩包','迷你双肩包','休闲双肩包'],
+    'watch': ['手表','机械表','石英表'],
+    'watches': ['手表','机械表','石英表'],
+    'jewelry': ['项链','手链','戒指','耳饰','首饰','胸针'],
+    'necklace': ['项链'],
+    'bracelet': ['手链'],
+    'ring': ['戒指'],
+    'earring': ['耳饰'],
+    'earrings': ['耳饰'],
+    'sunglasses': ['太阳镜','光学眼镜'],
+    'glasses': ['太阳镜','光学眼镜','眼镜'],
+    'hat': ['棒球帽','渔夫帽','针织帽','帽子'],
+    'hats': ['棒球帽','渔夫帽','针织帽','帽子'],
+    'cap': ['棒球帽'],
+    'caps': ['棒球帽'],
+    'socks': ['袜子'],
+    'sock': ['袜子'],
+    'perfume': ['香水'],
+    'fragrance': ['香水'],
+    'belt': ['皮带','帆布腰带','腰带'],
+    'belts': ['皮带','帆布腰带','腰带'],
+    'scarf': ['羊绒围巾','丝巾','围巾'],
+    'scarves': ['羊绒围巾','丝巾','围巾'],
+    'electronics': ['电子产品','智能手表','真无线耳机','便携音箱','智能音箱','耳机'],
+    'dress': ['连衣裙','针织连衣裙','裙子','衬衫裙'],
+    'dresses': ['连衣裙','针织连衣裙','裙子','衬衫裙'],
+    'swimwear': ['泳装'],
+    'bikini': ['泳装'],
   };
 
   // ─── Rep keyword synonyms ───
@@ -3625,91 +3656,286 @@ function searchProducts(query, limit = 12) {
 }
 
 
-// ─── Intent-specific search patches ───
-// Some buyer phrases are concepts, not literal product names. "room decor" should not match
-// "mushroom" or "Trophy Room" shoes just because they contain "room".
-function detectSpecialIntent(query) {
+// ════════════════════════════════════════════════
+// CATEGORY TAXONOMY — drives intent detection, category search, and no-results messaging
+// Maps every product category in our 66K product DB to English, with keyword triggers
+// and inventory stats used when telling users what we actually carry.
+// ════════════════════════════════════════════════
+const CATEGORY_TAXONOMY = {
+  decor: {
+    label: 'Home Decor',
+    cnCategories: [],
+    primaryKeywords: ['rug','carpet','pillow','cushion','lamp','vase','incense','candle','mirror','clock','wall art','figurine','statue','sculpture','ornament','decorative','bobblehead','plush','lantern'],
+    nameKeywords: ['blanket','throw','poster','decoration','organizer','storage','desk lamp','table lamp','mat','tablecloth'],
+    excludeCategories: ['t恤','球衣','卫衣','短裤','polo衫','袜子','棒球帽','衬衫','牛仔裤','夹克','毛衣','运动裤','太阳镜','背心','项链','手链','拖鞋','长裤','戒指','老爹鞋','跑步鞋','泳装','板鞋','连衣裙'],
+    excludeKeywords: ['t-shirt','t shirt','tee','hoodie','shirt','jersey','shorts','pants','sweatpants','sneaker','shoes','dunk','air max','new balance','jordan','pineapple','green apple','trophy room','showroom','mushroom','bedroom athletics'],
+    stats: '200+ home decor items — rugs, lamps, pillows, decorative pieces, and more',
+    suggestions: ['rug','lamp','pillow','wall art','candle'],
+    scoreThreshold: 85,
+  },
+  electronics: {
+    label: 'Electronics',
+    cnCategories: ['电子产品','智能手表','真无线耳机','便携音箱','智能音箱','耳机','头戴式耳机','运动耳机','音箱','充电器','手机配件','手机壳','运动手表'],
+    primaryKeywords: ['apple','iphone','ipad','airpods','airpod','airtag','magsafe','smartwatch','smart watch','earbuds','earphone','bluetooth speaker','headphone','headphones','wireless earphone','tws'],
+    nameKeywords: ['charger','charging','phone case','silicone case','screen protector','watch series','watch ultra','apple pencil'],
+    excludeCategories: ['t恤','球衣','卫衣','短裤','老爹鞋','跑步鞋','篮球鞋','夹克','牛仔裤','运动裤','polo衫','连衣裙'],
+    excludeKeywords: ['t-shirt','t shirt','tee','hoodie','shirt','jersey','shorts','pants','shoes','sneaker','dunk','air max','new balance','jordan','pineapple','green apple'],
+    stats: '117 smartwatches & sports watches, 71 TWS earbuds, 41 bluetooth speakers, 190+ electronic items',
+    suggestions: ['smartwatch','AirPods','bluetooth speaker','phone case'],
+    scoreThreshold: 50,
+  },
+  watches: {
+    label: 'Watches',
+    cnCategories: ['手表','机械表','石英表'],
+    primaryKeywords: ['rolex','patek','audemars','cartier','hublot','omega','breitling','richard mille','iced out watch','submariner','datejust','nautilus'],
+    nameKeywords: ['watch','timepiece','wristwatch','mechanical','quartz','automatic'],
+    excludeCategories: ['智能手表','运动手表'],
+    excludeKeywords: ['apple watch','smartwatch','smart watch'],
+    stats: '197 watches, 95 mechanical watches, and 26 quartz watches',
+    suggestions: ['Rolex','Patek Philippe','Cartier watch','mechanical watch'],
+    scoreThreshold: 50,
+  },
+  jewelry: {
+    label: 'Jewelry',
+    cnCategories: ['项链','手链','戒指','耳饰','首饰','胸针'],
+    primaryKeywords: ['necklace','bracelet','earring','pendant','bangle','anklet','brooch'],
+    nameKeywords: ['ring','chain','jewelry','jewellery','locket','choker','gem','crystal','rhinestone'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '672 necklaces, 643 bracelets, 433 rings, and 272 earrings',
+    suggestions: ['necklace','gold bracelet','diamond ring','Chrome Hearts'],
+    scoreThreshold: 50,
+  },
+  bags: {
+    label: 'Bags & Wallets',
+    cnCategories: ['斜挎包','托特包','链条包','手提包','双肩包','卡包','菜篮子包','长款钱包','短款钱包','流浪包','腰包','迷你双肩包','旅行袋','腋下包','波士顿包','信封包','马鞍包','手拿包','钱包','相机包','零钱包','行李箱','电脑包','单肩包','邮差包','手腕包','箱包'],
+    primaryKeywords: ['tote','backpack','wallet','purse','clutch','handbag','crossbody','luggage','sling','wristlet','cardholder'],
+    nameKeywords: ['bag','pouch','holder'],
+    excludeCategories: ['t恤','球衣','卫衣','短裤','老爹鞋','跑步鞋'],
+    excludeKeywords: ['beanbag','sandbag','airbag'],
+    stats: '2,700+ bags — tote bags, backpacks, crossbody bags, wallets, chain bags, and more',
+    suggestions: ['Louis Vuitton bag','Gucci tote','crossbody bag','chain bag'],
+    scoreThreshold: 50,
+  },
+  sunglasses: {
+    label: 'Sunglasses & Eyewear',
+    cnCategories: ['太阳镜','光学眼镜','眼镜'],
+    primaryKeywords: ['sunglasses','sunglass','shades','eyewear'],
+    nameKeywords: ['glasses','optical','polarized','lens','uv protection','aviator'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '701 sunglasses and 111 optical frames',
+    suggestions: ['Oakley sunglasses','Dior sunglasses','polarized glasses','aviator'],
+    scoreThreshold: 50,
+  },
+  hats: {
+    label: 'Hats & Caps',
+    cnCategories: ['棒球帽','渔夫帽','针织帽','帽子','礼帽'],
+    primaryKeywords: ['snapback','fitted cap','trucker hat','bucket hat','beanie','beret'],
+    nameKeywords: ['hat','cap','visor'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '1,136 baseball caps, 159 bucket hats, and 85 beanies',
+    suggestions: ['New Era cap','bucket hat','beanie','snapback'],
+    scoreThreshold: 50,
+  },
+  socks: {
+    label: 'Socks',
+    cnCategories: ['袜子'],
+    primaryKeywords: ['socks','sock'],
+    nameKeywords: [],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '1,157 pairs of socks',
+    suggestions: ['Nike socks','crew socks','ankle socks','long socks'],
+    scoreThreshold: 50,
+  },
+  perfume: {
+    label: 'Fragrances',
+    cnCategories: ['香水'],
+    primaryKeywords: ['perfume','fragrance','cologne','eau de','parfum'],
+    nameKeywords: ['scent','deodorant','mist','body spray'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '176 fragrances',
+    suggestions: ['Dior perfume','Chanel No 5','Sauvage','luxury cologne'],
+    scoreThreshold: 50,
+  },
+  belts: {
+    label: 'Belts',
+    cnCategories: ['皮带','帆布腰带','腰带'],
+    primaryKeywords: ['belt'],
+    nameKeywords: ['strap','buckle','canvas belt','leather belt'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '361 belts — leather, canvas, and designer styles',
+    suggestions: ['Gucci belt','LV belt','canvas belt','leather belt'],
+    scoreThreshold: 50,
+  },
+  scarves: {
+    label: 'Scarves & Wraps',
+    cnCategories: ['羊绒围巾','丝巾','围巾'],
+    primaryKeywords: ['scarf','scarves','shawl'],
+    nameKeywords: ['wrap','silk scarf','cashmere','pashmina'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '108 scarves and wraps — silk, cashmere, and designer styles',
+    suggestions: ['cashmere scarf','silk scarf','LV scarf','Burberry scarf'],
+    scoreThreshold: 50,
+  },
+  dresses: {
+    label: 'Dresses & Skirts',
+    cnCategories: ['连衣裙','针织连衣裙','裙子','衬衫裙','正装连衣裙','休闲连衣裙'],
+    primaryKeywords: ['dress','sundress','gown','minidress'],
+    nameKeywords: ['skirt','maxi','midi'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '500+ dresses and skirts',
+    suggestions: ['summer dress','mini skirt','knit dress','bodycon dress'],
+    scoreThreshold: 50,
+  },
+  swimwear: {
+    label: 'Swimwear',
+    cnCategories: ['泳装'],
+    primaryKeywords: ['bikini','swimsuit','swimwear','swim trunks','boardshort'],
+    nameKeywords: ['beach','swim','bathing suit'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '345 swimwear items — bikinis, one-pieces, and swim trunks',
+    suggestions: ['bikini','swim trunks','one-piece','beach shorts'],
+    scoreThreshold: 50,
+  },
+  jerseys: {
+    label: 'Jerseys',
+    cnCategories: ['球衣'],
+    primaryKeywords: ['jersey','nba jersey','nfl jersey','soccer jersey'],
+    nameKeywords: ['uniform','kit'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '4,958 jerseys — NBA, NFL, soccer, and more',
+    suggestions: ['NBA jersey','soccer jersey','vintage jersey','football jersey'],
+    scoreThreshold: 50,
+  },
+};
+
+// ─── Category intent detection ───
+// Converts a user's natural-language query into a category slug, or null for regular search.
+// Conservative: only activates for clear concept queries where the category system
+// provides better results than literal keyword search (decor, electronics, etc.)
+// or where we need accurate no-results messaging.
+function detectCategoryIntent(query) {
   const q = query.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
-  if (/\b(room|home|house|apartment|bedroom|living room|dorm)\b/.test(q) && /\b(decor|decoration|decorations|accessories|furnish|furniture)\b/.test(q)) return 'decor';
-  if (/\b(decor|decoration|decorations|homeware|home goods|room accessories)\b/.test(q)) return 'decor';
-  if (/\bapple\b/.test(q) && /\b(product|products|electronics|tech|accessories|cases|watch|airpods|iphone|ipad)\b/.test(q)) return 'apple_electronics';
+
+  // Major brand signal → regular search handles brand-specific queries better
+  const hasBrand = /\b(nike|jordan|air jordan|adidas|yeezy|bape|supreme|gucci|lv|louis vuitton|prada|chanel|dior|hermes|off white|travis scott|fear of god|fog|chrome hearts|balenciaga|new balance|asics|reebok|puma|vans|converse|burberry|givenchy|versace|amiri|cdg|stussy|palace|kith|vlone|gallery dept)\b/.test(q);
+
+  // Decor — must always special-case: "room" and "decor" match too many unrelated products
+  if (/\b(decor|decorations?|homeware|home goods|room accessories)\b/.test(q)) return 'decor';
+  if (/\b(room|home|house|apartment|bedroom|living room|dorm)\b/.test(q) && /\b(decorations?|accessories|furnish)\b/.test(q)) return 'decor';
+
+  // Electronics — tech terms that don't appear in clothing names
+  if (/\b(earbuds?|earphones?|headphones?|bluetooth speaker|smartwatch|smart watch|airpods?|airtag|magsafe|phone case|screen protector)\b/.test(q)) return 'electronics';
+  if (/\b(iphone|ipad)\b/.test(q)) return 'electronics';
+  if (/\bapple\b/.test(q) && /\b(products?|electronics|tech|accessories|watch|airpods|cases?)\b/.test(q)) return 'electronics';
+  if (/\b(electronics|gadgets?)\b/.test(q) && !hasBrand) return 'electronics';
+
+  // Watches — unambiguous watch brands always route here
+  if (/\b(rolex|patek|richard mille|hublot)\b/.test(q)) return 'watches';
+  if (/\b(watches?|wristwatch|mechanical watch|luxury watch|replica watch)\b/.test(q) && !hasBrand) return 'watches';
+
+  // Jewelry
+  if (/\b(jewelry|jewellery|necklaces?|bracelets?|earrings?|pendants?|bangles?)\b/.test(q) && !hasBrand) return 'jewelry';
+  if (/\brings?\b/.test(q) && /\b(gold|silver|diamond|gemstone)\b/.test(q) && !hasBrand) return 'jewelry';
+
+  // Bags & wallets
+  if (/\b(bags?|totes?|backpacks?|wallets?|purses?|clutches?|handbags?|crossbody)\b/.test(q) && !hasBrand) return 'bags';
+
+  // Sunglasses
+  if (/\b(sunglasses?|shades|eyewear)\b/.test(q) && !hasBrand) return 'sunglasses';
+  if (/\bglasses\b/.test(q) && !hasBrand) return 'sunglasses';
+
+  // Hats
+  if (/\b(hats?|caps?|beanies?|bucket hats?|snapbacks?)\b/.test(q) && !hasBrand) return 'hats';
+
+  // Socks
+  if (/\bsocks?\b/.test(q) && !hasBrand) return 'socks';
+
+  // Fragrance
+  if (/\b(perfumes?|fragrances?|cologne|parfum|eau de)\b/.test(q) && !hasBrand) return 'perfume';
+
+  // Belts
+  if (/\bbelts?\b/.test(q) && !hasBrand) return 'belts';
+
+  // Scarves
+  if (/\b(scarves?|scarf|shawl)\b/.test(q) && !hasBrand) return 'scarves';
+
+  // Dresses & skirts
+  if (/\b(dresses?|skirts?|gowns?|sundress)\b/.test(q) && !hasBrand) return 'dresses';
+
+  // Swimwear
+  if (/\b(swimwear|bikinis?|swimsuits?|swim trunks|boardshorts?|bathing suits?)\b/.test(q) && !hasBrand) return 'swimwear';
+
+  // Jerseys
+  if (/\bjerseys?\b/.test(q) && !hasBrand) return 'jerseys';
+
   return null;
 }
 
-function searchDecorProducts(limit = 24) {
+// General-purpose category search. Scores every product in PRODUCT_DB by how well it
+// matches the given category slug from CATEGORY_TAXONOMY, returning the top N results.
+function searchByCategory(slug, limit = 24) {
   if (!PRODUCT_DB || PRODUCT_DB.length === 0) return [];
-  const include = [
-    'decor', 'decorative', 'decoration', 'ornament', 'statue', 'sculpture', 'figurine', 'bobblehead',
-    'rug', 'carpet', 'mat', 'pillow', 'cushion', 'blanket', 'throw', 'lamp', 'light', 'lantern',
-    'vase', 'incense', 'candle', 'mirror', 'clock', 'poster', 'wall art', 'storage', 'organizer',
-    'table lamp', 'desk lamp', 'chair cushion'
-  ];
-  // Strong decor signals - these override apparel penalties
-  const strong = ['rug','pillow','cushion','blanket','lamp','vase','incense','candle','statue','sculpture','figurine','ornament','decorative','decor','mirror','clock','wall art'];
-  // Items that are "poster" but printed on clothing - must not be treated as wall decor
-  const posterOnClothing = ['t-shirt','t shirt','tee','hoodie','shirt','jersey','sweatshirt','zip-up','zip up'];
-  const apparelNeg = [
-    't-shirt','t shirt','tee','hoodie','shirt','jersey','shorts','pants','sweatpants','jacket','shoes','sneaker','sunglasses','ring','belt','bag','hat','cap','socks','slippers','boots','watch','necklace'
-  ];
-  // Fashion/sneaker categories (lowercase to match cat.toLowerCase()) that should never appear in decor results
-  const fashionCats = ['t恤','球衣','卫衣','短裤','休闲套装','polo衫','袜子','棒球帽','衬衫','牛仔裤','夹克','毛衣','运动服饰','运动套装','运动裤','太阳镜','背心','项链','手链','拖鞋','长裤','戒指','老爹鞋','跑步鞋','air zoom','nike','jordan','adidas','new balance','yeezy','泳装','睡衣','信封包','板鞋'];
+  const cfg = CATEGORY_TAXONOMY[slug];
+  if (!cfg) return [];
+
+  const cnCats = (cfg.cnCategories || []).map(c => c.toLowerCase());
+  const primary = cfg.primaryKeywords || [];
+  const secondary = cfg.nameKeywords || [];
+  const exclCats = (cfg.excludeCategories || []).map(c => c.toLowerCase());
+  const exclKws = cfg.excludeKeywords || [];
+  const threshold = cfg.scoreThreshold || 50;
+
   const scored = [];
   for (const p of PRODUCT_DB) {
     const name = (p.name || '').toLowerCase();
     const cat = (p.category || '').toLowerCase();
-    const text = `${name} ${cat}`;
     if (!name || !p.itemID) continue;
+
     let score = 0;
-    for (const k of include) {
-      if (text.includes(k)) score += strong.includes(k) ? 80 : 45;
+
+    // Chinese category match — the strongest anchor signal
+    if (cnCats.some(c => cat.includes(c))) score += 90;
+
+    // Primary keyword match in product name (strong category signal)
+    for (const kw of primary) {
+      if (name.includes(kw.toLowerCase())) score += 80;
     }
-    // "Poster" only counts if it's an actual wall poster, not printed on clothing
-    const hasPoster = text.includes('poster');
-    const isPosterOnShirt = posterOnClothing.some(k => text.includes(k));
-    if (hasPoster && isPosterOnShirt) score -= 60; // remove the poster bonus
-    // Keep fashion products out unless they are explicitly home/decor objects like rugs/pillows/lamps.
-    const hasStrongHomeSignal = strong.some(k => text.includes(k));
-    if (apparelNeg.some(k => text.includes(k)) && !hasStrongHomeSignal) score -= 180;
-    // Hard-exclude any product in a fashion/sneaker category
-    if (fashionCats.some(k => cat.includes(k))) score -= 200;
-    if (/\b(trophy room|showroom|mushroom|bedroom athletics|living room best quality)\b/.test(text)) score -= 160;
+
+    // Secondary keyword match (weaker but still relevant)
+    for (const kw of secondary) {
+      if (name.includes(kw.toLowerCase())) score += 45;
+    }
+
+    // Decor special-case: "poster" on clothing shouldn't count
+    if (slug === 'decor' && name.includes('poster')) {
+      if (['tee','t-shirt','hoodie','jersey','sweatshirt'].some(k => name.includes(k))) score -= 60;
+    }
+
+    // Excluded category hard-penalty
+    if (exclCats.some(c => cat.includes(c))) score -= 200;
+
+    // Excluded keyword penalty
+    if (exclKws.some(k => name.includes(k.toLowerCase()))) score -= 180;
+
+    // Quality signals
     if (p.image && !p.image.includes('picsum')) score += 20;
     if (parseFloat(p._priceUSD) > 0) score += 10;
-    if (score > 45) scored.push({ ...p, score });
-  }
-  scored.sort((a,b) => b.score - a.score || (parseFloat(a._priceUSD)||9999) - (parseFloat(b._priceUSD)||9999));
-  const seen = new Set();
-  const out = [];
-  for (const p of scored) {
-    if (!seen.has(p.itemID)) {
-      seen.add(p.itemID);
-      out.push(p);
-      if (out.length >= limit) break;
-    }
-  }
-  return out;
-}
 
-
-function searchAppleElectronics(limit = 24) {
-  if (!PRODUCT_DB || PRODUCT_DB.length === 0) return [];
-  const include = ['apple', 'iphone', 'ipad', 'airpods', 'airpod', 'airtag', 'magsafe', 'apple watch', 'watch series', 'watch ultra', 'apple pencil', 'charging', 'charger', 'phone case', 'silicone case'];
-  const exclude = ['t-shirt','t shirt','tee','hoodie','shirt','jersey','shorts','pants','sweatpants','jacket','shoes','sneaker','dunk','air max','new balance','jordan','gucci rabbit apple','pineapple','green apple'];
-  const scored = [];
-  for (const p of PRODUCT_DB) {
-    const name = (p.name || '').toLowerCase();
-    const cat = (p.category || '').toLowerCase();
-    const text = `${name} ${cat}`;
-    if (!name || !p.itemID) continue;
-    let score = 0;
-    for (const k of include) if (text.includes(k)) score += k.includes('apple') || k.includes('iphone') || k.includes('airpod') ? 90 : 45;
-    if (exclude.some(k => text.includes(k))) score -= 220;
-    if (/电子产品|智能手表|耳机|手机|phone|electronics|smartwatch|earphones|tws|phone accessories|phone case/.test(text)) score += 80;
-    if (p.image && !p.image.includes('picsum')) score += 15;
-    if (parseFloat(p._priceUSD) > 0) score += 10;
-    if (score > 40) scored.push({ ...p, score });
+    if (score >= threshold) scored.push({ ...p, score });
   }
-  scored.sort((a,b) => b.score - a.score || (parseFloat(a._priceUSD)||9999) - (parseFloat(b._priceUSD)||9999));
+
+  scored.sort((a, b) => b.score - a.score || (parseFloat(a._priceUSD) || 9999) - (parseFloat(b._priceUSD) || 9999));
+
   const seen = new Set();
   const out = [];
   for (const p of scored) {
