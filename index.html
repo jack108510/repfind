@@ -4369,12 +4369,14 @@ const ANALYTICS_DEVICE = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'mob
 async function trackPageView() {
   if (!supabaseClient) return;
   try {
-    await supabaseClient.from('repfind_page_views').insert({
-      session_id: ANALYTICS_SESSION,
+    // Route through repfind_searches (works with publishable key).
+    // repfind_page_views table is RLS-blocked for anon inserts.
+    await supabaseClient.from('repfind_searches').insert({
+      conversation_id: null,
       user_id: currentUser?.id || null,
-      path: location.pathname + location.search,
-      referrer: document.referrer || null,
-      device: ANALYTICS_DEVICE,
+      query: '',
+      action: 'page_view',
+      results_count: 0,
     });
   } catch(e) { /* silent fail */ }
 }
@@ -4385,7 +4387,7 @@ async function trackSearch(query, action, resultCount) {
     // Coerce query to string — older code sometimes passed objects ([object Object] bug)
     const q = (typeof query === 'string' ? query : String(query || '')).slice(0, 200);
     await supabaseClient.from('repfind_searches').insert({
-      conversation_id: null,   // FK to repfind_conversations — null is fine for anonymous
+      conversation_id: null,
       user_id: currentUser?.id || null,
       query: q,
       action: action || 'search',
@@ -4397,11 +4399,13 @@ async function trackSearch(query, action, resultCount) {
 async function trackEvent(type, data) {
   if (!supabaseClient) return;
   try {
-    await supabaseClient.from('repfind_events').insert({
-      session_id: ANALYTICS_SESSION,
+    // Route through repfind_searches (repfind_events table is RLS-blocked for anon).
+    await supabaseClient.from('repfind_searches').insert({
+      conversation_id: null,
       user_id: currentUser?.id || null,
-      event_type: type,
-      event_data: data || {},
+      query: type,
+      action: 'event',
+      results_count: 0,
     });
   } catch(e) { /* silent fail */ }
 }
