@@ -78,8 +78,10 @@ def process_one(args: tuple) -> tuple | None:
 
 
 def write_header(fh, count: int, dims: int) -> None:
+    pos = fh.tell()
     fh.seek(0)
     fh.write(struct.pack("<4sII", b"RFEM", count, dims))
+    fh.seek(pos)  # restore so subsequent writes append correctly
 
 
 def main() -> None:
@@ -105,12 +107,14 @@ def main() -> None:
             existing = {}
             BIN_OUT.unlink()
 
-    # Build task list: skip already-done itemIDs
+    # Build task list: one entry per unique itemID, skip already-done ones
     tasks = []
+    queued_ids: set[str] = set()
     for p in raw:
         item_id = str(p[5] or "")
-        if not item_id or item_id in existing:
+        if not item_id or item_id in existing or item_id in queued_ids:
             continue
+        queued_ids.add(item_id)
         name = str(p[0] or "")
         category = str(p[2] or "")
         text = f"{name} {category}".strip() or name or "product"
