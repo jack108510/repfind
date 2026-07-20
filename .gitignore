@@ -5,14 +5,5 @@ data/product_embeddings.bin
 # Haul generator output (daily carousels — too large for git)
 scripts/output/
 
-# Screenshot/carousel working files
-carousel_assets/
-node_modules/
-*.png
-*.jpg
-*.jpeg
-.DS_Store
-
-# Local env
-.env
-.env.local
+# Node modules
+carousel_assets/node_modules/
