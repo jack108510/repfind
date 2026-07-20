@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>repfind — live build demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0a0a;
+    --panel-code: #131313;
+    --panel-ui: #1A1A1A;
+    --border: #2A2A2A;
+    --text: #F5F5F5;
+    --text-muted: #888;
+    --text-dim: #5A5A5A;
+    --accent: #C84B2F;
+    --accent-light: #E8624A;
+    --green: #34D399;
+    --code-key: #E8624A;
+    --code-str: #34D399;
+    --code-com: #5A5A5A;
+    --code-tag: #60A5FA;
+    --code-attr: #FBBF24;
+  }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Top bar */
+  .topbar {
+    height: 44px;
+    background: #000;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .topbar-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .topbar-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-left: 8px;
+  }
+  .topbar-controls {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .topbar-btn {
+    background: #1a1a1a;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .topbar-btn:hover { color: var(--text); border-color: #444; }
+  .topbar-btn.active { color: var(--accent-light); border-color: var(--accent); }
+  .beat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-light);
+    padding: 4px 10px;
+    background: rgba(200,75,47,0.1);
+    border: 1px solid rgba(200,75,47,0.3);
+    border-radius: 6px;
+  }
+
+  /* Split */
+  .split {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+  .pane {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+  .pane-code {
+    background: var(--panel-code);
+    border-right: 1px solid var(--border);
+  }
+  .pane-ui {
+    background: var(--panel-ui);
+  }
+  .pane-label {
+    position: absolute;
+    top: 10px;
+    left: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  /* Code pane */
+  #code {
+    padding: 40px 24px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #d4d4d4;
+    white-space: pre-wrap;
+    word-break: break-word;
+    height: 100%;
+    overflow-y: auto;
+  }
+  #code::-webkit-scrollbar { width: 8px; }
+  #code::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    height: 16px;
+    background: var(--accent);
+    vertical-align: text-bottom;
+    animation: blink 0.8s steps(2) infinite;
+    margin-left: 1px;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* Syntax */
+  .tok-tag { color: var(--code-tag); }
+  .tok-attr { color: var(--code-attr); }
+  .tok-str { color: var(--code-str); }
+  .tok-com { color: var(--code-com); font-style: italic; }
+  .tok-key { color: var(--code-key); }
+  .tok-num { color: #c084fc; }
+  .tok-punct { color: #6a6a6a; }
+
+  /* UI pane — where repfind assembles */
+  #ui-stage {
+    padding: 40px 24px 24px;
+    height: 100%;
+    overflow-y: auto;
+  }
+  #ui-stage::-webkit-scrollbar { width: 8px; }
+  #ui-stage::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
+
+  /* repfind components injected progressively */
+  .rf-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 0;
+    margin-bottom: 8px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
+  }
+  .rf-header.show { opacity: 1; transform: translateY(0); }
+  .rf-logo {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 18px; color: white;
+  }
+  .rf-brand { font-weight: 800; font-size: 22px; letter-spacing: -0.02em; }
+  .rf-brand span { color: var(--accent); }
+
+  .rf-tag {
+    font-size: 13px; color: var(--text-muted);
+    opacity: 0;
+    transition: opacity 0.5s;
+    margin-bottom: 24px;
+  }
+  .rf-tag.show { opacity: 1; }
+
+  .rf-search-wrap {
+    position: relative;
+    max-width: 640px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
+  }
+  .rf-search-wrap.show { opacity: 1; transform: translateY(0); }
+  .rf-search {
+    width: 100%;
+    background: #242424;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 20px 16px 48px;
+    font-size: 15px;
+    color: var(--text);
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .rf-search:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(200,75,47,0.1);
+  }
+  .rf-search-icon {
+    position: absolute;
+    left: 16px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    pointer-events: none;
+  }
+
+  .rf-filters {
+    display: flex; gap: 8px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .rf-chip {
+    background: #242424;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  .rf-chip.show {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .rf-chip:hover { border-color: #444; color: var(--text); }
+  .rf-chip.active {
+    background: rgba(200,75,47,0.12);
+    border-color: var(--accent);
+    color: var(--accent-light);
+  }
+
+  .rf-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 32px 0 14px;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .rf-section-title.show { opacity: 1; }
+
+  .rf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+  }
+  .rf-card {
+    background: #242424;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+    opacity: 0;
+    transform: translateY(20px);
+    cursor: pointer;
+  }
+  .rf-card.show {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.4s, transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+  .rf-card:hover {
+    transform: translateY(-2px);
+    border-color: #444;
+  }
+  .rf-card-img {
+    width: 100%;
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, #2e2e2e, #383838);
+    position: relative;
+    overflow: hidden;
+  }
+  .rf-card-img::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 30% 40%, rgba(200,75,47,0.15), transparent 60%),
+      radial-gradient(circle at 70% 60%, rgba(96,165,250,0.1), transparent 60%);
+  }
+  .rf-card-badge {
+    position: absolute;
+    top: 8px; left: 8px;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    color: var(--green);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .rf-card-body {
+    padding: 12px;
+  }
+  .rf-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rf-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .rf-card-price {
+    color: var(--accent-light);
+    font-weight: 700;
+  }
+  .rf-card-agent {
+    background: #2a2a2a;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  /* Progress bar at bottom */
+  .progress {
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 2px;
+    background: var(--accent);
+    width: 0;
+    transition: width 0.3s;
+    z-index: 20;
+  }
+
+  /* Finished state flash */
+  .done-flash {
+    position: fixed;
+    inset: 0;
+    background: var(--accent);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 100;
+    mix-blend-mode: screen;
+  }
+  .done-flash.flash {
+    animation: flash 0.6s ease-out;
+  }
+  @keyframes flash {
+    0% { opacity: 0; }
+    20% { opacity: 0.15; }
+    100% { opacity: 0; }
+  }
+
+  .hint {
+    position: absolute;
+    bottom: 12px; right: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-dot" style="background:#F87171"></span>
+  <span class="topbar-dot" style="background:#FBBF24"></span>
+  <span class="topbar-dot" style="background:#34D399"></span>
+  <span class="topbar-title">repfind/live-build.html</span>
+  <span class="beat-label" id="beat-label">beat 0 / 6</span>
+  <div class="topbar-controls">
+    <button class="topbar-btn active" id="btn-speed-1x">1×</button>
+    <button class="topbar-btn" id="btn-speed-2x">2×</button>
+    <button class="topbar-btn" id="btn-replay">↻ replay</button>
+  </div>
+</div>
+
+<div class="split">
+  <div class="pane pane-code">
+    <div class="pane-label">› source</div>
+    <div id="code"></div>
+  </div>
+  <div class="pane pane-ui">
+    <div class="pane-label">› live render</div>
+    <div id="ui-stage"></div>
+    <div class="hint">space = pause · R = replay</div>
+  </div>
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="done-flash" id="flash"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// THE BEAT SEQUENCE
+// Each beat = { code: [lines], action: fn }
+// code lines type out; action fires when done.
+// ─────────────────────────────────────────────
+
+const $ = (s) => document.querySelector(s);
+const stage = $('#ui-stage');
+const codeEl = $('#code');
+const beatLabel = $('#beat-label');
+const progress = $('#progress');
+
+let speed = 1;
+let paused = false;
+let typingTimer = null;
+
+// Simple syntax highlighter for our code blocks
+function highlight(line) {
+  // comments
+  if (/^\s*\/\//.test(line)) return `<span class="tok-com">${line}</span>`;
+  if (/^\s*<!--/.test(line)) return `<span class="tok-com">${line}</span>`;
+
+  let h = line
+    // strings
+    .replace(/("([^"]*)")/g, '<span class="tok-str">$1</span>')
+    // tags
+    .replace(/(&lt;\/?)([a-zA-Z0-9-]+)/g, '$1<span class="tok-tag">$2</span>')
+    // attributes
+    .replace(/([a-zA-Z-]+)=(&quot;|")/g, '<span class="tok-attr">$1</span>=$2')
+    // numbers
+    .replace(/\b(\d+)\b/g, '<span class="tok-num">$1</span>');
+
+  return h;
+}
+
+// Escape HTML then apply highlight
+function renderLine(text) {
+  return highlight(text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;'));
+}
+
+// Type out a block of code lines, then call done
+function typeBlock(lines, done) {
+  let li = 0, ci = 0;
+  let current = '';
+
+  function tick() {
+    if (paused) { typingTimer = setTimeout(tick, 50); return; }
+
+    if (li >= lines.length) {
+      done();
+      return;
+    }
+
+    const line = lines[li];
+    if (ci === 0) current += ''; // start fresh line append
+
+    // Type 2-3 chars per tick for speed
+    const step = Math.max(1, Math.round(3 * speed));
+    const next = line.slice(0, ci + step);
+    const remaining = line.slice(ci + step);
+
+    // Rebuild: all previous lines + current partial
+    const prevLines = lines.slice(0, li).map(renderLine).join('\n');
+    codeEl.innerHTML = prevLines +
+      (prevLines ? '\n' : '') +
+      renderLine(next) +
+      '<span class="cursor"></span>';
+
+    ci += step;
+
+    if (ci >= line.length) {
+      li++;
+      ci = 0;
+      // Small pause at end of each line
+      typingTimer = setTimeout(tick, 80 / speed);
+    } else {
+      typingTimer = setTimeout(tick, 8 / speed);
+    }
+  }
+  tick();
+}
+
+// ─── Component builders (inject into UI stage) ───
+function el(html) {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  return div.firstElementChild;
+}
+
+function clearStage() {
+  stage.innerHTML = '';
+  codeEl.innerHTML = '';
+  progress.style.width = '0%';
+}
+
+// ─── THE BEATS ───
+const beats = [
+  {
+    name: 'scaffold',
+    code: [
+      '// repfind — live build',
+      '// beat 1: scaffold',
+      '',
+      '<!DOCTYPE html>',
+      '<html lang="en">',
+      '<head>',
+      '  <title>repfind — find reps, fast</title>',
+      '  <style> /* dark, minimal */ </style>',
+      '</head>',
+      '<body>',
+    ],
+    action() {
+      progress.style.width = '12%';
+    }
+  },
+  {
+    name: 'header',
+    code: [
+      '',
+      '  <!-- Header -->',
+      '  <header class="rf-header">',
+      '    <div class="rf-logo">r</div>',
+      '    <h1 class="brand">rep<span>find</span></h1>',
+      '  </header>',
+      '  <p class="tag">Search 66K+ reps. Real links only.</p>',
+    ],
+    action() {
+      const header = el(`
+        <div class="rf-header">
+          <div class="rf-logo">r</div>
+          <div class="rf-brand">rep<span>find</span></div>
+        </div>`);
+      stage.appendChild(header);
+      requestAnimationFrame(() => header.classList.add('show'));
+
+      const tag = el(`<div class="rf-tag">Search 66K+ direct-link reps across Weidian, Taobao, 1688. No dead links, no fake ratings.</div>`);
+      stage.appendChild(tag);
+      setTimeout(() => tag.classList.add('show'), 400);
+
+      progress.style.width = '25%';
+    }
+  },
+  {
+    name: 'search',
+    code: [
+      '',
+      '  <!-- Search -->',
+      '  <div class="search-wrap">',
+      '    <input type="text"',
+      '           placeholder="Search 66,332 reps..."',
+      '           class="search" />',
+      '  </div>',
+    ],
+    action() {
+      const wrap = el(`
+        <div class="rf-search-wrap">
+          <svg class="rf-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.3-4.3"/>
+          </svg>
+          <input class="rf-search" placeholder="Search 66,332 reps..." />
+        </div>`);
+      stage.appendChild(wrap);
+      requestAnimationFrame(() => wrap.classList.add('show'));
+
+      // Simulate typing into search after it appears
+      setTimeout(() => {
+        const input = wrap.querySelector('.rf-search');
+        const query = 'travis scott jordan 1';
+        let i = 0;
+        const typer = setInterval(() => {
+          input.value = query.slice(0, ++i);
+          input.focus();
+          if (i >= query.length) clearInterval(typer);
+        }, 60);
+      }, 600);
+
+      progress.style.width = '42%';
+    }
+  },
+  {
+    name: 'filters',
+    code: [
+      '',
+      '  <!-- Filter chips -->',
+      '  <div class="filters">',
+      '    <button class="chip active">All</button>',
+      '    <button class="chip">Sneakers</button>',
+      '    <button class="chip">Bags</button>',
+      '    <button class="chip">Watches</button>',
+      '    <button class="chip">Clothing</button>',
+      '  </div>',
+    ],
+    action() {
+      const filters = el(`
+        <div class="rf-filters">
+          <button class="rf-chip active">All</button>
+          <button class="rf-chip">Sneakers</button>
+          <button class="rf-chip">Bags</button>
+          <button class="rf-chip">Watches</button>
+          <button class="rf-chip">Clothing</button>
+          <button class="rf-chip">Accessories</button>
+        </div>`);
+      stage.appendChild(filters);
+
+      // Stagger chip appearance
+      const chips = filters.querySelectorAll('.rf-chip');
+      chips.forEach((c, i) => {
+        setTimeout(() => c.classList.add('show'), i * 70);
+      });
+
+      progress.style.width = '58%';
+    }
+  },
+  {
+    name: 'results',
+    code: [
+      '',
+      '  <!-- Results grid -->',
+      '  <h2>Top Results</h2>',
+      '  <div class="grid">',
+      '    <ProductCard v-for="p in results" :p="p" />',
+      '  </div>',
+    ],
+    action() {
+      const title = el(`<div class="rf-section-title">Top results · 247 found</div>`);
+      stage.appendChild(title);
+      setTimeout(() => title.classList.add('show'), 100);
+
+      const grid = el('<div class="rf-grid" id="grid"></div>');
+      stage.appendChild(grid);
+
+      // Simulate product cards streaming in
+      const products = [
+        { t: 'TS Travis Scott Jordan 1 Low Mocha', p: '¥489', a: 'KakoBuy', c: 'Weidian' },
+        { t: 'Jordan 4 Retro Bred Reimagined', p: '¥520', a: 'CNFans', c: 'Weidian' },
+        { t: 'Nike Dunk Low Panda (2024)', p: '¥345', a: 'OopBuy', c: 'Taobao' },
+        { t: 'Yeezy 350 V2 Bone Authentic', p: '¥410', a: 'KakoBuy', c: 'Weidian' },
+        { t: 'Travis Scott AJ1 High Phantom', p: '¥675', a: 'CNFans', c: '1688' },
+        { t: 'New Balance 9060 Grey Day', p: '¥398', a: 'OopBuy', c: 'Weidian' },
+      ];
+
+      products.forEach((prod, i) => {
+        setTimeout(() => {
+          const card = el(`
+            <div class="rf-card">
+              <div class="rf-card-img">
+                <div class="rf-card-badge">✓ verified</div>
+              </div>
+              <div class="rf-card-body">
+                <div class="rf-card-title">${prod.t}</div>
+                <div class="rf-card-meta">
+                  <span class="rf-card-price">${prod.p}</span>
+                  <span class="rf-card-agent">${prod.a}</span>
+                </div>
+              </div>
+            </div>`);
+          grid.appendChild(card);
+          requestAnimationFrame(() => card.classList.add('show'));
+        }, 300 + i * 220);
+      });
+
+      progress.style.width = '85%';
+    }
+  },
+  {
+    name: 'done',
+    code: [
+      '',
+      '  <!-- 66,332 products indexed -->',
+      '  <!-- 3 agents wired: KakoBuy, CNFans, OopBuy -->',
+      '  <!-- Deployed → https://repfind.ca -->',
+      '</body>',
+      '</html>',
+      '',
+      '// ✓ build complete',
+    ],
+    action() {
+      progress.style.width = '100%';
+      const flash = $('#flash');
+      flash.classList.add('flash');
+      setTimeout(() => flash.classList.remove('flash'), 600);
+    }
+  },
+];
+
+// ─── PLAYER ───
+let currentBeat = 0;
+
+function playBeat(idx) {
+  if (idx >= beats.length) {
+    beatLabel.textContent = `✓ done · ${beats.length} beats`;
+    beatLabel.style.color = 'var(--green)';
+    beatLabel.style.borderColor = 'rgba(52,211,153,0.4)';
+    beatLabel.style.background = 'rgba(52,211,153,0.1)';
+    return;
+  }
+
+  const beat = beats[idx];
+  beatLabel.textContent = `beat ${idx + 1} / ${beats.length} · ${beat.name}`;
+  beatLabel.style.color = '';
+  beatLabel.style.borderColor = '';
+  beatLabel.style.background = '';
+
+  typeBlock(beat.code, () => {
+    beat.action();
+    // Pause between beats
+    setTimeout(() => playBeat(idx + 1), 600 / speed);
+  });
+}
+
+function start() {
+  clearTimeout(typingTimer);
+  clearStage();
+  currentBeat = 0;
+  playBeat(0);
+}
+
+// ─── CONTROLS ───
+$('#btn-speed-1x').onclick = () => { speed = 1; setActiveSpeed('btn-speed-1x'); };
+$('#btn-speed-2x').onclick = () => { speed = 2.5; setActiveSpeed('btn-speed-2x'); };
+$('#btn-replay').onclick = start;
+
+function setActiveSpeed(id) {
+  document.querySelectorAll('.topbar-btn').forEach(b => b.classList.remove('active'));
+  $('#' + id).classList.add('active');
+}
+
+// Keyboard
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    paused = !paused;
+  }
+  if (e.key.toLowerCase() === 'r') start();
+});
+
+// Auto-start
+setTimeout(start, 400);
+</script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 supabase/.temp/
 data/products.json.bak
+data/product_embeddings.bin
 
 # Haul generator output (daily carousels — too large for git)
 scripts/output/
