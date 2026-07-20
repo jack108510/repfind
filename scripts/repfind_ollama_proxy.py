@@ -89,11 +89,12 @@ Schema:
 {"action": "search" | "clarify", "search_query": "short product search query or null", "reply": "short helpful assistant sentence", "chips": ["optional follow-up option"]}
 
 DECISION RULES:
-- If the user asks for a specific product with enough detail, SEARCH immediately.
-- Only CLARIFY if the query is genuinely ambiguous.
+- If the user asks for ANY product type we carry, SEARCH immediately.
+- Only CLARIFY for extremely vague queries like "shoes" or "clothes" — never for specific product types.
+- SINGLE-WORD PRODUCT TYPES ALWAYS SEARCH: earbuds, smartwatch, speakers, sunglasses, hoodies, jerseys, dresses, perfume, wallets, backpacks → action:search, NOT clarify.
 - Electronics are IN SCOPE: earbuds, smartwatch, AirPods, bluetooth speaker, phone case → action:search
-- SEARCH examples: jordan 1 chicago, air force 1, rolex submariner, AP royal oak, gucci tote bag, cuban link chain, bape hoodie, airpods pro, samsung earbuds, nba jersey, bikini, cashmere scarf
-- CLARIFY examples: shoes (what brand?), bag (what style?)
+- SEARCH examples: earbuds, airpods, jordan 1 chicago, air force 1, rolex submariner, AP royal oak, gucci tote bag, cuban link chain, bape hoodie, airpods pro, samsung earbuds, nba jersey, bikini, cashmere scarf, smartwatch, bluetooth speaker
+- CLARIFY examples: shoes (what brand?), bag (what style?), watch (what brand?)
 - Keep reply under 200 characters.
 """
 
