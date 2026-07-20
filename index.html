@@ -1925,29 +1925,7 @@
 </div>
 
 
-<!-- Onboarding Modal -->
-<div class="onboard-overlay" id="onboardOverlay">
-  <div class="onboard-card">
-    <div class="onboard-logo"><img src="logo.png" alt="repfind"></div>
-    <div class="onboard-title">How repfind works</div>
-    <div class="onboard-sub">Search 66K+ direct-link rep products. We send you straight to the listing - no dead search pages.</div>
-    <div class="onboard-steps">
-      <div class="onboard-step">
-        <div class="onboard-step-num">1</div>
-        <div class="onboard-step-text"><strong>Search</strong> for any product - sneakers, hoodies, accessories, and more.</div>
-      </div>
-      <div class="onboard-step">
-        <div class="onboard-step-num">2</div>
-        <div class="onboard-step-text"><strong>Click a product</strong> to see the source listing, QC search on Reddit, and product details.</div>
-      </div>
-      <div class="onboard-step">
-        <div class="onboard-step-num">3</div>
-        <div class="onboard-step-text"><strong>Open in an agent</strong> - shipping agents like KakoBuy, CNFans, or OopBuy buy from Chinese sellers on your behalf and ship to you. Pick whichever you prefer.</div>
-      </div>
-    </div>
-    <button class="onboard-btn" onclick="closeOnboarding()">Start searching</button>
-  </div>
-</div>
+
 
 <!-- Checkout List Modal -->
 <div class="detail-overlay" id="checkoutOverlay2" onclick="closeCheckoutList()"></div>
@@ -2280,11 +2258,11 @@ async function doSearch(fromDocked) {
     if (ai.action === 'search' && ai.search_query) {
       // AI says search - show results with the refined query
       await renderSearchResponse(ai, inner);
-      trackSearch(query, 'search', 0);
+      trackSearch(query, 'search', currentResults.length);
     } else if (ai.action === 'clarify') {
       // AI wants to clarify - search our DB first, offer data-driven narrowing
       await renderDataDrivenClarify(query, ai, inner);
-      trackSearch(query, 'clarify', 0);
+      trackSearch(query, 'clarify', currentResults.length);
     } else {
       renderChatResponse(ai, inner);
       trackSearch(query, ai.action || 'chat', 0);
@@ -2310,6 +2288,7 @@ async function doSearch(fromDocked) {
       search_query: query,
       reply: `Searching the product database directly for "${query}".`,
     }, inner);
+    trackSearch(query, 'search_fallback', currentResults.length);
     addHistory(query);
   }
 
@@ -4006,19 +3985,6 @@ function openFirstAndCopy() {
   });
 }
 
-// ─── Onboarding ───
-function showOnboarding() {
-  document.getElementById('onboardOverlay').classList.add('show');
-}
-function closeOnboarding() {
-  document.getElementById('onboardOverlay').classList.remove('show');
-  localStorage.setItem('repfind_onboarded', '1');
-}
-// Show onboarding for first-time visitors
-if (!localStorage.getItem('repfind_onboarded')) {
-  setTimeout(showOnboarding, 800);
-}
-
 // ─── Better Checkout List ───
 function closeCheckoutList() {
   document.getElementById('checkoutOverlay2').classList.remove('show');
@@ -4052,14 +4018,16 @@ async function trackPageView() {
 async function trackSearch(query, action, resultCount) {
   if (!supabaseClient) return;
   try {
+    // Coerce query to string — older code sometimes passed objects ([object Object] bug)
+    const q = (typeof query === 'string' ? query : String(query || '')).slice(0, 200);
     await supabaseClient.from('repfind_searches').insert({
-      session_id: ANALYTICS_SESSION,
+      conversation_id: null,   // FK to repfind_conversations — null is fine for anonymous
       user_id: currentUser?.id || null,
-      query: (query || '').slice(0, 200),
+      query: q,
       action: action || 'search',
-      result_count: resultCount || 0,
+      results_count: resultCount || 0,
     });
-  } catch(e) { /* silent fail */ }
+  } catch(e) { /* silent fail — RLS may block */ }
 }
 
 async function trackEvent(type, data) {
