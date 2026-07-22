@@ -155,12 +155,13 @@ def ask_ollama(message: str, history: list | None) -> dict:
     msgs = [{"role": "system", "content": SYSTEM_PROMPT}]
     for h in history[-10:]:
         msgs.append({"role": h.get("role", "user"), "content": str(h.get("content", ""))})
-    msgs.append({"role": "user", "content": message})
+    msgs.append({"role": "user", "content": "/no_think\n" + message})
 
     payload = {
         "model": CHAT_MODEL,
         "messages": msgs,
         "stream": False,
+        "options": {"num_predict": 512},
     }
     req = urllib.request.Request(
         f"{OLLAMA_URL}/api/chat",

@@ -1,0 +1,233 @@
+{
+  "id": "repfind_tiktok_draft",
+  "name": "RepFind TikTok Draft Uploader",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "repfind-draft",
+        "formTitle": "RepFind TikTok Draft Uploader",
+        "formDescription": "Upload one or more videos. AI will write the caption for each based on what's in the video, then save them as drafts on @rep.find.ai. Add sound in TikTok app and publish.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Video Files",
+              "requiredField": true,
+              "acceptFileTypes": ".mp4,.mov,.webm",
+              "acceptMultipleFiles": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "form-trigger-repfind",
+      "name": "Form Trigger",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [0, 0],
+      "webhookId": "repfind-draft"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "video_files",
+        "options": {}
+      },
+      "id": "split-items-repfind",
+      "name": "Split Into Items",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "mode": "json",
+        "jsonOutput": "={\n  \"videoName\": \"{{ $json.fileName || ('video_' + $itemIndex + '.mp4') }}\"\n}",
+        "options": {}
+      },
+      "id": "prepare-params-repfind",
+      "name": "Prepare Params",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/Users/jackserver/RepFind/uploads/{{ $json.videoName }}",
+        "dataPropertyName": "=video_files",
+        "options": {}
+      },
+      "id": "write-binary-repfind",
+      "name": "Write Video to Disk",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "command": "=bash /Users/jackserver/RepFind/extract-ocr.sh \"/Users/jackserver/RepFind/uploads/{{ $('Prepare Params').item.json.videoName }}\"",
+        "executeTimeout": 60
+      },
+      "id": "exec-ocr-repfind",
+      "name": "Extract Frames + OCR",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [880, 0]
+    },
+    {
+      "parameters": {
+        "mode": "json",
+        "jsonOutput": "={\n  \"ocrText\": \"{{ $json.stdout || 'No text detected' }}\",\n  \"videoPath\": \"/Users/jackserver/RepFind/uploads/{{ $('Prepare Params').item.json.videoName }}\"\n}",
+        "options": {}
+      },
+      "id": "set-ocr-repfind",
+      "name": "Set OCR Text",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1100, 0]
+    },
+    {
+      "parameters": {
+        "modelId": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "role": "user",
+              "content": "=You are a TikTok caption writer for @rep.find.ai, a search engine for replica products (sneakers, clothing, electronics from Weidian, Taobao, 1688). repfind.ca searches 66K+ direct-buy links with no dead pages or fake ratings.\n\nHere is OCR text extracted from frames of a TikTok video:\n{{ $json.ocrText }}\n\nWrite a single TikTok caption that:\n- Is punchy and hook-first (catches attention in the first 3 words)\n- References what is actually shown in the video based on the OCR text\n- Includes 5-8 relevant hashtags\n- Subtly mentions repfind.ca\n- Under 300 characters\n- Max 1-2 emoji\n\nReturn ONLY the caption text, nothing else."
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.8
+        }
+      },
+      "id": "ai-caption-repfind",
+      "name": "AI Caption",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.8,
+      "position": [1320, 0],
+      "credentials": {
+        "openAiApi": {
+          "id": "ae23499e-8e8c-49a2-953e-10785e49d727",
+          "name": "OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "json",
+        "jsonOutput": "={\n  \"caption\": \"{{ $json.message.content }}\",\n  \"videoPath\": \"{{ $('Set OCR Text').item.json.videoPath }}\"\n}",
+        "options": {}
+      },
+      "id": "set-caption-repfind",
+      "name": "Set Caption",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1540, 0]
+    },
+    {
+      "parameters": {
+        "command": "=bash /Users/jackserver/RepFind/publish-to-tiktok.sh \"{{ $json.videoPath }}\" \"{{ $json.caption.replace(/\"/g, '\\\\\"') }}\"",
+        "executeTimeout": 300
+      },
+      "id": "exec-publish-repfind",
+      "name": "Save Draft to TikTok",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1760, 0]
+    }
+  ],
+  "connections": {
+    "Form Trigger": {
+      "main": [
+        [
+          {
+            "node": "Split Into Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Into Items": {
+      "main": [
+        [
+          {
+            "node": "Prepare Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Params": {
+      "main": [
+        [
+          {
+            "node": "Write Video to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Video to Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract Frames + OCR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Frames + OCR": {
+      "main": [
+        [
+          {
+            "node": "Set OCR Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set OCR Text": {
+      "main": [
+        [
+          {
+            "node": "AI Caption",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Caption": {
+      "main": [
+        [
+          {
+            "node": "Set Caption",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Caption": {
+      "main": [
+        [
+          {
+            "node": "Save Draft to TikTok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "id": "repfind_tiktok_form_publisher",
+  "name": "RepFind — TikTok Post via Form",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "RepFind TikTok Publisher",
+        "formDescription": "Upload a video and write a caption. This posts to @rep.find.ai ONLY — it can never reach @salessparring.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Caption",
+              "placeholder": "Finding reps just got way too easy. Search 66K+ direct-buy links instantly. repfind.ca #reps #repfind #sneakerreps",
+              "requiredField": false,
+              "multiline": true
+            },
+            {
+              "fieldLabel": "Video File",
+              "requiredField": true,
+              "acceptFileTypes": ".mp4,.mov,.webm"
+            },
+            {
+              "fieldLabel": "Schedule Time (ISO UTC, optional)",
+              "placeholder": "Leave blank to post immediately (~2 min)",
+              "requiredField": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "form-trigger-repfind",
+      "name": "Form Trigger",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [0, 0],
+      "webhookId": "repfind-tiktok-form-upload"
+    },
+    {
+      "parameters": {
+        "mode": "json",
+        "jsonOutput": "={\n  \"caption\": \"{{ $json.Caption || 'Finding reps just got way too easy. Search 66K+ direct-buy links instantly. No dead pages, no fake ratings. repfind.ca #reps #repfind #sneakerreps #w2c' }}\",\n  \"scheduledTime\": \"{{ $json['Schedule Time (ISO UTC, optional)'] || '' }}\",\n  \"videoName\": \"{{ $('Form Trigger').item.binary.video_file.fileName }}\"\n}",
+        "options": {}
+      },
+      "id": "prepare-params-repfind",
+      "name": "Prepare Params",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/Users/jackserver/RepFind/uploads/{{ $json.videoName }}",
+        "dataPropertyName": "video_file",
+        "options": {}
+      },
+      "id": "write-binary-repfind",
+      "name": "Write Video to Disk",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "command": "=bash /Users/jackserver/RepFind/publish-to-tiktok.sh \"/Users/jackserver/RepFind/uploads/{{ $('Prepare Params').item.json.videoName }}\" \"{{ $('Prepare Params').item.json.caption.replace(/\"/g, '\\\\\"') }}\" {{ $('Prepare Params').item.json.scheduledTime && '\"' + $('Prepare Params').item.json.scheduledTime + '\"' || '' }}",
+        "executeTimeout": 300
+      },
+      "id": "execute-publish-repfind",
+      "name": "Publish to TikTok (@rep.find.ai)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "respondTo": "webhook",
+        "responseBody": "={\n  \"status\": \"{{ $json.exitCode === 0 ? 'success' : 'error' }}\",\n  \"account\": \"@rep.find.ai\",\n  \"result\": \"{{ $json.stdout }}\",\n  \"error\": \"{{ $json.stderr }}\"\n}",
+        "options": {}
+      },
+      "id": "respond-webhook-repfind",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [880, 0]
+    }
+  ],
+  "connections": {
+    "Form Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Params": {
+      "main": [
+        [
+          {
+            "node": "Write Video to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Video to Disk": {
+      "main": [
+        [
+          {
+            "node": "Publish to TikTok (@rep.find.ai)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publish to TikTok (@rep.find.ai)": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
