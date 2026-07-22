@@ -2536,11 +2536,14 @@ async function renderSearchResponse(ai, container) {
   `;
   container.appendChild(resultsHeader);
 
-  // Stream the AI reply first
-  streamText(document.getElementById('verdictText'), ai.reply, async () => {
+  // ─── Parallel execution: start DB search immediately, stream text in parallel ───
+  // Previously the search was chained inside streamText's callback, adding 2-4s of
+  // unnecessary delay (search didn't START until text animation finished).
+  // Now both run concurrently, and results render as soon as BOTH complete.
+
+  const searchPromise = (async () => {
     await loadProductDB();
     let rawProducts = [];
-    let intentNote = '';
 
     // Detect category intent (decor, electronics, bags, watches, jewelry, etc.)
     const intent = detectCategoryIntent(query);
@@ -2550,7 +2553,6 @@ async function renderSearchResponse(ai, container) {
 
     if (activeIntent && CATEGORY_TAXONOMY[activeIntent]) {
       rawProducts = searchByCategory(activeIntent, 24);
-      intentNote = activeIntent;
     } else {
       rawProducts = searchProducts(query, 24);
 
@@ -2583,7 +2585,20 @@ async function renderSearchResponse(ai, container) {
       }
     }
 
-    const results = transformProducts(rawProducts);
+    return { rawProducts, intentNote: activeIntent || '' };
+  })();
+
+  // Stream the AI reply in parallel
+  const textPromise = new Promise(resolve => {
+    streamText(document.getElementById('verdictText'), ai.reply, () => resolve());
+  });
+
+  // Wait for BOTH to complete
+  const { rawProducts, intentNote } = await searchPromise;
+  await textPromise;
+
+  const results = transformProducts(rawProducts);
+  {
 
     // Store for export/cart functionality
     results.forEach(r => { if (r.id) productIndex[r.id] = r; });
@@ -2647,7 +2662,7 @@ async function renderSearchResponse(ai, container) {
         crossSellShown = true;
       }
     }, 300);
-  });
+  }
 }
 
 // ─── Stream text ───
