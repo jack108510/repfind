@@ -2703,7 +2703,25 @@ function streamText(el, html, callback) {
       displayed += token.text;
       idx++;
       el.innerHTML = displayed + '<span class="cursor-blink"></span>';
-      setTimeout(tick, 15 + Math.random() * 25);
+      // Human-like typing: mostly medium speed with occasional fast bursts and pauses
+      const r = Math.random();
+      let delay;
+      if (r < 0.08) {
+        // 8% chance: brief pause (thinking) — 180-350ms
+        delay = 180 + Math.random() * 170;
+      } else if (r < 0.25) {
+        // 17% chance: fast burst (common letters) — 35-65ms
+        delay = 35 + Math.random() * 30;
+      } else {
+        // 75% chance: normal typing — 70-130ms
+        delay = 70 + Math.random() * 60;
+      }
+      // Slight pause after punctuation
+      const prev = token.text;
+      if (prev === '.' || prev === '!' || prev === '?') delay += 200;
+      else if (prev === ',' || prev === ';') delay += 120;
+      else if (prev === ' ') delay += 30;
+      setTimeout(tick, delay);
     }
     scrollToBottom();
   }
