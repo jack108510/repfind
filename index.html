@@ -535,6 +535,10 @@
       from { opacity: 0; transform: translateY(14px); }
       to   { opacity: 1; transform: translateY(0); }
     }
+    @keyframes ambientPulse {
+      0%, 100% { opacity: 0.35; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.08); }
+    }
     .welcome {
       flex: 1;
       display: flex;
@@ -543,7 +547,22 @@
       justify-content: center;
       padding: 40px 24px;
       min-height: calc(100vh - 50px);
+      position: relative;
     }
+    .welcome::before {
+      content: '';
+      position: absolute;
+      top: 15%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse at center, var(--accent-dim) 0%, transparent 65%);
+      pointer-events: none;
+      animation: ambientPulse 6s ease-in-out infinite;
+      z-index: 0;
+    }
+    .welcome > * { position: relative; z-index: 1; }
     .welcome.hide { display: none; }
     .welcome-logo {
       font-size: 3.2rem;
@@ -558,17 +577,48 @@
     .welcome-logo img {
       height: 96px;
       width: auto;
+      filter: drop-shadow(0 4px 24px rgba(200,75,47,0.15));
     }
     .welcome-logo .find { color: var(--accent); }
     .topbar-logo img { height: 32px; width: auto; vertical-align: middle; }
     .welcome-tagline {
       font-size: 1rem;
       color: var(--text-muted);
-      margin-bottom: 40px;
-      max-width: 420px;
+      margin-bottom: 28px;
+      max-width: 440px;
       text-align: center;
       line-height: 1.6;
       animation: welcomeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.08s backwards;
+    }
+    .welcome-stats {
+      display: flex;
+      gap: 0;
+      margin-bottom: 36px;
+      animation: welcomeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.12s backwards;
+    }
+    .welcome-stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 24px;
+    }
+    .welcome-stat:not(:last-child) {
+      border-right: 1px solid var(--border);
+    }
+    .welcome-stat-num {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+    .welcome-stat-num .accent { color: var(--accent-light); }
+    .welcome-stat-label {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-top: 2px;
+      font-weight: 600;
     }
     .prompt-container {
       animation: welcomeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.15s backwards;
@@ -591,15 +641,16 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      transition: border-color var(--transition), box-shadow var(--transition);
+      transition: border-color 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s cubic-bezier(0.4,0,0.2,1), transform 0.3s cubic-bezier(0.4,0,0.2,1);
       box-shadow: 0 2px 8px rgba(0,0,0,0.25);
     }
     .prompt-box:hover:not(:focus-within) {
       border-color: var(--surface-3);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     }
     .prompt-box:focus-within {
-      border-color: rgba(255,255,255,0.22);
-      box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 4px 20px rgba(0,0,0,0.4);
+      border-color: rgba(200,75,47,0.45);
+      box-shadow: 0 0 0 3px rgba(200,75,47,0.08), 0 8px 32px rgba(0,0,0,0.45);
     }
     .prompt-box input {
       flex: 1;
@@ -634,7 +685,8 @@
     .send-btn:not(:disabled):hover {
       background: var(--accent);
       color: white;
-      transform: scale(1.05);
+      transform: scale(1.08);
+      box-shadow: 0 4px 16px rgba(200,75,47,0.4);
     }
 
     /* ─── SUGGESTIONS ─── */
@@ -656,18 +708,19 @@
       border-radius: var(--radius-pill);
       color: var(--text-secondary);
       cursor: pointer;
-      transition: all var(--transition);
+      transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
       font-weight: 450;
     }
     .suggestion:hover {
       background: var(--surface-2);
-      border-color: var(--border-light);
+      border-color: var(--accent);
       color: var(--text);
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     }
     .suggestion-icon {
       font-size: 0.95rem;
-      filter: grayscale(1) brightness(2);
+      filter: none;
     }
 
     /* ─── CHAT AREA ─── */
@@ -895,7 +948,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 8px 14px;
-      transition: border-color var(--transition), background var(--transition);
+      transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
     }
     .stat-pill:hover {
       border-color: var(--border-light);
@@ -1000,9 +1053,21 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 14px;
-      transition: all var(--transition);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       animation: cardIn 0.35s ease backwards;
       cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .result-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--accent);
+      transform: scaleY(0);
+      transform-origin: center;
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
     @keyframes cardIn {
       from { opacity: 0; transform: translateY(8px); }
@@ -1011,8 +1076,11 @@
     .result-card:hover {
       border-color: var(--border-light);
       background: var(--surface-2);
-      transform: translateY(-1px);
-      box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.4);
+    }
+    .result-card:hover::before {
+      transform: scaleY(1);
     }
     .result-card:active {
       transform: translateY(0);
@@ -1025,10 +1093,11 @@
       background: var(--surface-3);
       flex-shrink: 0;
       object-fit: cover;
-      transition: opacity var(--transition);
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity var(--transition);
     }
     .result-card:hover .result-img {
-      opacity: 0.9;
+      opacity: 1;
+      transform: scale(1.04);
     }
     .result-body {
       flex: 1;
@@ -1111,7 +1180,7 @@
       background: var(--accent);
       color: white;
       cursor: pointer;
-      transition: all var(--transition);
+      transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
       text-align: center;
       letter-spacing: 0.02em;
     }
@@ -1120,7 +1189,7 @@
       border-color: var(--accent-light);
       color: white;
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(200,75,47,0.35);
+      box-shadow: 0 4px 16px rgba(200,75,47,0.4);
     }
 
     /* ─── AGENT TOGGLE ─── */
@@ -1276,15 +1345,16 @@
       border-radius: var(--radius-pill);
       color: var(--text-secondary);
       cursor: pointer;
-      transition: all var(--transition);
+      transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
       font-weight: 450;
       will-change: transform;
     }
     .follow-up-chip:hover {
       background: var(--surface-2);
-      border-color: var(--border-light);
+      border-color: var(--accent);
       color: var(--text);
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     }
 
     /* ─── DOCKED INPUT ─── */
@@ -1444,12 +1514,21 @@
     .detail-hero {
       width: 100%;
       height: 280px;
-      background: var(--border);
+      background: linear-gradient(135deg, var(--surface) 0%, var(--border) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
       flex-shrink: 0;
+      position: relative;
+    }
+    .detail-hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 80px;
+      background: linear-gradient(to top, var(--bg), transparent);
+      pointer-events: none;
     }
     .detail-hero img {
       width: 100%; height: 100%;
@@ -1544,9 +1623,14 @@
       cursor: pointer;
       text-decoration: none;
       margin-bottom: 8px;
-      transition: opacity 0.15s;
+      transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+      box-shadow: 0 2px 12px rgba(200,75,47,0.2);
     }
-    .detail-buy-btn:hover { opacity: 0.85; }
+    .detail-buy-btn:hover {
+      background: var(--accent-light);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(200,75,47,0.35);
+    }
     .detail-haul-btn {
       display: flex;
       align-items: center;
@@ -1824,7 +1908,21 @@
   <!-- Welcome -->
   <div class="welcome" id="welcome">
     <div class="welcome-logo"><img src="logo.png" alt="repfind"></div>
-    <p class="welcome-tagline">Search 66K+ direct-buy rep links. No dead search pages. No fake ratings.</p>
+    <p class="welcome-tagline">Search 66K+ direct-buy rep links across Weidian, Taobao, and 1688. No dead search pages. No fake ratings.</p>
+    <div class="welcome-stats">
+      <div class="welcome-stat">
+        <div class="welcome-stat-num"><span class="accent">66K+</span></div>
+        <div class="welcome-stat-label">Products</div>
+      </div>
+      <div class="welcome-stat">
+        <div class="welcome-stat-num">3</div>
+        <div class="welcome-stat-label">Platforms</div>
+      </div>
+      <div class="welcome-stat">
+        <div class="welcome-stat-num">3</div>
+        <div class="welcome-stat-label">Agents</div>
+      </div>
+    </div>
     <div class="prompt-container">
       <div class="prompt-box">
         <input type="text" id="searchInput" placeholder="Search - Patek, Jordan, designer bags, room decor...">
@@ -1833,12 +1931,12 @@
         </button>
       </div>
       <div class="suggestions">
-        <div class="suggestion" onclick="quickSearch('Patek Philippe watch')">Patek Philippe</div>
-        <div class="suggestion" onclick="quickSearch('Chrome Hearts glasses')">Chrome Hearts Glasses</div>
-        <div class="suggestion" onclick="quickSearch('designer bags')">Designer Bags</div>
-        <div class="suggestion" onclick="quickSearch('Travis Scott AF1')">Travis Scott AF1</div>
-        <div class="suggestion" onclick="quickSearch('Jordan 4')">Jordan 4</div>
-        <div class="suggestion" onclick="quickSearch('room decor')">Room Decor</div>
+        <div class="suggestion" onclick="quickSearch('Patek Philippe watch')"><span class="suggestion-icon">⌚</span> Patek Philippe</div>
+        <div class="suggestion" onclick="quickSearch('Chrome Hearts glasses')"><span class="suggestion-icon">🕶️</span> Chrome Hearts</div>
+        <div class="suggestion" onclick="quickSearch('designer bags')"><span class="suggestion-icon">👜</span> Designer Bags</div>
+        <div class="suggestion" onclick="quickSearch('Travis Scott AF1')"><span class="suggestion-icon">👟</span> Travis Scott</div>
+        <div class="suggestion" onclick="quickSearch('Jordan 4')"><span class="suggestion-icon">👟</span> Jordan 4</div>
+        <div class="suggestion" onclick="quickSearch('room decor')"><span class="suggestion-icon">🛋️</span> Room Decor</div>
       </div>
       <div style="display:flex;justify-content:center;gap:1px;margin-top:14px;flex-wrap:wrap">
         <button class="currency-btn" data-currency="USD" onclick="setCurrency('USD')">USD</button>
