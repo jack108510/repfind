@@ -1,0 +1,411 @@
+[2026-07-23 18:27:31] === RepFind Auto-Record Start ===
+[2026-07-23 18:27:31] Selected: Design Wacko Maria Short-Sleeve Camp Shirt Burgundy Tops Shirt (ID: 7768021004, ¥125.82)
+[2026-07-23 18:27:31] Search term: Design Wacko Maria Short-Sleeve
+[2026-07-23 18:27:31] Config updated
+[2026-07-23 18:27:31] Starting recording...
+Error: The configured selectedProductId (7768021004) was not found in the search results.
+    at chooseResultIndex (/Users/jackserver/repfind/recording-actions.js:209:11)
+    at async runGuestFlow (/Users/jackserver/repfind/recording-actions.js:325:25)
+    at async main (/Users/jackserver/repfind/record-screen-demo-mobile.js:54:5)
+Command failed: /opt/homebrew/Cellar/node/25.8.1_1/bin/node /Users/jackserver/repfind/record-screen-demo-mobile.js
+[2026-07-23 18:29:19] === RepFind Auto-Record Start ===
+[2026-07-23 18:29:19] Selected: Adidas Originals Ozweego Blue Gray Mesh Sneakers Chunky Sneakers (ID: 7737202790, ¥349.0)
+[2026-07-23 18:29:19] Search term: Adidas Originals
+[2026-07-23 18:29:19] Config updated
+[2026-07-23 18:29:19] Starting recording...
+Error: The configured selectedProductId (7737202790) was not found in the search results.
+    at chooseResultIndex (/Users/jackserver/repfind/recording-actions.js:209:11)
+    at async runGuestFlow (/Users/jackserver/repfind/recording-actions.js:325:25)
+    at async main (/Users/jackserver/repfind/record-screen-demo-mobile.js:54:5)
+Command failed: /opt/homebrew/Cellar/node/25.8.1_1/bin/node /Users/jackserver/repfind/record-screen-demo-mobile.js
+[2026-07-23 18:31:02] === RepFind Auto-Record Start ===
+[2026-07-23 18:31:02] Selected: Stussy x CBF Brazil 2023 Third Jersey Black / Blue (ID: 7713037666, ¥125.4)
+[2026-07-23 18:31:02] Search term: Stussy x
+[2026-07-23 18:31:02] Config updated
+[2026-07-23 18:31:02] Starting recording...
+/Users/jackserver/repfind/output/repfind-mobile-screen-recording.webm
+ffmpeg version 8.1.1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with Apple clang version 21.0.0 (clang-2100.0.123.102)
+  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/8.1.1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon
+  libavutil      60. 26.101 / 60. 26.101
+  libavcodec     62. 28.101 / 62. 28.101
+  libavformat    62. 12.101 / 62. 12.101
+  libavdevice    62.  3.101 / 62.  3.101
+  libavfilter    11. 14.101 / 11. 14.101
+  libswscale      9.  5.101 /  9.  5.101
+  libswresample   6.  3.101 /  6.  3.101
+Input #0, matroska,webm, from '/Users/jackserver/repfind/output/repfind-mobile-screen-recording.webm':
+  Metadata:
+    ENCODER         : Lavf61.1.100
+  Duration: 00:00:12.32, start: 0.000000, bitrate: 513 kb/s
+  Stream #0:0: Video: vp8, yuv420p(progressive), 360x640, SAR 1:1 DAR 9:16, 25 fps, 25 tbr, 1k tbn
+    Metadata:
+      ENCODER         : Lavc61.3.100 libvpx
+      DURATION        : 00:00:12.320000000
+Stream mapping:
+  Stream #0:0 -> #0:0 (vp8 (native) -> h264 (libx264))
+Press [q] to stop, [?] for help
+[libx264 @ 0x80903ca80] using SAR=1/1
+[libx264 @ 0x80903ca80] using cpu capabilities: ARMv8 NEON DotProd I8MM
+[libx264 @ 0x80903ca80] profile High, level 4.0, 4:2:0, 8-bit
+[libx264 @ 0x80903ca80] 264 - core 165 r3222 b35605a - H.264/MPEG-4 AVC codec - Copyleft 2003-2025 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=15 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=20.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00
+Output #0, mp4, to '/Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4':
+  Metadata:
+    encoder         : Lavf62.12.101
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(tv, bt470bg/unknown/unknown, progressive), 1080x1920 [SAR 1:1 DAR 9:16], q=2-31, 25 fps, 12800 tbn
+    Metadata:
+      encoder         : Lavc62.28.101 libx264
+      DURATION        : 00:00:12.320000000
+    Side data:
+      CPB properties: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=  156 fps=0.0 q=25.0 size=     256KiB time=00:00:06.16 bitrate= 340.5kbits/s speed=12.1x elapsed=0:00:00.51    frame=  277 fps=272 q=25.0 size=    1280KiB time=00:00:11.00 bitrate= 953.3kbits/s speed=10.8x elapsed=0:00:01.01    [mp4 @ 0x808c20280] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 0x808c0c840] video:1793KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.238798%
+frame=  308 fps=285 q=-1.0 Lsize=    1798KiB time=00:00:12.24 bitrate=1203.0kbits/s speed=11.3x elapsed=0:00:01.07    
+[libx264 @ 0x80903ca80] frame I:3     Avg QP:13.53  size: 29962
+[libx264 @ 0x80903ca80] frame P:102   Avg QP:14.63  size: 15000
+[libx264 @ 0x80903ca80] frame B:203   Avg QP:15.84  size:  1063
+[libx264 @ 0x80903ca80] consecutive B-frames:  9.4%  4.5% 10.7% 75.3%
+[libx264 @ 0x80903ca80] mb I  I16..4: 16.6% 80.8%  2.6%
+[libx264 @ 0x80903ca80] mb P  I16..4:  5.4%  7.2%  0.9%  P16..4:  6.7%  1.9%  1.2%  0.0%  0.0%    skip:76.7%
+[libx264 @ 0x80903ca80] mb B  I16..4:  0.3%  0.2%  0.0%  B16..8:  5.0%  0.2%  0.0%  direct: 0.7%  skip:93.6%  L0:50.8% L1:46.4% BI: 2.9%
+[libx264 @ 0x80903ca80] 8x8 transform intra:57.2% inter:78.2%
+[libx264 @ 0x80903ca80] coded y,uvDC,uvAC intra: 24.2% 16.7% 11.3% inter: 2.1% 1.6% 0.4%
+[libx264 @ 0x80903ca80] i16 v,h,dc,p: 33% 63%  2%  2%
+[libx264 @ 0x80903ca80] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 30% 30% 25%  2%  3%  2%  3%  2%  3%
+[libx264 @ 0x80903ca80] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 23% 29% 17%  4%  7%  5%  6%  4%  5%
+[libx264 @ 0x80903ca80] i8c dc,h,v,p: 71% 23%  5%  1%
+[libx264 @ 0x80903ca80] Weighted P-Frames: Y:6.9% UV:1.0%
+[libx264 @ 0x80903ca80] ref P L0: 68.4%  7.8% 15.6%  7.7%  0.4%
+[libx264 @ 0x80903ca80] ref B L0: 83.7% 14.5%  1.8%
+[libx264 @ 0x80903ca80] ref B L1: 97.2%  2.8%
+[libx264 @ 0x80903ca80] kb/s:1191.94
+
+Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
+[2026-07-23 18:31:19] Recording complete: /Users/jackserver/repfind/output/repfind-20260723-183119.mp4
+[2026-07-23 18:31:19] === Done ===
+[2026-07-23 18:31:31] === RepFind Auto-Record Start ===
+[2026-07-23 18:31:31] Selected: Real Madrid Training Tracksuit Black Orange (ID: 7709935429, ¥199.0)
+[2026-07-23 18:31:31] Search term: Real Madrid
+[2026-07-23 18:31:31] Config updated
+[2026-07-23 18:31:31] Starting recording...
+/Users/jackserver/repfind/output/repfind-mobile-screen-recording.webm
+ffmpeg version 8.1.1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with Apple clang version 21.0.0 (clang-2100.0.123.102)
+  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/8.1.1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon
+  libavutil      60. 26.101 / 60. 26.101
+  libavcodec     62. 28.101 / 62. 28.101
+  libavformat    62. 12.101 / 62. 12.101
+  libavdevice    62.  3.101 / 62.  3.101
+  libavfilter    11. 14.101 / 11. 14.101
+  libswscale      9.  5.101 /  9.  5.101
+  libswresample   6.  3.101 /  6.  3.101
+Input #0, matroska,webm, from '/Users/jackserver/repfind/output/repfind-mobile-screen-recording.webm':
+  Metadata:
+    ENCODER         : Lavf61.1.100
+  Duration: 00:00:12.76, start: 0.000000, bitrate: 487 kb/s
+  Stream #0:0: Video: vp8, yuv420p(progressive), 360x640, SAR 1:1 DAR 9:16, 25 fps, 25 tbr, 1k tbn
+    Metadata:
+      ENCODER         : Lavc61.3.100 libvpx
+      DURATION        : 00:00:12.760000000
+Stream mapping:
+  Stream #0:0 -> #0:0 (vp8 (native) -> h264 (libx264))
+Press [q] to stop, [?] for help
+[libx264 @ 0x98903ca80] using SAR=1/1
+[libx264 @ 0x98903ca80] using cpu capabilities: ARMv8 NEON DotProd I8MM
+[libx264 @ 0x98903ca80] profile High, level 4.0, 4:2:0, 8-bit
+[libx264 @ 0x98903ca80] 264 - core 165 r3222 b35605a - H.264/MPEG-4 AVC codec - Copyleft 2003-2025 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=15 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=20.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00
+Output #0, mp4, to '/Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4':
+  Metadata:
+    encoder         : Lavf62.12.101
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(tv, bt470bg/unknown/unknown, progressive), 1080x1920 [SAR 1:1 DAR 9:16], q=2-31, 25 fps, 12800 tbn
+    Metadata:
+      encoder         : Lavc62.28.101 libx264
+      DURATION        : 00:00:12.760000000
+    Side data:
+      CPB properties: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=  162 fps=0.0 q=25.0 size=     256KiB time=00:00:06.40 bitrate= 327.7kbits/s speed=12.5x elapsed=0:00:00.51    frame=  292 fps=286 q=25.0 size=    1536KiB time=00:00:11.60 bitrate=1084.8kbits/s speed=11.4x elapsed=0:00:01.02    [mp4 @ 0x988c20280] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 0x988c0c840] video:1738KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.256025%
+frame=  319 fps=301 q=-1.0 Lsize=    1743KiB time=00:00:12.68 bitrate=1125.8kbits/s speed=  12x elapsed=0:00:01.05    
+[libx264 @ 0x98903ca80] frame I:3     Avg QP:13.02  size: 40800
+[libx264 @ 0x98903ca80] frame P:100   Avg QP:14.55  size: 14327
+[libx264 @ 0x98903ca80] frame B:216   Avg QP:15.78  size:  1037
+[libx264 @ 0x98903ca80] consecutive B-frames:  6.0%  6.9% 13.2% 74.0%
+[libx264 @ 0x98903ca80] mb I  I16..4: 13.9% 82.9%  3.1%
+[libx264 @ 0x98903ca80] mb P  I16..4:  5.1%  7.2%  0.9%  P16..4:  5.7%  1.6%  1.1%  0.0%  0.0%    skip:78.4%
+[libx264 @ 0x98903ca80] mb B  I16..4:  0.3%  0.2%  0.0%  B16..8:  4.3%  0.2%  0.0%  direct: 0.7%  skip:94.4%  L0:47.5% L1:49.2% BI: 3.2%
+[libx264 @ 0x98903ca80] 8x8 transform intra:58.7% inter:79.7%
+[libx264 @ 0x98903ca80] coded y,uvDC,uvAC intra: 25.2% 17.2% 11.6% inter: 1.8% 1.3% 0.3%
+[libx264 @ 0x98903ca80] i16 v,h,dc,p: 32% 64%  2%  1%
+[libx264 @ 0x98903ca80] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 28% 32% 25%  2%  3%  2%  3%  2%  3%
+[libx264 @ 0x98903ca80] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 24% 27% 16%  4%  8%  6%  6%  4%  5%
+[libx264 @ 0x98903ca80] i8c dc,h,v,p: 70% 24%  5%  2%
+[libx264 @ 0x98903ca80] Weighted P-Frames: Y:9.0% UV:1.0%
+[libx264 @ 0x98903ca80] ref P L0: 71.9%  7.7% 13.6%  6.5%  0.4%
+[libx264 @ 0x98903ca80] ref B L0: 81.6% 16.9%  1.5%
+[libx264 @ 0x98903ca80] ref B L1: 97.4%  2.6%
+[libx264 @ 0x98903ca80] kb/s:1115.49
+
+Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
+[2026-07-23 18:31:46] Recording complete: /Users/jackserver/repfind/output/repfind-20260723-183146.mp4
+[2026-07-23 18:31:46] === Done ===
+[2026-07-24 07:00:00] === RepFind Auto-Record Start ===
+[2026-07-24 07:00:00] Selected: Design Flame Print Drawstring Shorts White (ID: 7787264126, ¥10.48)
+[2026-07-24 07:00:00] Search term: Flame Print
+[2026-07-24 07:00:00] Config updated
+[2026-07-24 07:00:00] Starting recording server...
+[2026-07-24 07:00:03] Starting recording...
+/Users/jackserver/repfind/output/repfind-mobile-screen-recording.webm
+ffmpeg version 8.1.1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with Apple clang version 21.0.0 (clang-2100.0.123.102)
+  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/8.1.1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon
+  libavutil      60. 26.101 / 60. 26.101
+  libavcodec     62. 28.101 / 62. 28.101
+  libavformat    62. 12.101 / 62. 12.101
+  libavdevice    62.  3.101 / 62.  3.101
+  libavfilter    11. 14.101 / 11. 14.101
+  libswscale      9.  5.101 /  9.  5.101
+  libswresample   6.  3.101 /  6.  3.101
+Input #0, matroska,webm, from '/Users/jackserver/repfind/output/repfind-mobile-screen-recording.webm':
+  Metadata:
+    ENCODER         : Lavf61.1.100
+  Duration: 00:00:12.96, start: 0.000000, bitrate: 446 kb/s
+  Stream #0:0: Video: vp8, yuv420p(progressive), 360x640, SAR 1:1 DAR 9:16, 25 fps, 25 tbr, 1k tbn
+    Metadata:
+      ENCODER         : Lavc61.3.100 libvpx
+      DURATION        : 00:00:12.960000000
+Stream mapping:
+  Stream #0:0 -> #0:0 (vp8 (native) -> h264 (libx264))
+Press [q] to stop, [?] for help
+[libx264 @ 0x98cc74a80] using SAR=1/1
+[libx264 @ 0x98cc74a80] using cpu capabilities: ARMv8 NEON DotProd I8MM
+[libx264 @ 0x98cc74a80] profile High, level 4.0, 4:2:0, 8-bit
+[libx264 @ 0x98cc74a80] 264 - core 165 r3222 b35605a - H.264/MPEG-4 AVC codec - Copyleft 2003-2025 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=15 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=20.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00
+Output #0, mp4, to '/Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4':
+  Metadata:
+    encoder         : Lavf62.12.101
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(tv, bt470bg/unknown/unknown, progressive), 1080x1920 [SAR 1:1 DAR 9:16], q=2-31, 25 fps, 12800 tbn
+    Metadata:
+      encoder         : Lavc62.28.101 libx264
+      DURATION        : 00:00:12.960000000
+    Side data:
+      CPB properties: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=  206 fps=0.0 q=25.0 size=     512KiB time=00:00:08.16 bitrate= 514.1kbits/s speed=12.6x elapsed=0:00:00.65    [mp4 @ 0x98cc24280] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 0x98cc28300] video:1703KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.266191%
+frame=  324 fps=299 q=-1.0 Lsize=    1707KiB time=00:00:12.88 bitrate=1085.8kbits/s speed=11.9x elapsed=0:00:01.08    
+[libx264 @ 0x98cc74a80] frame I:3     Avg QP:12.36  size: 25749
+[libx264 @ 0x98cc74a80] frame P:104   Avg QP:14.43  size: 13947
+[libx264 @ 0x98cc74a80] frame B:217   Avg QP:15.70  size:   991
+[libx264 @ 0x98cc74a80] consecutive B-frames:  6.5%  9.3% 10.2% 74.1%
+[libx264 @ 0x98cc74a80] mb I  I16..4: 17.5% 79.6%  2.9%
+[libx264 @ 0x98cc74a80] mb P  I16..4:  4.9%  7.3%  1.0%  P16..4:  5.3%  1.7%  1.0%  0.0%  0.0%    skip:78.9%
+[libx264 @ 0x98cc74a80] mb B  I16..4:  0.3%  0.2%  0.0%  B16..8:  4.1%  0.2%  0.0%  direct: 0.6%  skip:94.7%  L0:44.1% L1:53.0% BI: 2.8%
+[libx264 @ 0x98cc74a80] 8x8 transform intra:58.8% inter:77.8%
+[libx264 @ 0x98cc74a80] coded y,uvDC,uvAC intra: 25.1% 14.2% 9.0% inter: 1.8% 1.0% 0.3%
+[libx264 @ 0x98cc74a80] i16 v,h,dc,p: 29% 67%  2%  2%
+[libx264 @ 0x98cc74a80] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 27% 35% 23%  2%  3%  2%  3%  2%  3%
+[libx264 @ 0x98cc74a80] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 25% 27% 16%  4%  8%  6%  6%  4%  5%
+[libx264 @ 0x98cc74a80] i8c dc,h,v,p: 72% 23%  4%  1%
+[libx264 @ 0x98cc74a80] Weighted P-Frames: Y:5.8% UV:1.0%
+[libx264 @ 0x98cc74a80] ref P L0: 74.1%  7.5% 12.2%  5.9%  0.3%
+[libx264 @ 0x98cc74a80] ref B L0: 81.6% 17.3%  1.1%
+[libx264 @ 0x98cc74a80] ref B L1: 96.7%  3.3%
+[libx264 @ 0x98cc74a80] kb/s:1075.80
+
+Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
+[2026-07-24 07:00:19] Recording complete: /Users/jackserver/repfind/output/repfind-20260724-070019.mp4
+[2026-07-24 07:00:19] === Done ===
+[2026-07-24 10:34:04] === RepFind Auto-Record Start ===
+[2026-07-24 10:34:04] Selected: Design Military-Style Camouflage Field Jacket Army Green Outerwear Jacket (ID: 7774782540, ¥42.62)
+[2026-07-24 10:34:04] Search term: Military-Style Camouflage
+[2026-07-24 10:34:04] Config updated
+[2026-07-24 10:34:04] Starting recording...
+/Users/jackserver/repfind/output/repfind-mobile-screen-recording.webm
+ffmpeg version 8.1.1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with Apple clang version 21.0.0 (clang-2100.0.123.102)
+  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/8.1.1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon
+  libavutil      60. 26.101 / 60. 26.101
+  libavcodec     62. 28.101 / 62. 28.101
+  libavformat    62. 12.101 / 62. 12.101
+  libavdevice    62.  3.101 / 62.  3.101
+  libavfilter    11. 14.101 / 11. 14.101
+  libswscale      9.  5.101 /  9.  5.101
+  libswresample   6.  3.101 /  6.  3.101
+Input #0, matroska,webm, from '/Users/jackserver/repfind/output/repfind-mobile-screen-recording.webm':
+  Metadata:
+    ENCODER         : Lavf61.1.100
+  Duration: 00:00:14.36, start: 0.000000, bitrate: 454 kb/s
+  Stream #0:0: Video: vp8, yuv420p(progressive), 360x640, SAR 1:1 DAR 9:16, 25 fps, 25 tbr, 1k tbn
+    Metadata:
+      ENCODER         : Lavc61.3.100 libvpx
+      DURATION        : 00:00:14.360000000
+Stream mapping:
+  Stream #0:0 -> #0:0 (vp8 (native) -> h264 (libx264))
+Press [q] to stop, [?] for help
+[libx264 @ 0xb2cc74a80] using SAR=1/1
+[libx264 @ 0xb2cc74a80] using cpu capabilities: ARMv8 NEON DotProd I8MM
+[libx264 @ 0xb2cc74a80] profile High, level 4.0, 4:2:0, 8-bit
+[libx264 @ 0xb2cc74a80] 264 - core 165 r3222 b35605a - H.264/MPEG-4 AVC codec - Copyleft 2003-2025 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=15 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=20.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00
+Output #0, mp4, to '/Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4':
+  Metadata:
+    encoder         : Lavf62.12.101
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(tv, bt470bg/unknown/unknown, progressive), 1080x1920 [SAR 1:1 DAR 9:16], q=2-31, 25 fps, 12800 tbn
+    Metadata:
+      encoder         : Lavc62.28.101 libx264
+      DURATION        : 00:00:14.360000000
+    Side data:
+      CPB properties: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=  196 fps=0.0 q=25.0 size=     256KiB time=00:00:07.76 bitrate= 270.3kbits/s speed=13.5x elapsed=0:00:00.57    frame=  329 fps=302 q=25.0 size=    1280KiB time=00:00:13.08 bitrate= 801.7kbits/s speed=  12x elapsed=0:00:01.08    [mp4 @ 0xb2cc24280] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 0xb2cc28300] video:1977KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.247259%
+frame=  359 fps=307 q=-1.0 Lsize=    1982KiB time=00:00:14.28 bitrate=1136.8kbits/s speed=12.2x elapsed=0:00:01.17    
+[libx264 @ 0xb2cc74a80] frame I:3     Avg QP:12.75  size: 15794
+[libx264 @ 0xb2cc74a80] frame P:118   Avg QP:14.64  size: 14947
+[libx264 @ 0xb2cc74a80] frame B:238   Avg QP:15.39  size:   892
+[libx264 @ 0xb2cc74a80] consecutive B-frames:  7.0% 10.0% 11.7% 71.3%
+[libx264 @ 0xb2cc74a80] mb I  I16..4: 19.8% 77.9%  2.2%
+[libx264 @ 0xb2cc74a80] mb P  I16..4:  4.0%  6.4%  0.9%  P16..4:  5.3%  1.6%  1.1%  0.0%  0.0%    skip:80.7%
+[libx264 @ 0xb2cc74a80] mb B  I16..4:  0.2%  0.1%  0.0%  B16..8:  3.8%  0.2%  0.0%  direct: 0.5%  skip:95.2%  L0:49.7% L1:47.4% BI: 2.8%
+[libx264 @ 0xb2cc74a80] 8x8 transform intra:59.7% inter:78.0%
+[libx264 @ 0xb2cc74a80] coded y,uvDC,uvAC intra: 26.8% 15.0% 8.8% inter: 1.9% 1.1% 0.2%
+[libx264 @ 0xb2cc74a80] i16 v,h,dc,p: 31% 66%  2%  1%
+[libx264 @ 0xb2cc74a80] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 32% 29% 24%  2%  3%  3%  3%  2%  3%
+[libx264 @ 0xb2cc74a80] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 25% 28% 14%  4%  7%  6%  6%  5%  5%
+[libx264 @ 0xb2cc74a80] i8c dc,h,v,p: 72% 22%  5%  1%
+[libx264 @ 0xb2cc74a80] Weighted P-Frames: Y:2.5% UV:0.0%
+[libx264 @ 0xb2cc74a80] ref P L0: 74.0%  9.2% 12.2%  4.4%  0.2%
+[libx264 @ 0xb2cc74a80] ref B L0: 80.1% 18.4%  1.5%
+[libx264 @ 0xb2cc74a80] ref B L1: 97.8%  2.2%
+[libx264 @ 0xb2cc74a80] kb/s:1127.30
+
+Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
+[2026-07-24 10:34:23] Recording complete: /Users/jackserver/repfind/output/repfind-20260724-103423.mp4
+[2026-07-24 10:34:23] === Done ===
+[2026-07-24 10:37:23] === RepFind Auto-Record Start ===
+[2026-07-24 10:37:23] Selected: Asics Gel-Kayano Lite White Pink Orange Running Shoes (ID: 7726489206, ¥333.0)
+[2026-07-24 10:37:23] Search term: Asics Gel-Kayano
+[2026-07-24 10:37:23] Config updated
+[2026-07-24 10:37:23] Starting recording...
+/Users/jackserver/repfind/output/repfind-mobile-screen-recording.webm
+ffmpeg version 8.1.1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with Apple clang version 21.0.0 (clang-2100.0.123.102)
+  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/8.1.1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon
+  libavutil      60. 26.101 / 60. 26.101
+  libavcodec     62. 28.101 / 62. 28.101
+  libavformat    62. 12.101 / 62. 12.101
+  libavdevice    62.  3.101 / 62.  3.101
+  libavfilter    11. 14.101 / 11. 14.101
+  libswscale      9.  5.101 /  9.  5.101
+  libswresample   6.  3.101 /  6.  3.101
+Input #0, matroska,webm, from '/Users/jackserver/repfind/output/repfind-mobile-screen-recording.webm':
+  Metadata:
+    ENCODER         : Lavf61.1.100
+  Duration: 00:00:13.44, start: 0.000000, bitrate: 459 kb/s
+  Stream #0:0: Video: vp8, yuv420p(progressive), 360x640, SAR 1:1 DAR 9:16, 25 fps, 25 tbr, 1k tbn
+    Metadata:
+      ENCODER         : Lavc61.3.100 libvpx
+      DURATION        : 00:00:13.440000000
+Stream mapping:
+  Stream #0:0 -> #0:0 (vp8 (native) -> h264 (libx264))
+Press [q] to stop, [?] for help
+[libx264 @ 0x750c4ca80] using SAR=1/1
+[libx264 @ 0x750c4ca80] using cpu capabilities: ARMv8 NEON DotProd I8MM
+[libx264 @ 0x750c4ca80] profile High, level 4.0, 4:2:0, 8-bit
+[libx264 @ 0x750c4ca80] 264 - core 165 r3222 b35605a - H.264/MPEG-4 AVC codec - Copyleft 2003-2025 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=15 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=20.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00
+Output #0, mp4, to '/Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4':
+  Metadata:
+    encoder         : Lavf62.12.101
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(tv, bt470bg/unknown/unknown, progressive), 1080x1920 [SAR 1:1 DAR 9:16], q=2-31, 25 fps, 12800 tbn
+    Metadata:
+      encoder         : Lavc62.28.101 libx264
+      DURATION        : 00:00:13.440000000
+    Side data:
+      CPB properties: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=  186 fps=0.0 q=25.0 size=     256KiB time=00:00:07.36 bitrate= 285.0kbits/s speed=12.8x elapsed=0:00:00.57    [mp4 @ 0x751014280] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 0x750c24300] video:1898KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.242482%
+frame=  336 fps=301 q=-1.0 Lsize=    1903KiB time=00:00:13.36 bitrate=1166.7kbits/s speed=  12x elapsed=0:00:01.11    
+[libx264 @ 0x750c4ca80] frame I:3     Avg QP:13.83  size: 36470
+[libx264 @ 0x750c4ca80] frame P:116   Avg QP:14.79  size: 14223
+[libx264 @ 0x750c4ca80] frame B:217   Avg QP:15.49  size:   846
+[libx264 @ 0x750c4ca80] consecutive B-frames:  8.6% 11.9% 11.6% 67.9%
+[libx264 @ 0x750c4ca80] mb I  I16..4: 15.5% 81.6%  2.9%
+[libx264 @ 0x750c4ca80] mb P  I16..4:  4.3%  6.9%  0.8%  P16..4:  5.4%  1.7%  1.0%  0.0%  0.0%    skip:79.9%
+[libx264 @ 0x750c4ca80] mb B  I16..4:  0.3%  0.1%  0.0%  B16..8:  3.5%  0.2%  0.0%  direct: 0.4%  skip:95.6%  L0:41.5% L1:55.4% BI: 3.1%
+[libx264 @ 0x750c4ca80] 8x8 transform intra:60.1% inter:79.8%
+[libx264 @ 0x750c4ca80] coded y,uvDC,uvAC intra: 25.0% 16.3% 10.8% inter: 1.9% 1.1% 0.3%
+[libx264 @ 0x750c4ca80] i16 v,h,dc,p: 25% 71%  2%  2%
+[libx264 @ 0x750c4ca80] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 28% 35% 23%  2%  3%  2%  3%  2%  3%
+[libx264 @ 0x750c4ca80] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 24% 29% 15%  4%  8%  6%  6%  4%  5%
+[libx264 @ 0x750c4ca80] i8c dc,h,v,p: 73% 22%  4%  1%
+[libx264 @ 0x750c4ca80] Weighted P-Frames: Y:2.6% UV:0.0%
+[libx264 @ 0x750c4ca80] ref P L0: 71.4%  8.6% 10.8%  9.0%  0.2%
+[libx264 @ 0x750c4ca80] ref B L0: 79.8% 18.5%  1.7%
+[libx264 @ 0x750c4ca80] ref B L1: 96.5%  3.5%
+[libx264 @ 0x750c4ca80] kb/s:1156.52
+
+Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
+[2026-07-24 10:37:40] Recording complete: /Users/jackserver/repfind/output/repfind-20260724-103740.mp4
+[2026-07-24 10:37:40] === Done ===
+[2026-07-24 10:46:22] === RepFind Auto-Record Start ===
+[2026-07-24 10:46:22] Selected: corteiz tee Batman (ID: 7235164348, ¥11.2)
+[2026-07-24 10:46:22] Search term: corteiz tee
+[2026-07-24 10:46:22] Config updated
+[2026-07-24 10:46:22] Starting recording...
+/Users/jackserver/repfind/output/repfind-mobile-screen-recording.webm
+ffmpeg version 8.1.1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with Apple clang version 21.0.0 (clang-2100.0.123.102)
+  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/8.1.1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon
+  libavutil      60. 26.101 / 60. 26.101
+  libavcodec     62. 28.101 / 62. 28.101
+  libavformat    62. 12.101 / 62. 12.101
+  libavdevice    62.  3.101 / 62.  3.101
+  libavfilter    11. 14.101 / 11. 14.101
+  libswscale      9.  5.101 /  9.  5.101
+  libswresample   6.  3.101 /  6.  3.101
+Input #0, matroska,webm, from '/Users/jackserver/repfind/output/repfind-mobile-screen-recording.webm':
+  Metadata:
+    ENCODER         : Lavf61.1.100
+  Duration: 00:00:13.12, start: 0.000000, bitrate: 454 kb/s
+  Stream #0:0: Video: vp8, yuv420p(progressive), 360x640, SAR 1:1 DAR 9:16, 25 fps, 25 tbr, 1k tbn
+    Metadata:
+      ENCODER         : Lavc61.3.100 libvpx
+      DURATION        : 00:00:13.120000000
+Stream mapping:
+  Stream #0:0 -> #0:0 (vp8 (native) -> h264 (libx264))
+Press [q] to stop, [?] for help
+[libx264 @ 0x73ac74a80] using SAR=1/1
+[libx264 @ 0x73ac74a80] using cpu capabilities: ARMv8 NEON DotProd I8MM
+[libx264 @ 0x73ac74a80] profile High, level 4.0, 4:2:0, 8-bit
+[libx264 @ 0x73ac74a80] 264 - core 165 r3222 b35605a - H.264/MPEG-4 AVC codec - Copyleft 2003-2025 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=15 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=20.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00
+Output #0, mp4, to '/Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4':
+  Metadata:
+    encoder         : Lavf62.12.101
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(tv, bt470bg/unknown/unknown, progressive), 1080x1920 [SAR 1:1 DAR 9:16], q=2-31, 25 fps, 12800 tbn
+    Metadata:
+      encoder         : Lavc62.28.101 libx264
+      DURATION        : 00:00:13.120000000
+    Side data:
+      CPB properties: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=  187 fps=0.0 q=25.0 size=     512KiB time=00:00:07.40 bitrate= 566.8kbits/s speed=12.9x elapsed=0:00:00.57    [mp4 @ 0x73ac24280] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 0x73ac28300] video:1910KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.237896%
+frame=  328 fps=299 q=-1.0 Lsize=    1915KiB time=00:00:13.04 bitrate=1202.8kbits/s speed=11.9x elapsed=0:00:01.09    
+[libx264 @ 0x73ac74a80] frame I:4     Avg QP:11.63  size: 44422
+[libx264 @ 0x73ac74a80] frame P:113   Avg QP:15.08  size: 14230
+[libx264 @ 0x73ac74a80] frame B:211   Avg QP:15.24  size:   803
+[libx264 @ 0x73ac74a80] consecutive B-frames:  9.8% 11.0%  7.3% 72.0%
+[libx264 @ 0x73ac74a80] mb I  I16..4: 24.7% 70.6%  4.7%
+[libx264 @ 0x73ac74a80] mb P  I16..4:  3.6%  6.7%  0.9%  P16..4:  5.8%  1.7%  1.1%  0.0%  0.0%    skip:80.1%
+[libx264 @ 0x73ac74a80] mb B  I16..4:  0.2%  0.1%  0.0%  B16..8:  4.1%  0.2%  0.0%  direct: 0.3%  skip:95.1%  L0:40.6% L1:56.5% BI: 2.9%
+[libx264 @ 0x73ac74a80] 8x8 transform intra:61.4% inter:80.2%
+[libx264 @ 0x73ac74a80] coded y,uvDC,uvAC intra: 28.8% 17.7% 13.9% inter: 1.9% 1.0% 0.3%
+[libx264 @ 0x73ac74a80] i16 v,h,dc,p: 28% 69%  2%  1%
+[libx264 @ 0x73ac74a80] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 31% 29% 24%  2%  3%  3%  3%  2%  3%
+[libx264 @ 0x73ac74a80] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 25% 29% 15%  4%  7%  5%  6%  4%  5%
+[libx264 @ 0x73ac74a80] i8c dc,h,v,p: 80% 14%  5%  1%
+[libx264 @ 0x73ac74a80] Weighted P-Frames: Y:3.5% UV:0.0%
+[libx264 @ 0x73ac74a80] ref P L0: 74.8%  8.5% 11.1%  5.4%  0.1%
+[libx264 @ 0x73ac74a80] ref B L0: 80.3% 18.6%  1.1%
+[libx264 @ 0x73ac74a80] ref B L1: 97.6%  2.4%
+[libx264 @ 0x73ac74a80] kb/s:1192.20
+
+Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
+[2026-07-24 10:46:38] Recording complete: /Users/jackserver/repfind/output/repfind-20260724-104638.mp4
+[2026-07-24 10:46:38] === Done ===

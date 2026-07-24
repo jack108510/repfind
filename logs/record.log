@@ -1,0 +1,56 @@
+/Users/jackserver/repfind/output/repfind-mobile-screen-recording.webm
+ffmpeg version 8.1.1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with Apple clang version 21.0.0 (clang-2100.0.123.102)
+  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/8.1.1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon
+  libavutil      60. 26.101 / 60. 26.101
+  libavcodec     62. 28.101 / 62. 28.101
+  libavformat    62. 12.101 / 62. 12.101
+  libavdevice    62.  3.101 / 62.  3.101
+  libavfilter    11. 14.101 / 11. 14.101
+  libswscale      9.  5.101 /  9.  5.101
+  libswresample   6.  3.101 /  6.  3.101
+Input #0, matroska,webm, from '/Users/jackserver/repfind/output/repfind-mobile-screen-recording.webm':
+  Metadata:
+    ENCODER         : Lavf61.1.100
+  Duration: 00:00:15.36, start: 0.000000, bitrate: 399 kb/s
+  Stream #0:0: Video: vp8, yuv420p(progressive), 1080x1920, SAR 1:1 DAR 9:16, 25 fps, 25 tbr, 1k tbn
+    Metadata:
+      ENCODER         : Lavc61.3.100 libvpx
+      DURATION        : 00:00:15.360000000
+Stream mapping:
+  Stream #0:0 -> #0:0 (vp8 (native) -> h264 (libx264))
+Press [q] to stop, [?] for help
+[libx264 @ 0x928c4ca80] using SAR=1/1
+[libx264 @ 0x928c4ca80] using cpu capabilities: ARMv8 NEON DotProd I8MM
+[libx264 @ 0x928c4ca80] profile High, level 4.0, 4:2:0, 8-bit
+[libx264 @ 0x928c4ca80] 264 - core 165 r3222 b35605a - H.264/MPEG-4 AVC codec - Copyleft 2003-2025 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=15 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=20.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00
+Output #0, mp4, to '/Users/jackserver/repfind/output/repfind-chrome-hearts-20260723-160122.mp4':
+  Metadata:
+    encoder         : Lavf62.12.101
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(tv, bt470bg/unknown/unknown, progressive), 1080x1920 [SAR 1:1 DAR 9:16], q=2-31, 25 fps, 12800 tbn
+    Metadata:
+      encoder         : Lavc62.28.101 libx264
+      DURATION        : 00:00:15.360000000
+    Side data:
+      CPB properties: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=  212 fps=0.0 q=25.0 size=       0KiB time=00:00:08.40 bitrate=   0.0kbits/s speed=16.8x elapsed=0:00:00.50    [mp4 @ 0x929010280] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 0x929008840] video:401KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 1.310553%
+frame=  384 fps=0.0 q=-1.0 Lsize=     406KiB time=00:00:15.28 bitrate= 217.8kbits/s speed=18.2x elapsed=0:00:00.83    
+[libx264 @ 0x928c4ca80] frame I:2     Avg QP: 5.40  size: 16621
+[libx264 @ 0x928c4ca80] frame P:111   Avg QP:14.34  size:  2761
+[libx264 @ 0x928c4ca80] frame B:271   Avg QP:15.43  size:   259
+[libx264 @ 0x928c4ca80] consecutive B-frames:  3.9%  3.6%  7.0% 85.4%
+[libx264 @ 0x928c4ca80] mb I  I16..4: 97.0%  0.5%  2.6%
+[libx264 @ 0x928c4ca80] mb P  I16..4:  0.8%  0.6%  0.2%  P16..4:  1.0%  0.1%  0.1%  0.0%  0.0%    skip:97.1%
+[libx264 @ 0x928c4ca80] mb B  I16..4:  0.0%  0.3%  0.0%  B16..8:  0.6%  0.0%  0.0%  direct: 0.2%  skip:98.8%  L0:40.2% L1:55.3% BI: 4.5%
+[libx264 @ 0x928c4ca80] 8x8 transform intra:31.7% inter:34.4%
+[libx264 @ 0x928c4ca80] coded y,uvDC,uvAC intra: 8.4% 4.8% 3.5% inter: 0.2% 0.2% 0.0%
+[libx264 @ 0x928c4ca80] i16 v,h,dc,p: 87% 12%  1%  0%
+[libx264 @ 0x928c4ca80] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 17% 55% 25%  1%  0%  0%  0%  0%  1%
+[libx264 @ 0x928c4ca80] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 28% 33% 20%  2%  3%  3%  4%  2%  4%
+[libx264 @ 0x928c4ca80] i8c dc,h,v,p: 93%  5%  2%  0%
+[libx264 @ 0x928c4ca80] Weighted P-Frames: Y:1.8% UV:1.8%
+[libx264 @ 0x928c4ca80] ref P L0: 84.2%  5.8%  6.2%  3.5%  0.3%
+[libx264 @ 0x928c4ca80] ref B L0: 78.8% 19.8%  1.4%
+[libx264 @ 0x928c4ca80] ref B L1: 96.9%  3.1%
+[libx264 @ 0x928c4ca80] kb/s:213.49

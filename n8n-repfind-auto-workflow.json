@@ -1,0 +1,203 @@
+{
+  "name": "RepFind - Auto Record & Post TikTok (3x Daily)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            },
+            {
+              "field": "cronExpression",
+              "expression": "0 13 * * *"
+            },
+            {
+              "field": "cronExpression",
+              "expression": "0 17 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger (9AM, 1PM, 5PM)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "command": "bash /Users/jackserver/repfind/auto-record.sh",
+        "executeTimeout": 180
+      },
+      "name": "Record Video",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "json",
+        "jsonOutput": "={{ $json.stdout || '{}' }}",
+        "options": {}
+      },
+      "name": "Parse Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        460,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "role": "user",
+              "content": "=You are a TikTok caption writer for @rep.find.ai, a search engine for replica products sourced from Weidian, Taobao, and 1688. repfind.ca searches 66K+ direct-buy links with no dead pages or fake ratings.\n\nThe video shows a phone screen recording of someone searching for and finding this product on the repfind app:\n\nProduct: {{ $json.product_title }}\nPrice: \u00a5{{ $json.price }}\n\nWrite a single TikTok caption that:\n- Hook-first (catches attention in the first 3 words)\n- References the actual product shown\n- Includes 5-8 relevant hashtags\n- Subtly mentions repfind.ca\n- Under 300 characters\n- Max 1-2 emoji\n- Sounds like a real person finding a great deal, not an ad\n\nReturn ONLY the caption text, nothing else."
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.9
+        }
+      },
+      "name": "AI Caption",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        680,
+        0
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "ae23499e-8e8c-49a2-953e-10785e49d727",
+          "name": "OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "json",
+        "jsonOutput": "={\n  \"caption\": \"{{ $json.message.content }}\",\n  \"videoPath\": \"{{ $('Parse Result').item.json.video_path }}\",\n  \"productTitle\": \"{{ $('Parse Result').item.json.product_title }}\"\n}",
+        "options": {}
+      },
+      "name": "Set Caption + Path",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        900,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "command": "=source /Users/jackserver/repfind/.publora.env && curl -s -X POST 'https://api.publora.com/v1/social/posts' -H 'Authorization: Bearer \"'\"$PUBLORA_KEY\"'\"' -H 'Content-Type: application/json' -d '{\"platformId\": \"'\"$PUBLORA_TIKTOK_PLATFORM_ID\"'\", \"videoUrl\": \"file://{{ $json.videoPath }}\", \"caption\": \"{{ $json.caption.replace(/\"/g, '\\\\\"') }}\", \"postType\": \"draft\"}'",
+        "executeTimeout": 120
+      },
+      "name": "Post to TikTok (Draft)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:5678/webhook/repfind-notify",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"product\": \"{{ $json.productTitle }}\",\n  \"caption\": \"{{ $json.caption }}\"\n}"
+      },
+      "name": "Notify Jack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1340,
+        0
+      ],
+      "credentials": {}
+    }
+  ],
+  "connections": {
+    "Schedule Trigger (9AM, 1PM, 5PM)": {
+      "main": [
+        [
+          {
+            "node": "Record Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Video": {
+      "main": [
+        [
+          {
+            "node": "Parse Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Result": {
+      "main": [
+        [
+          {
+            "node": "AI Caption",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Caption": {
+      "main": [
+        [
+          {
+            "node": "Set Caption + Path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Caption + Path": {
+      "main": [
+        [
+          {
+            "node": "Post to TikTok (Draft)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post to TikTok (Draft)": {
+      "main": [
+        [
+          {
+            "node": "Notify Jack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

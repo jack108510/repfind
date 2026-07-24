@@ -1,0 +1,14 @@
+{
+  "appId": "ca.repfind.app",
+  "appName": "Repfind",
+  "webDir": "www",
+  "server": {
+    "url": "https://repfind.ca",
+    "cleartext": false
+  },
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#111111",
+    "limitsNavigationsToAppBoundDomains": false
+  }
+}

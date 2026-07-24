@@ -1,0 +1,4306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <title>repfind - find the best reps, fast</title>
+  <meta name="description" content="Search 66K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings - send straight to your agent.">
+  <meta name="keywords" content="repfind, reps, replica, weidian, taobao, 1688, cnfans, kakobuy, oopbuy, travis scott, jordan, yeezy, nike">
+  <meta name="author" content="repfind">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="repfind - find the best reps, fast">
+  <meta property="og:description" content="Search 66K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings.">
+  <meta property="og:url" content="https://repfind.ca/">
+  <meta property="og:site_name" content="repfind">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="repfind - find the best reps, fast">
+  <meta name="twitter:description" content="Search 66K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings.">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://repfind.ca/">
+  <link rel="icon" href="logo.png">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "repfind",
+    "url": "https://repfind.ca/",
+    "description": "Search 66K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings.",
+    "applicationCategory": "ShoppingApplication",
+    "operatingSystem": "Web",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* ChatGPT-inspired dark palette */
+      --bg: #1A1A1A;
+      --bg-deep: #131313;
+      --bg-sidebar: #0F0F0F;
+      --surface: #242424;
+      --surface-2: #2E2E2E;
+      --surface-hover: #343434;
+      --surface-3: #383838;
+      --border: #2A2A2A;
+      --border-light: #383838;
+      --text: #F5F5F5;
+      --text-secondary: #C5C5C5;
+      --text-muted: #888888;
+      --text-dim: #5A5A5A;
+      --accent: #C84B2F;
+      --accent-light: #E8624A;
+      --accent-dim: rgba(200, 75, 47, 0.10);
+      --accent-subtle: rgba(200, 75, 47, 0.06);
+      --green: #34D399;
+      --yellow: #FBBF24;
+      --red: #F87171;
+      --blue: #60A5FA;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --radius-xs: 6px;
+      --radius-pill: 100px;
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    }
+
+    /* ─── FONT RENDERING ─── */
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-feature-settings: 'cv02','cv03','cv04','cv11';
+      letter-spacing: -0.011em;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      position: fixed;
+      left: 0; top: 0; bottom: 0;
+      width: 260px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      z-index: 100;
+      transition: transform var(--transition);
+    }
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      margin-bottom: 18px;
+    }
+    .sidebar-logo {
+      font-size: 1.6rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sidebar-logo img {
+      height: 40px;
+      width: auto;
+    }
+    .sidebar-logo .find { color: var(--accent); }
+    .new-search-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      font-weight: 450;
+      cursor: pointer;
+      transition: all var(--transition);
+      width: 100%;
+      text-align: left;
+    }
+    .new-search-btn:hover {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .new-search-btn svg {
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+    .sidebar-section {
+      margin-top: 20px;
+    }
+    .history-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      padding: 4px 12px 6px;
+      letter-spacing: 0.02em;
+    }
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border-left: 2px solid transparent;
+    }
+    .history-item:hover {
+      background: var(--surface);
+      color: var(--text);
+      border-left-color: var(--border-light);
+    }
+    .history-item svg {
+      opacity: 0.4;
+      flex-shrink: 0;
+    }
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 12px 8px 4px;
+      border-top: 1px solid var(--border);
+    }
+    .sidebar-footer-link {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      padding: 6px 12px;
+      border-radius: var(--radius-xs);
+      transition: color var(--transition);
+    }
+    .sidebar-footer-link:hover { color: var(--text-muted); }
+
+    /* ─── CART ─── */
+    .cart-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      font-weight: 450;
+      cursor: pointer;
+      transition: all var(--transition);
+      width: 100%;
+      text-align: left;
+      margin-top: 8px;
+    }
+    .cart-btn:hover {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .cart-badge {
+      background: var(--accent);
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      margin-left: auto;
+      min-width: 20px;
+      text-align: center;
+      display: none;
+    }
+    .cart-badge.show { display: inline-block; }
+
+    .cart-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 199;
+      backdrop-filter: blur(2px);
+    }
+    .cart-overlay.show { display: block; }
+
+    .cart-panel {
+      position: fixed;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 400px;
+      max-width: 90vw;
+      background: var(--bg-deep);
+      border-left: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(100%);
+      transition: transform var(--transition);
+      display: flex;
+      flex-direction: column;
+    }
+    .cart-panel.show { transform: translateX(0); }
+    .cart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .cart-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .cart-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      font-size: 1.2rem;
+    }
+    .cart-close:hover { color: var(--text); }
+    .cart-items {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
+    }
+    .cart-empty {
+      text-align: center;
+      color: var(--text-dim);
+      padding: 60px 20px;
+      font-size: 0.85rem;
+    }
+    .cart-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+    }
+    .cart-item-img {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-xs);
+      background: var(--border);
+      flex-shrink: 0;
+      object-fit: cover;
+    }
+    .cart-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .cart-item-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cart-item-price {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+    .cart-item-remove {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 4px 8px;
+      font-size: 1rem;
+      transition: color var(--transition);
+    }
+    .cart-item-remove:hover { color: var(--red); }
+
+    .cart-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+    }
+    .cart-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+    }
+    .cart-total-value {
+      font-size: 1.2rem;
+      font-weight: 800;
+    }
+    .cart-checkout-btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition);
+      text-align: center;
+    }
+    .cart-checkout-btn:hover {
+      background: var(--accent-light);
+      transform: translateY(-1px);
+    }
+    .cart-checkout-btn:disabled {
+      background: var(--border-light);
+      color: var(--text-dim);
+      cursor: not-allowed;
+    }
+
+    .auth-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 12px;
+      margin-bottom: 4px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+    }
+    .auth-status strong { color: var(--text-secondary); font-size: 0.75rem; }
+    .auth-status button {
+      border: 1px solid var(--border-light);
+      background: transparent;
+      color: var(--text-secondary);
+      border-radius: var(--radius-xs);
+      padding: 4px 7px;
+      font-size: 0.68rem;
+      cursor: pointer;
+    }
+    .auth-status button:hover { color: var(--text); background: var(--surface-2); }
+    .auth-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.68);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(3px);
+    }
+    .auth-modal.show { display: flex; }
+    .auth-card {
+      width: 420px;
+      max-width: 100%;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 22px;
+    }
+    .auth-card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin-bottom:16px; }
+    .auth-card h2 { font-size: 1.2rem; line-height: 1.2; letter-spacing: -0.03em; margin-bottom: 6px; }
+    .auth-card p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; }
+    .auth-close { background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:1.4rem; line-height:1; }
+    .auth-close:hover { color: var(--text); }
+    .auth-tabs { display:flex; gap:6px; margin:16px 0 12px; }
+    .auth-tab {
+      flex:1; border:1px solid var(--border); background:var(--surface); color:var(--text-muted);
+      border-radius:var(--radius-xs); padding:8px; font-size:0.78rem; font-weight:700; cursor:pointer;
+    }
+    .auth-tab.active { background:var(--accent); border-color:var(--accent); color:white; }
+    .auth-field { margin-bottom:10px; }
+    .auth-field label { display:block; color:var(--text-dim); font-size:0.72rem; font-weight:700; margin-bottom:5px; }
+    .auth-field input {
+      width:100%; background:var(--surface); border:1px solid var(--border-light); color:var(--text);
+      border-radius:var(--radius-xs); padding:11px 12px; font-size:0.9rem; outline:none;
+    }
+    .auth-field input:focus { border-color:var(--accent); }
+    .auth-primary, .auth-secondary {
+      width:100%; border:none; border-radius:var(--radius-sm); padding:11px 12px; font-weight:800; cursor:pointer; margin-top:8px;
+    }
+    .auth-primary { background:var(--accent); color:white; }
+    .auth-primary:hover { background:var(--accent-light); }
+    .auth-secondary { background:var(--surface); color:var(--text-secondary); border:1px solid var(--border-light); }
+    .auth-secondary:hover { background:var(--surface-2); color:var(--text); }
+    .auth-note { margin-top:12px; font-size:0.76rem; color:var(--text-dim); line-height:1.45; }
+    .auth-error { min-height:18px; margin-top:10px; color:var(--red); font-size:0.78rem; }
+    .auth-success { color:var(--green); }
+    .cart-auth-teaser {
+      padding: 44px 22px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .cart-auth-teaser h3 { color:var(--text); font-size:1rem; margin-bottom:8px; }
+    .cart-auth-teaser p { font-size:0.84rem; line-height:1.5; margin-bottom:16px; }
+
+    .add-to-cart-btn {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: var(--radius-xs);
+      border: 1px solid var(--border-light);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+    .add-to-cart-btn:hover {
+      background: var(--surface-2);
+      color: var(--text);
+      border-color: var(--accent);
+    }
+    .add-to-cart-btn.added {
+      background: var(--green);
+      color: var(--bg);
+      border-color: var(--green);
+    }
+
+    /* ─── MAIN ─── */
+    .main {
+      margin-left: 260px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: margin var(--transition);
+    }
+
+    /* ─── TOP BAR ─── */
+    .topbar {
+      display: none;
+    }
+    .topbar.show { display: flex; }
+    .topbar-logo {
+      font-size: 1.4rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+    .topbar-logo .find { color: var(--accent); }
+    .topbar-right {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .topbar-btn {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: var(--radius-xs);
+      transition: all var(--transition);
+      font-weight: 500;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+    }
+    .topbar-btn:hover {
+      color: var(--text);
+      background: var(--surface);
+    }
+
+    /* ─── WELCOME ─── */
+    @keyframes welcomeIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .welcome {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      min-height: calc(100vh - 50px);
+    }
+    .welcome.hide { display: none; }
+    .welcome-logo {
+      font-size: 3.2rem;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: welcomeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+    }
+    .welcome-logo img {
+      height: 96px;
+      width: auto;
+    }
+    .welcome-logo .find { color: var(--accent); }
+    .topbar-logo img { height: 32px; width: auto; vertical-align: middle; }
+    .welcome-tagline {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 40px;
+      max-width: 420px;
+      text-align: center;
+      line-height: 1.6;
+      animation: welcomeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.08s backwards;
+    }
+    .prompt-container {
+      animation: welcomeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.15s backwards;
+    }
+    .suggestions {
+      animation: welcomeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.22s backwards;
+    }
+
+    /* ─── PROMPT ─── */
+    .prompt-container {
+      width: 100%;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .prompt-box {
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      padding: 8px 8px 8px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+    .prompt-box:hover:not(:focus-within) {
+      border-color: var(--surface-3);
+    }
+    .prompt-box:focus-within {
+      border-color: rgba(255,255,255,0.22);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 4px 20px rgba(0,0,0,0.4);
+    }
+    .prompt-box input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-family: inherit;
+      padding: 12px 0;
+    }
+    .prompt-box input::placeholder { color: var(--text-dim); }
+    .send-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: none;
+      background: var(--text);
+      color: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all var(--transition);
+    }
+    .send-btn:disabled {
+      background: var(--border-light);
+      color: var(--text-dim);
+      cursor: not-allowed;
+    }
+    .send-btn:not(:disabled):hover {
+      background: var(--accent);
+      color: white;
+      transform: scale(1.05);
+    }
+
+    /* ─── SUGGESTIONS ─── */
+    .suggestions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 16px;
+    }
+    .suggestion {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      padding: 9px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition);
+      font-weight: 450;
+    }
+    .suggestion:hover {
+      background: var(--surface-2);
+      border-color: var(--border-light);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+    .suggestion-icon {
+      font-size: 0.95rem;
+      filter: grayscale(1) brightness(2);
+    }
+
+    /* ─── CHAT AREA ─── */
+    .chat-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 24px 200px;
+      display: none;
+    }
+    .chat-area.show { display: block; }
+    .chat-inner {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* ─── QUERY BUBBLE ─── */
+    .query-bubble {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+      animation: fadeInUp 0.3s ease;
+    }
+    .query-bubble span {
+      background: var(--surface-2);
+      padding: 10px 16px;
+      border-radius: var(--radius-pill);
+      font-size: 0.88rem;
+      font-weight: 500;
+      max-width: 80%;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── AI RESPONSE ─── */
+    .ai-response { animation: fadeInUp 0.4s ease; }
+
+    /* ─── TYPING / LOADING STEPS ─── */
+    .loading-steps {
+      padding: 4px 0 8px;
+    }
+    .loading-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+    .bot-name {
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .bot-name .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: var(--accent-dim);
+      color: var(--accent-light);
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .step-list {
+      padding-left: 34px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      animation: fadeInUp 0.3s ease backwards;
+    }
+    .step-check {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
+    .step-check.done {
+      background: var(--green);
+      border-color: var(--green);
+    }
+    .step-check.done svg {
+      opacity: 1;
+    }
+    .step-check svg {
+      width: 8px;
+      height: 8px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .step-check.spinner-mini {
+      border: 1.5px solid var(--border-light);
+      border-top-color: var(--accent);
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .step-item.done { color: var(--text-muted); }
+    .step-item.active { color: var(--text-secondary); }
+
+    /* ─── VERDICT ─── */
+    .verdict-block {
+      margin-bottom: 20px;
+    }
+    .verdict-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .verdict-text {
+      font-size: 0.94rem;
+      line-height: 1.7;
+      color: var(--text);
+      padding-left: 34px;
+      letter-spacing: -0.005em;
+    }
+    .verdict-text strong { font-weight: 700; }
+    .cursor-blink {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: var(--accent);
+      vertical-align: text-bottom;
+      animation: blink 0.8s step-end infinite;
+      margin-left: 1px;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ─── ACTION BAR ─── */
+    .action-bar {
+      display: flex;
+      gap: 4px;
+      padding-left: 34px;
+      margin-top: 14px;
+      opacity: 0;
+      animation: fadeIn 0.4s ease 0.2s forwards;
+    }
+    @keyframes fadeIn { to { opacity: 1; } }
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 5px 10px;
+      border-radius: var(--radius-xs);
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .action-btn:hover {
+      background: var(--surface);
+      color: var(--text-secondary);
+    }
+    .action-btn svg {
+      opacity: 0.7;
+    }
+
+    /* ─── PROVENANCE ─── */
+    .provenance {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-left: 34px;
+      margin-top: 10px;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+    .provenance .dot-sep {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      opacity: 0.5;
+    }
+
+    /* ─── STAT PILLS ─── */
+    .stat-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding-left: 34px;
+      margin-top: 16px;
+    }
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      transition: border-color var(--transition), background var(--transition);
+    }
+    .stat-pill:hover {
+      border-color: var(--border-light);
+      background: var(--surface-2);
+    }
+    .stat-pill-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-xs);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+    .stat-pill-icon.price { background: var(--accent-dim); color: var(--accent-light); }
+    .stat-pill-icon.range { background: rgba(96,165,250,0.1); color: var(--blue); }
+    .stat-pill-icon.legit { background: rgba(52,211,153,0.1); color: var(--green); }
+    .stat-pill-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .stat-pill-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+    .stat-pill-value {
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .stat-pill-value.accent { color: var(--accent-light); }
+    .stat-pill-value.green { color: var(--green); }
+    .stat-pill-value.yellow { color: var(--yellow); }
+    .stat-pill-sub {
+      font-size: 0.68rem;
+      color: var(--text-dim);
+    }
+
+    /* ─── RESULTS ─── */
+    .results-section {
+      padding-left: 34px;
+      margin-top: 28px;
+    }
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      position: sticky;
+      top: 0;
+      background: rgba(26,26,26,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 10;
+      padding: 8px 0;
+      border-bottom: 1px solid transparent;
+    }
+    .results-label {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+    .inline-filters {
+      display: flex;
+      gap: 4px;
+    }
+    .inline-filter {
+      font-size: 0.76rem;
+      padding: 4px 10px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--radius-xs);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all var(--transition);
+      font-weight: 500;
+    }
+    .inline-filter.active {
+      background: var(--surface);
+      color: var(--text);
+    }
+    .inline-filter:hover:not(.active) {
+      color: var(--text-secondary);
+    }
+    .results-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    /* ─── RESULT CARD ─── */
+    .result-card {
+      display: flex;
+      gap: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      transition: all var(--transition);
+      animation: cardIn 0.35s ease backwards;
+      cursor: pointer;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .result-card:hover {
+      border-color: var(--border-light);
+      background: var(--surface-2);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+    }
+    .result-card:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+    .result-img {
+      width: 88px;
+      height: 88px;
+      border-radius: var(--radius-sm);
+      background: var(--surface-3);
+      flex-shrink: 0;
+      object-fit: cover;
+      transition: opacity var(--transition);
+    }
+    .result-card:hover .result-img {
+      opacity: 0.9;
+    }
+    .result-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-width: 0;
+    }
+    .result-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .result-info { min-width: 0; }
+    .result-name {
+      font-size: 0.86rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+      letter-spacing: -0.01em;
+    }
+    .result-seller {
+      font-size: 0.76rem;
+      color: var(--text-dim);
+    }
+    .result-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 4px;
+    }
+    .platform-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+    .platform-weidian { background: #162D40; color: #6BAED6; }
+    .platform-taobao  { background: #2D1818; color: #E8715A; }
+    .platform-1688    { background: #182018; color: #6BAA6B; }
+
+    .result-price {
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .price-main {
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+    .price-cny {
+      font-size: 0.68rem;
+      color: var(--text-dim);
+    }
+    .currency-switcher { display: flex; gap: 2px; margin-left: auto; }
+    .currency-btn {
+      font-size: 0.65rem; font-weight: 700; padding: 3px 7px;
+      border-radius: var(--radius-xs); border: 1px solid transparent;
+      background: transparent; color: var(--text-dim); cursor: pointer;
+      transition: all var(--transition);
+    }
+    .currency-btn:hover { color: var(--text-muted); }
+    .currency-btn.active { background: var(--surface-3); color: var(--accent); border-color: var(--border-light); }
+    .result-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .buy-btn {
+      flex: 1;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 8px 0;
+      border-radius: var(--radius-xs);
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+      transition: all var(--transition);
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+    .buy-btn:hover {
+      background: var(--accent-light);
+      border-color: var(--accent-light);
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(200,75,47,0.35);
+    }
+
+    /* ─── AGENT TOGGLE ─── */
+    .agent-toggle {
+      display: flex;
+      gap: 6px;
+      padding: 8px 0;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .agent-toggle-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-dim);
+      font-weight: 600;
+      margin-right: 4px;
+    }
+    .agent-toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .agent-toggle-btn.active {
+      background: var(--surface-2);
+      color: var(--text);
+      border-color: var(--border-light);
+    }
+    .agent-toggle-btn:hover:not(.active) {
+      color: var(--text-muted);
+      border-color: var(--border-light);
+    }
+    .agent-toggle-btn .agent-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: all var(--transition);
+    }
+    .agent-toggle-btn .agent-dot.on { opacity: 1; }
+    .agent-toggle-btn .agent-dot.off { opacity: 0.25; }
+
+    /* ─── VERIFIED BADGE ─── */
+    .verified-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--green);
+      background: rgba(52,211,153,0.1);
+      border: 1px solid rgba(52,211,153,0.2);
+      border-radius: 4px;
+      padding: 2px 6px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    /* ─── SKELETON CARDS ─── */
+    @keyframes shimmer {
+      0% { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+    .skeleton-card {
+      display: flex;
+      gap: 14px;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+    }
+    .skeleton-img {
+      width: 88px; height: 88px;
+      border-radius: var(--radius-xs);
+      background: linear-gradient(90deg, var(--border) 25%, var(--surface-hover) 50%, var(--border) 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    .skeleton-body { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .skeleton-line {
+      height: 10px;
+      border-radius: 5px;
+      background: linear-gradient(90deg, var(--border) 25%, var(--surface-hover) 50%, var(--border) 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+    .skeleton-line.short { width: 40%; }
+    .skeleton-line.med { width: 60%; }
+    .skeleton-btn {
+      height: 28px; width: 120px;
+      border-radius: var(--radius-xs);
+      background: linear-gradient(90deg, var(--border) 25%, var(--surface-hover) 50%, var(--border) 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+      margin-top: 4px;
+    }
+
+    /* ─── QUALITY ─── */
+    .quality {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .quality-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+    }
+    .quality-good .quality-dot { background: var(--green); box-shadow: 0 0 6px rgba(52,211,153,0.4); }
+    .quality-ok .quality-dot { background: var(--yellow); }
+    .quality-risky .quality-dot { background: var(--red); }
+    .quality-good { color: var(--green); }
+    .quality-ok { color: var(--yellow); }
+    .quality-risky { color: var(--red); }
+
+    /* ─── FOLLOW-UPS ─── */
+    .follow-ups {
+      padding-left: 34px;
+      margin-top: 28px;
+    }
+    .follow-up-label {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .follow-up-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .follow-up-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      padding: 8px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition);
+      font-weight: 450;
+      will-change: transform;
+    }
+    .follow-up-chip:hover {
+      background: var(--surface-2);
+      border-color: var(--border-light);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    /* ─── DOCKED INPUT ─── */
+    .docked-input {
+      position: fixed;
+      bottom: 0;
+      left: 260px;
+      right: 0;
+      padding: 16px 24px 20px;
+      background: linear-gradient(to top, var(--bg) 60%, transparent);
+      display: none;
+      z-index: 50;
+    }
+    .docked-input.show { display: flex; }
+    .docked-input-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .disclaimer {
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      padding: 8px 0 0;
+    }
+
+    /* ─── MOBILE ─── */
+    .mobile-header {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .menu-btn {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+    }
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 99;
+      backdrop-filter: blur(2px);
+    }
+    .sidebar-overlay.show { display: block; }
+
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .docked-input { left: 0; padding: 12px 12px 16px; }
+      .mobile-header { display: flex; }
+      .welcome-logo { font-size: 1.8rem; }
+      .welcome-logo img { height: 52px; }
+      #searchInput, #dockedSearchInput { font-size: 16px; }
+      .docked-input-inner { padding-left: 0; padding-right: 0; }
+      .follow-up-chips { max-height: 96px; overflow-y: auto; }
+      .welcome { padding: 24px 16px; }
+      .prompt-container { max-width: 100%; }
+      .verdict-text, .stat-pills, .action-bar, .provenance, .results-section, .follow-ups {
+        padding-left: 0;
+      }
+      .result-card { padding: 10px; gap: 10px; }
+      .result-img { width: 72px; height: 72px; }
+      /* Mobile font size floor - nothing below 0.75rem (12px) */
+      .smart-badge, .verified-badge, .platform-badge { font-size: 0.7rem; }
+      .stat-pill-label, .stat-pill-sub { font-size: 0.72rem; }
+      .results-label, .follow-up-label { font-size: 0.72rem; }
+      .price-cny { font-size: 0.72rem; }
+      .welcome-tagline { font-size: 0.88rem; padding: 0 12px; }
+      .suggestions { gap: 4px; }
+      .suggestion { font-size: 0.76rem; padding: 5px 10px; }
+    }
+
+    @media (max-width: 480px) {
+      .welcome { padding: 16px 12px; }
+      .welcome-logo img { height: 44px; }
+      .welcome-tagline { font-size: 0.82rem; }
+      .result-card { padding: 8px; gap: 8px; border-radius: 10px; }
+      .result-img { width: 64px; height: 64px; border-radius: 6px; }
+      .result-name { font-size: 0.8rem; }
+      .result-seller { font-size: 0.7rem; }
+      .buy-btn { font-size: 0.72rem; padding: 5px 10px; }
+      .add-to-cart-btn { font-size: 0.72rem; padding: 5px 8px; }
+      .stat-pills { gap: 4px; }
+      .stat-pill { min-width: 0; padding: 6px 8px; }
+      .action-bar { flex-wrap: wrap; gap: 6px; }
+      .filter-btn { font-size: 0.7rem; padding: 4px 8px; }
+      .docked-input { padding: 8px 10px 12px; }
+      .prompt-box { padding: 4px 4px 4px 12px; }
+      #searchInput, #dockedSearchInput { font-size: 16px; padding: 10px 0; }
+      .send-btn { width: 30px; height: 30px; }
+      .suggestions { flex-wrap: wrap; justify-content: center; }
+      .suggestion { font-size: 0.72rem; padding: 4px 8px; }
+      .verdict-text { font-size: 0.88rem; }
+      .cart-item { padding: 8px 4px; gap: 8px; }
+      .cart-item-img { width: 40px; height: 40px; }
+      .cart-item-name { font-size: 0.76rem; }
+      .agent-toggle-label { font-size: 0.72rem; }
+      .agent-toggle-btn { font-size: 0.72rem; padding: 4px 10px; }
+    }
+
+    /* ─── PRODUCT DETAIL PANEL ─── */
+    .detail-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .detail-overlay.show { display: block; opacity: 1; }
+    .detail-panel {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 420px;
+      max-width: 100%;
+      background: var(--bg);
+      border-left: 1px solid var(--border);
+      z-index: 201;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .detail-panel.show { transform: translateX(0); }
+    .detail-close {
+      position: absolute;
+      top: 12px; right: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      color: var(--text);
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      transition: background 0.15s;
+    }
+    .detail-close:hover { background: var(--surface-2); }
+    .detail-hero {
+      width: 100%;
+      height: 280px;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .detail-hero img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .detail-content {
+      padding: 20px;
+      flex: 1;
+    }
+    .detail-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+    .detail-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .detail-price-box {
+      display: flex;
+      gap: 12px;
+      align-items: baseline;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border-light);
+    }
+    .detail-price-main {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .detail-price-sub {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+    .detail-section {
+      margin-bottom: 20px;
+    }
+    .detail-section-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    .detail-link-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .detail-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      color: var(--text);
+      font-size: 0.84rem;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .detail-link:hover {
+      border-color: var(--text-dim);
+      background: var(--surface-2);
+    }
+    .detail-link-arrow {
+      color: var(--text-dim);
+      font-size: 0.8rem;
+    }
+    .detail-buy-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      margin-bottom: 8px;
+      transition: opacity 0.15s;
+    }
+    .detail-buy-btn:hover { opacity: 0.85; }
+    .detail-haul-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 12px;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: border-color 0.15s;
+    }
+    .detail-haul-btn:hover { border-color: var(--text-dim); }
+    .detail-estimate {
+      font-size: 0.76rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    @media (max-width: 480px) {
+      .detail-panel { width: 100%; }
+      .detail-hero { height: 220px; }
+      .detail-content { padding: 16px; }
+      .detail-name { font-size: 1rem; }
+      .detail-price-main { font-size: 1.3rem; }
+    }
+
+    /* ─── KAKOBUY TOOLTIP ─── */
+    .buy-btn-wrap { position: relative; display: inline-flex; }
+    .kakobuy-info {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--surface-2);
+      border: 1px solid var(--border-light);
+      color: var(--text-dim);
+      font-size: 0.6rem;
+      font-weight: 700;
+      cursor: help;
+      margin-left: 4px;
+      vertical-align: middle;
+      position: relative;
+    }
+    .kakobuy-info:hover .kakobuy-tooltip,
+    .kakobuy-info.tapped .kakobuy-tooltip { opacity: 1; visibility: visible; transform: translateY(0); }
+    .kakobuy-tooltip {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%) translateY(4px);
+      background: var(--surface-2);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.72rem;
+      font-weight: 400;
+      line-height: 1.4;
+      width: 220px;
+      text-align: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      z-index: 50;
+      pointer-events: none;
+      box-shadow: var(--shadow-md);
+      color: var(--text-dim);
+      white-space: normal;
+    }
+
+    /* ─── ONBOARDING MODAL ─── */
+    .onboard-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 300;
+      backdrop-filter: blur(6px);
+    }
+    .onboard-overlay.show { display: flex; align-items: center; justify-content: center; }
+    .onboard-card {
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 36px 32px;
+      max-width: 440px;
+      width: calc(100% - 32px);
+      text-align: center;
+    }
+    .onboard-logo { margin-bottom: 20px; }
+    .onboard-logo img { height: 56px; }
+    .onboard-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
+    .onboard-sub { font-size: 0.88rem; color: var(--text-dim); margin-bottom: 24px; line-height: 1.5; }
+    .onboard-steps { text-align: left; margin-bottom: 28px; display: flex; flex-direction: column; gap: 14px; }
+    .onboard-step { display: flex; gap: 14px; align-items: flex-start; }
+    .onboard-step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 800; flex-shrink: 0;
+    }
+    .onboard-step-text { font-size: 0.84rem; line-height: 1.5; padding-top: 3px; }
+    .onboard-step-text strong { font-weight: 700; }
+    .onboard-btn {
+      width: 100%; padding: 14px;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: 12px;
+      font-size: 0.92rem; font-weight: 700;
+      cursor: pointer;
+    }
+    .onboard-btn:hover { opacity: 0.88; }
+
+    /* ─── DETAIL: SIZE NOTE + BETTER CHECKOUT LIST ─── */
+    .detail-note-input {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 0.82rem;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 60px;
+    }
+    .detail-note-input:focus { outline: none; border-color: var(--text-dim); }
+    .checkout-list {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 400px;
+      width: calc(100% - 32px);
+      z-index: 300;
+      display: none;
+    }
+    .checkout-list.show { display: block; }
+    .checkout-list-title { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .checkout-list-sub { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 16px; }
+    .checkout-list-items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .checkout-list-item { display: flex; gap: 10px; align-items: center; padding: 8px; background: var(--surface); border-radius: 8px; }
+    .checkout-list-num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 0.72rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .checkout-list-name { font-size: 0.8rem; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .checkout-list-btns { display: flex; gap: 8px; }
+    .checkout-list-btn { flex: 1; padding: 12px; border-radius: 10px; font-size: 0.84rem; font-weight: 700; cursor: pointer; border: none; }
+    .checkout-list-btn.primary { background: var(--accent); color: #fff; }
+    .checkout-list-btn.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border-light); }
+
+    @media (max-width: 480px) {
+      .onboard-card { padding: 24px 20px; }
+      .checkout-list { padding: 16px; }
+    }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--surface-2);
+      border: 1px solid var(--border-light);
+      color: var(--text);
+      padding: 10px 20px;
+      border-radius: var(--radius-pill);
+      font-size: 0.83rem;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      opacity: 0;
+      transition: all var(--transition);
+      z-index: 350;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ─── GLOW ANIMATION ─── */
+    .pulse-glow {
+      animation: pulseGlow 2s ease-in-out infinite;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 var(--accent-dim); }
+      50% { box-shadow: 0 0 0 4px transparent; }
+    }
+
+    /* ─── SMART BADGES ─── */
+    .smart-badge { display:inline-flex; align-items:center; gap:3px; font-size:0.68rem; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; padding:2px 7px; border-radius:4px; margin-left:6px; vertical-align:middle; }
+    .badge-best-value { background:rgba(200,75,47,0.15); color:var(--accent-light); border:1px solid rgba(200,75,47,0.3); }
+    .badge-top-rated { background:rgba(52,211,153,0.12); color:var(--green); border:1px solid rgba(52,211,153,0.25); }
+    .badge-best-seller { background:rgba(251,191,36,0.12); color:var(--yellow); border:1px solid rgba(251,191,36,0.25); }
+    .badge-lowest-price { background:rgba(96,165,250,0.12); color:var(--blue); border:1px solid rgba(96,165,250,0.25); }
+    .badge-warn { background:rgba(248,113,113,0.1); color:var(--red); border:1px solid rgba(248,113,113,0.2); }
+
+    /* ─── REFINEMENT ─── */
+    .refinement-hint { padding-left:34px; margin-top:12px; font-size:0.72rem; color:var(--text-dim); display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+    .refinement-chip { font-size:0.7rem; padding:3px 8px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-xs); color:var(--text-muted); cursor:pointer; transition:all var(--transition); }
+    .refinement-chip:hover { background:var(--surface-2); color:var(--text); border-color:var(--border-light); }
+
+    /* ─── AI INSIGHTS ─── */
+    .ai-insight { padding-left:34px; margin-top:16px; display:flex; flex-direction:column; gap:6px; }
+    .insight-row { display:flex; align-items:flex-start; gap:8px; font-size:0.8rem; color:var(--text-secondary); line-height:1.5; }
+    .insight-icon { flex-shrink:0; width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; margin-top:1px; }
+    .insight-icon.pick { color:var(--accent-light); } .insight-icon.warn { color:var(--red); } .insight-icon.info { color:var(--blue); } .insight-icon.deal { color:var(--green); }
+    .insight-row strong { color:var(--text); }
+  </style>
+</head>
+<body>
+
+<!-- ─── SIDEBAR ─── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <span class="sidebar-logo"><img src="logo.png" alt="repfind"></span>
+  </div>
+  <button class="new-search-btn" onclick="newSearch()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    New search
+  </button>
+  <div class="sidebar-section" id="historySection" style="flex:1;overflow-y:auto;">
+    <div class="history-label">Recent</div>
+    <div id="historyList">
+      <div class="history-item" style="opacity:0.5;cursor:default;">No searches yet</div>
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="auth-status" id="authStatus"><strong>Guest</strong><button onclick="showAuthModal()">Sign in</button></div>
+    <button class="cart-btn" onclick="toggleCart()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+      My Haul
+      <span class="cart-badge" id="cartBadge">0</span>
+    </button>
+
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- ─── MAIN ─── -->
+<div class="main">
+  <!-- Mobile header -->
+  <div class="mobile-header">
+    <button class="menu-btn" onclick="toggleSidebar()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+    </button>
+    <span class="topbar-logo"><img src="logo.png" alt="repfind"></span>
+    <div style="width:22px"></div>
+  </div>
+
+  <!-- Top bar -->
+  <div class="topbar" id="topbar">
+    <span class="topbar-logo"><img src="logo.png" alt="repfind"></span>
+    <div class="topbar-right">
+      <div class="currency-switcher" id="topbarCurrency">
+        <button class="currency-btn" data-currency="USD" onclick="setCurrency('USD')">USD</button>
+        <button class="currency-btn" data-currency="CAD" onclick="setCurrency('CAD')">CAD</button>
+        <button class="currency-btn" data-currency="AUD" onclick="setCurrency('AUD')">AUD</button>
+        <button class="currency-btn" data-currency="EUR" onclick="setCurrency('EUR')">EUR</button>
+        <button class="currency-btn" data-currency="CNY" onclick="setCurrency('CNY')">CNY</button>
+      </div>
+      <button class="topbar-btn" onclick="newSearch()">Search</button>
+      <button class="topbar-btn" onclick="toggleCart()">My Haul</button>
+    </div>
+  </div>
+
+  <!-- Welcome -->
+  <div class="welcome" id="welcome">
+    <div class="welcome-logo"><img src="logo.png" alt="repfind"></div>
+    <p class="welcome-tagline">Search 66K+ direct-buy rep links. No dead search pages. No fake ratings.</p>
+    <div class="prompt-container">
+      <div class="prompt-box">
+        <input type="text" id="searchInput" placeholder="Search - Patek, Jordan, designer bags, room decor...">
+        <button class="send-btn" id="sendBtn" onclick="doSearch()" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        </button>
+      </div>
+      <div class="suggestions">
+        <div class="suggestion" onclick="quickSearch('Patek Philippe watch')">Patek Philippe</div>
+        <div class="suggestion" onclick="quickSearch('Chrome Hearts glasses')">Chrome Hearts Glasses</div>
+        <div class="suggestion" onclick="quickSearch('designer bags')">Designer Bags</div>
+        <div class="suggestion" onclick="quickSearch('Travis Scott AF1')">Travis Scott AF1</div>
+        <div class="suggestion" onclick="quickSearch('Jordan 4')">Jordan 4</div>
+        <div class="suggestion" onclick="quickSearch('room decor')">Room Decor</div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:1px;margin-top:14px;flex-wrap:wrap">
+        <button class="currency-btn" data-currency="USD" onclick="setCurrency('USD')">USD</button>
+        <button class="currency-btn" data-currency="CAD" onclick="setCurrency('CAD')">CAD</button>
+        <button class="currency-btn" data-currency="AUD" onclick="setCurrency('AUD')">AUD</button>
+        <button class="currency-btn" data-currency="EUR" onclick="setCurrency('EUR')">EUR</button>
+        <button class="currency-btn" data-currency="CNY" onclick="setCurrency('CNY')">CNY</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat area -->
+  <div class="chat-area" id="chatArea">
+    <div class="chat-inner" id="chatInner"></div>
+  </div>
+
+  <!-- Docked input -->
+  <div class="docked-input" id="dockedInput">
+    <div class="docked-input-inner">
+      <div class="prompt-box">
+        <input type="text" id="dockedSearchInput" placeholder="Search another rep...">
+        <button class="send-btn" id="dockedSendBtn" onclick="doSearch(true)" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        </button>
+      </div>
+      <div style="display:flex;justify-content:center;gap:1px;margin-bottom:2px">
+        <button class="currency-btn" data-currency="USD" onclick="setCurrency('USD')">USD</button>
+        <button class="currency-btn" data-currency="CAD" onclick="setCurrency('CAD')">CAD</button>
+        <button class="currency-btn" data-currency="AUD" onclick="setCurrency('AUD')">AUD</button>
+        <button class="currency-btn" data-currency="EUR" onclick="setCurrency('EUR')">EUR</button>
+        <button class="currency-btn" data-currency="CNY" onclick="setCurrency('CNY')">CNY</button>
+      </div>
+      <div class="disclaimer">repfind is a discovery tool. Not affiliated with any agent or platform. Prices are approximate.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Cart Panel -->
+<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+<div class="cart-panel" id="cartPanel">
+  <div class="cart-header">
+    <span class="cart-title">My Haul</span>
+    <button class="cart-close" onclick="toggleCart()">&times;</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-footer">
+    <div class="cart-total">
+      <span>Estimated total</span>
+      <span class="cart-total-value" id="cartTotal">$0.00</span>
+    </div>
+    <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:8px">1 item: opens direct link. Multiple items: opens first and copies all links.</div>
+    <button class="cart-checkout-btn" id="cartCheckoutBtn" onclick="checkoutCart()" disabled>Open on agent site</button>
+  </div>
+</div>
+
+
+<!-- Auth Modal -->
+<div class="auth-modal" id="authModal">
+  <div class="auth-card">
+    <div class="auth-card-header">
+      <div>
+        <h2>Save your haul</h2>
+        <p>Your haul is saved on this device. Sign in to sync it across devices and come back later.</p>
+      </div>
+      <button class="auth-close" onclick="hideAuthModal()">&times;</button>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="loginTab" onclick="setAuthMode('login')">Log in</button>
+      <button class="auth-tab" id="signupTab" onclick="setAuthMode('signup')">Sign up</button>
+    </div>
+    <div class="auth-field">
+      <label for="authEmail">Email</label>
+      <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="auth-field" id="passwordField">
+      <label for="authPassword">Password</label>
+      <input id="authPassword" type="password" placeholder="At least 6 characters" autocomplete="current-password">
+    </div>
+    <button class="auth-primary" id="authSubmitBtn" onclick="submitAuth()">Log in</button>
+    <button class="auth-secondary" onclick="sendMagicLink()">Email me a magic link</button>
+    <div class="auth-error" id="authMessage"></div>
+    <div class="auth-note">Guest hauls stay on this device only. Signed-in hauls sync to your repfind account.</div>
+  </div>
+</div>
+
+
+
+
+<!-- Checkout List Modal -->
+<div class="detail-overlay" id="checkoutOverlay2" onclick="closeCheckoutList()"></div>
+<div class="checkout-list" id="checkoutListModal"></div>
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+<!-- Product Detail Panel -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
+<div class="detail-panel" id="detailPanel">
+  <button class="detail-close" onclick="closeDetail()">&times;</button>
+  <div class="detail-hero" id="detailHero"></div>
+  <div class="detail-content" id="detailContent"></div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+// repfind - Premium AI Search UX
+// ════════════════════════════════════════════════
+
+const AFFILIATE_CODES = {
+  kakobuy: 'cq43b',
+  oopbuy:  '2TRZU7BH3',
+  cnfans:  '1243144',
+};
+
+const AGENTS = {
+  kakobuy: { name: 'KakoBuy', color: '#C84B2F' },
+  cnfans:  { name: 'CNFans',  color: '#4A90D9' },
+  oopbuy:  { name: 'OopBuy',  color: '#E8843C' },
+};
+
+// ─── Agent Selection (user picks which sites to buy from) ───
+let savedAgents = ['kakobuy'];
+try { savedAgents = JSON.parse(localStorage.getItem('repfind_agents')) || ['kakobuy']; } catch(e) {}
+let selectedAgents = savedAgents;
+localStorage.setItem('repfind_agents', JSON.stringify(selectedAgents));
+
+function toggleAgent(key) {
+  if (selectedAgents.includes(key)) {
+    if (selectedAgents.length > 1) selectedAgents = selectedAgents.filter(a => a !== key);
+  } else {
+    selectedAgents.push(key);
+  }
+  localStorage.setItem('repfind_agents', JSON.stringify(selectedAgents));
+  updateAgentToggleUI();
+  // Re-render current results
+  if (currentResults.length) {
+    const allLists = document.querySelectorAll('#resultsList');
+    const list = allLists[allLists.length - 1];
+    if (list) {
+      list.innerHTML = '';
+      baseResults.forEach((r, i) => {
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        card.dataset.platform = r.platform;
+        card.style.animationDelay = `${Math.min(i * 0.04, 0.3)}s`;
+        card.innerHTML = renderCardHTML(r, i);
+        list.appendChild(card);
+      });
+    }
+  }
+}
+
+function updateAgentToggleUI() {
+  document.querySelectorAll('.agent-toggle-btn').forEach(btn => {
+    const key = btn.dataset.agent;
+    const dot = btn.querySelector('.agent-dot');
+    if (selectedAgents.includes(key)) {
+      btn.classList.add('active');
+      if (dot) { dot.classList.add('on'); dot.classList.remove('off'); }
+    } else {
+      btn.classList.remove('active');
+      if (dot) { dot.classList.add('off'); dot.classList.remove('on'); }
+    }
+  });
+}
+
+function renderAgentToggleHTML() {
+  const buttons = Object.entries(AGENTS).map(([key, agent]) => {
+    const active = selectedAgents.includes(key);
+    return `<button class="agent-toggle-btn ${active ? 'active' : ''}" data-agent="${key}" onclick="toggleAgent('${key}')">
+      <span class="agent-dot ${active ? 'on' : 'off'}" style="background:${agent.color}"></span>
+      ${agent.name}
+    </button>`;
+  }).join('');
+  return `<div class="agent-toggle"><span class="agent-toggle-label">Checkout with:</span>${buttons}</div>`;
+}
+
+// ─── Currency conversion ───
+const EXCHANGE_RATES = { CNY: 1, USD: 0.14, CAD: 0.19, AUD: 0.21, EUR: 0.13 };
+const CURRENCY_SYMBOLS = { CNY: '¥', USD: '$', CAD: 'C$', AUD: 'A$', EUR: '€' };
+let currentCurrency = localStorage.getItem('repfind_currency') || 'USD';
+function convertPrice(cny, currency) {
+  if (!cny || cny <= 0) return null;
+  return cny * (EXCHANGE_RATES[currency] || EXCHANGE_RATES.USD);
+}
+function formatPrice(cny, currency) {
+  const v = convertPrice(cny, currency);
+  if (v === null) return '';
+  return (CURRENCY_SYMBOLS[currency] || '$') + v.toFixed(2);
+}
+function setCurrency(curr) {
+  currentCurrency = curr;
+  localStorage.setItem('repfind_currency', curr);
+  document.querySelectorAll('[data-price-cny]').forEach(el => {
+    const cny = parseFloat(el.dataset.priceCny);
+    el.querySelector('.price-main').textContent = formatPrice(cny, currentCurrency);
+    el.querySelector('.price-cny').textContent = currentCurrency;
+  });
+  document.querySelectorAll('.currency-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.currency === curr);
+  });
+  renderCart(); // update cart panel prices if open
+}
+
+// ─── Affiliate Link Builder ───
+// BS-code products now have real Weidian item IDs - use direct product links.
+// FI-code products (no real ID) fall back to search by name.
+function buildAgentLink(agentKey, product) {
+  const id = product.id || product.itemID;
+  const platform = (product.platform || 'weidian').toLowerCase();
+  const ref = AFFILIATE_CODES[agentKey];
+
+  if (!id || !/^\d+$/.test(id)) return '#';
+
+  // Build source URL and platform label per product platform
+  let sourceUrl, sourceLabel, cnfansPlatform;
+  if (platform === 'taobao') {
+    sourceUrl = `https://item.taobao.com/item.htm?id=${id}`;
+    sourceLabel = 'TB';
+    cnfansPlatform = 'TAOBAO';
+  } else if (platform === '1688') {
+    sourceUrl = `https://detail.1688.com/offer/${id}.html`;
+    sourceLabel = '1688';
+    cnfansPlatform = 'ALI1688';
+  } else {
+    // Weidian (default)
+    sourceUrl = `https://weidian.com/item.html?itemID=${id}`;
+    sourceLabel = 'WD';
+    cnfansPlatform = 'WEIDIAN';
+  }
+
+  switch(agentKey) {
+    case 'cnfans':
+      return `https://cnfans.com/product?platform=${cnfansPlatform}&id=${id}&ref=${ref}`;
+    case 'kakobuy':
+      return `https://www.kakobuy.com/item/details?url=${encodeURIComponent(sourceUrl)}&source=${sourceLabel}&affcode=${ref}`;
+    case 'oopbuy':
+      return `https://oopbuy.com/product/${platform === 'taobao' ? 'taobao' : platform === '1688' ? '1688' : 'weidian'}/${id}?inviteCode=${ref}`;
+    default:
+      return '#';
+  }
+}
+const PLATFORMS = {
+  weidian: { label: 'Weidian', class: 'platform-weidian' },
+  taobao:  { label: 'Taobao',  class: 'platform-taobao' },
+  '1688':  { label: '1688',    class: 'platform-1688' },
+};
+
+// ─── Webhook config ───
+const WEBHOOK_URL = 'https://n8n.wildeautomations.com/webhook/repfind-chat';
+
+let searchHistory = JSON.parse(localStorage.getItem('repfind_history') || '[]');
+let currentPlatform = 'all';
+let isSearching = false;
+let chatHistory = []; // conversation context for AI
+let currentResults = []; // current search results for export
+let productIndex = {}; // all products seen this session by id, for cart/clicks across searches
+let activeResultsList = null;
+let activeResultsSection = null;
+let crossSellShown = false;
+let lastSearchQuery = ''; // last query for export naming
+let sessionId = sessionStorage.getItem('repfind_session') || ('sess_' + Math.random().toString(36).substr(2, 12) + Date.now().toString(36));
+sessionStorage.setItem('repfind_session', sessionId);
+
+// ─── DOM refs ───
+const mainInput = document.getElementById('searchInput');
+const mainSend = document.getElementById('sendBtn');
+const dockedInputEl = document.getElementById('dockedSearchInput');
+const dockedSend = document.getElementById('dockedSendBtn');
+
+mainInput.addEventListener('input', () => mainSend.disabled = !mainInput.value.trim());
+dockedInputEl.addEventListener('input', () => dockedSend.disabled = !dockedInputEl.value.trim());
+mainInput.addEventListener('keydown', e => { if (e.key === 'Enter' && mainInput.value.trim()) doSearch(); });
+dockedInputEl.addEventListener('keydown', e => { if (e.key === 'Enter' && dockedInputEl.value.trim()) doSearch(true); });
+
+// ─── Toast ───
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ─── Sidebar ───
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+function newSearch() {
+  isSearching = false; // reset stuck search state
+  crossSellShown = false;
+  history.replaceState(null, '', location.pathname);
+  mainInput.value = '';
+  dockedInputEl.value = '';
+  mainSend.disabled = true;
+  dockedSend.disabled = true;
+  document.getElementById('welcome').classList.remove('hide');
+  document.getElementById('chatArea').classList.remove('show');
+  document.getElementById('dockedInput').classList.remove('show');
+  updateCartBadge();
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+  chatHistory = []; // reset conversation
+  document.getElementById('chatInner').innerHTML = ''; // clear messages
+  mainInput.focus();
+}
+
+function quickSearch(q) {
+  dockedInputEl.value = '';
+  mainInput.value = q;
+  mainSend.disabled = false;
+  doSearch();
+}
+function getQuery() {
+  return (dockedInputEl.value.trim()) || mainInput.value.trim();
+}
+
+// ════════════════════════════════════════════════
+// SEARCH FLOW
+// ════════════════════════════════════════════════
+async function doSearch(fromDocked) {
+  if (isSearching) return;
+  const query = getQuery();
+  if (!query) return;
+  history.replaceState(null, '', '?q=' + encodeURIComponent(query));
+  isSearching = true;
+
+  // Transition from welcome to chat view
+  document.getElementById('welcome').classList.add('hide');
+  document.getElementById('chatArea').classList.add('show');
+  document.getElementById('dockedInput').classList.add('show');
+  updateCartBadge();
+
+  const inner = document.getElementById('chatInner');
+  // repfind is a product finder, not a long chat transcript. Keep each search clean so
+  // stale result blocks don't make the next query look broken.
+  inner.innerHTML = '';
+
+  // User query bubble
+  const userBubble = document.createElement('div');
+  userBubble.className = 'query-bubble';
+  userBubble.innerHTML = `<span>${escapeHtml(query)}</span>`;
+  inner.appendChild(userBubble);
+
+  // Loading indicator
+  const loadingDiv = document.createElement('div');
+  loadingDiv.className = 'ai-response';
+  loadingDiv.id = 'loadingSection';
+  // Pick a random thinking message for personality
+  const thinkingMsgs = [
+    'Let me dig through the stacks...',
+    'Searching direct-link listings...',
+    'Checking what we actually have...',
+    'Scanning 66K+ direct links...',
+    'Checking prices and direct links...',
+    'Hunting for matching direct links...',
+  ];
+  const thinkMsg = thinkingMsgs[Math.floor(Math.random() * thinkingMsgs.length)];
+
+  loadingDiv.innerHTML = `
+    <div class="loading-header">
+      <div class="avatar"><img src="logo.png" alt=""></div>
+      <span class="bot-name">repfind <span class="badge">AI</span></span>
+    </div>
+    <div class="loading-steps">
+      <div class="step-list" id="stepList">
+        <div class="step-item active" data-step="0" style="animation-delay:0s">
+          <div class="step-check spinner-mini" id="check0"></div>
+          <span>${thinkMsg}</span>
+        </div>
+      </div>
+    </div>
+  `;
+  inner.appendChild(loadingDiv);
+  scrollToBottom();
+
+  // Progressive loading - show what's actually happening
+  const stepTimers = [
+    setTimeout(() => updateLoadingStep(1, 'Querying 66K+ direct-link products...'), 1200),
+    setTimeout(() => updateLoadingStep(2, 'Analyzing price spread and platforms...'), 2500),
+  ];
+
+  // Clear inputs
+  dockedInputEl.value = '';
+  mainInput.value = '';
+  mainSend.disabled = true;
+  dockedSend.disabled = true;
+
+  // ─── Call the AI webhook ───
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 15000);
+    const response = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: ctrl.signal,
+      body: JSON.stringify({
+        message: query,
+        history: chatHistory.slice(-10),
+        session_id: sessionId
+      })
+    });
+    clearTimeout(timer);
+
+    if (!response.ok) throw new Error(`Webhook HTTP ${response.status}`);
+    const ai = await response.json();
+    if (!ai?.reply) throw new Error('No reply from webhook');
+
+    // Remove loading + clear progressive timers
+    stepTimers.forEach(t => clearTimeout(t));
+    const ls = document.getElementById('loadingSection');
+    if (ls) ls.remove();
+
+    // Update conversation history (after we know the response is valid)
+    chatHistory.push({ role: 'user', content: query });
+    chatHistory.push({ role: 'assistant', content: ai.reply });
+
+    if (ai.action === 'search' && ai.search_query) {
+      // AI says search - show results with the refined query
+      await renderSearchResponse(ai, inner);
+      trackSearch(query, 'search', currentResults.length);
+    } else if (ai.action === 'clarify') {
+      // AI wants to clarify - search our DB first, offer data-driven narrowing
+      await renderDataDrivenClarify(query, ai, inner);
+      trackSearch(query, 'clarify', currentResults.length);
+    } else {
+      renderChatResponse(ai, inner);
+      trackSearch(query, ai.action || 'chat', 0);
+    }
+
+    addHistory(query);
+  } catch (err) {
+    console.error('Webhook error:', err);
+    // Remove loading + clear progressive timers
+    stepTimers.forEach(t => clearTimeout(t));
+    const ls = document.getElementById('loadingSection');
+    if (ls) ls.remove();
+
+    // If the AI webhook is blocked by CORS or unavailable, do not dead-end the user.
+    // Fall back to the in-browser product database so repfind still returns buyable links.
+    // Deduplicate: only push if try block didn't already add this query
+    if (chatHistory[chatHistory.length - 1]?.content !== query) {
+      chatHistory.push({ role: 'user', content: query });
+      chatHistory.push({ role: 'assistant', content: `Showing local database results for ${query}.` });
+    }
+    await renderSearchResponse({
+      action: 'search',
+      search_query: query,
+      reply: `Searching the product database directly for "${query}".`,
+    }, inner);
+    trackSearch(query, 'search_fallback', currentResults.length);
+    addHistory(query);
+  }
+
+  isSearching = false;
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
+function updateStep(step) {
+  const stepEl = document.querySelector(`[data-step="${step}"]`);
+  const checkEl = document.getElementById(`check${step}`);
+  if (!stepEl || !checkEl) return;
+
+  // Mark previous as done
+  if (step > 0) {
+    const prevEl = document.querySelector(`[data-step="${step - 1}"]`);
+    const prevCheck = document.getElementById(`check${step - 1}`);
+    if (prevEl) { prevEl.classList.remove('active'); prevEl.classList.add('done'); prevEl.style.opacity = '0.5'; }
+    if (prevCheck) {
+      prevCheck.classList.remove('spinner-mini');
+      prevCheck.classList.add('done');
+      prevCheck.innerHTML = '<svg viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.5"><path d="M2 6l3 3 5-6"/></svg>';
+    }
+  }
+
+  // Activate current
+  stepEl.classList.add('active');
+  stepEl.style.opacity = '1';
+  checkEl.classList.add('spinner-mini');
+}
+
+function updateLoadingStep(step, text) {
+  if (!document.getElementById('loadingSection')) return;
+  const stepList = document.getElementById('stepList');
+  if (!stepList) return;
+  if (step > 0) {
+    const prevEl = document.querySelector(`[data-step="${step - 1}"]`);
+    const prevCheck = document.getElementById(`check${step - 1}`);
+    if (prevEl) { prevEl.classList.remove('active'); prevEl.classList.add('done'); prevEl.style.opacity = '0.5'; }
+    if (prevCheck) { prevCheck.classList.remove('spinner-mini'); prevCheck.classList.add('done'); prevCheck.innerHTML = '<svg viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.5"><path d="M2 6l3 3 5-6"/></svg>'; }
+  }
+  const ns = document.createElement('div');
+  ns.className = 'step-item active';
+  ns.dataset.step = step;
+  ns.style.animationDelay = '0s';
+  ns.innerHTML = `<div class="step-check spinner-mini" id="check${step}"></div><span>${text}</span>`;
+  stepList.appendChild(ns);
+  scrollToBottom();
+}
+
+// ════════════════════════════════════════════════
+// DATA-DRIVEN CLARIFICATION - search DB first, narrow by real categories
+// ════════════════════════════════════════════════
+async function renderDataDrivenClarify(query, ai, container) {
+  await loadProductDB();
+
+  // Check for category intent first (decor, electronics, bags, etc.)
+  const intent = detectCategoryIntent(query);
+  let rawProducts = [];
+
+  if (intent && CATEGORY_TAXONOMY[intent]) {
+    rawProducts = searchByCategory(intent, 50);
+  } else {
+    // Search our actual database for this query
+    rawProducts = searchProducts(query, 50);
+
+    // If no results, try the AI's suggested chips as fallback searches
+    if (rawProducts.length === 0 && ai.chips && ai.chips.length) {
+      for (const chip of ai.chips) {
+        const chipIntent = detectCategoryIntent(chip);
+        const chipResults = chipIntent && CATEGORY_TAXONOMY[chipIntent]
+          ? searchByCategory(chipIntent, 30)
+          : searchProducts(chip, 30);
+        if (chipResults.length > 0) {
+          rawProducts = chipResults;
+          break;
+        }
+      }
+    }
+  }
+
+  // If still no results - show the AI's conversational reply
+  if (rawProducts.length === 0) {
+    renderChatResponse(ai, container);
+    return;
+  }
+
+  // We have results. Group by category/brand to understand what we have
+  const categoryCounts = {};
+  const brandCounts = {};
+  for (const p of rawProducts) {
+    const cat = (p._category || p.category || 'Other').trim();
+    const brand = (p._category || p.category || '').trim();
+    categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+    if (brand) brandCounts[brand] = (brandCounts[brand] || 0) + 1;
+  }
+
+  // Sort categories by count
+  const sortedCats = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1]);
+
+  // DECISION: show results directly or offer narrowing?
+  // If 1 dominant category (>60% of results) OR fewer than 15 results - just show them
+  const topCat = sortedCats[0];
+  const isDominant = topCat && topCat[1] / rawProducts.length > 0.6;
+
+  if (isDominant || rawProducts.length <= 15 || sortedCats.length <= 1) {
+    // Enough focus - show results directly
+    const fakeSearchResponse = {
+      ...ai,
+      action: 'search',
+      search_query: query,
+      reply: ai.reply || `Found ${rawProducts.length} matches for "${query}". Here's what I've got.`,
+    };
+    renderSearchResponse(fakeSearchResponse, container);
+    return;
+  }
+
+  // Multiple categories - offer data-driven narrowing
+  const responseDiv = document.createElement('div');
+  responseDiv.className = 'ai-response';
+
+  // Build narrowing chips from real categories
+  const chipsHTML = sortedCats.slice(0, 6).map(([cat, count]) => {
+    const label = cat.length > 30 ? cat.substring(0, 28) + '...' : cat;
+    const searchTerm = `${query} ${cat}`;
+    return `<div class="follow-up-chip" onclick="quickSearch('${escapeAttr(searchTerm)}')">${escapeHtml(label)} <span style="opacity:0.5;font-size:0.75em">${count}</span></div>`;
+  }).join('');
+
+  // Also offer "show all" option
+  const showAllHTML = `<div class="follow-up-chip" onclick="forceSearch('${escapeAttr(query)}')" style="border-color:var(--accent);color:var(--accent-light)">Show all ${rawProducts.length} results</div>`;
+
+  responseDiv.innerHTML = `
+    <div class="verdict-header">
+      <div class="avatar"><img src="logo.png" alt=""></div>
+    </div>
+    <div class="verdict-text" style="margin-bottom:4px">Found <strong>${rawProducts.length} matches</strong> for "${escapeHtml(query)}" across <strong>${sortedCats.length} categories</strong>. What are you looking for?</div>
+    <div class="follow-ups" style="display:block;margin-top:12px;padding-left:0">
+      <div class="follow-up-chips" style="gap:6px">
+        ${chipsHTML}
+        ${showAllHTML}
+      </div>
+    </div>
+  `;
+  container.appendChild(responseDiv);
+  scrollToBottom();
+}
+
+// Force search bypassing clarification
+function forceSearch(query) {
+  mainInput.value = query;
+  // Trick: create a fake AI response that goes straight to search
+  doSearch();
+}
+
+// ════════════════════════════════════════════════
+// RENDER - CONVERSATIONAL (clarify)
+// ════════════════════════════════════════════════
+function renderChatResponse(ai, container) {
+  const responseDiv = document.createElement('div');
+  responseDiv.className = 'ai-response';
+
+  const chipsHTML = (ai.chips && ai.chips.length)
+    ? `<div class="follow-ups" style="display:block;margin-top:12px">
+         <div class="follow-up-chips" id="chatChips-${Date.now()}">
+           ${ai.chips.map(c => `<div class="follow-up-chip" onclick="quickSearch('${escapeAttr(c)}')">${escapeHtml(c)}</div>`).join('')}
+         </div>
+       </div>`
+    : '';
+
+  responseDiv.innerHTML = `
+    <div class="verdict-header">
+      <div class="avatar"><img src="logo.png" alt=""></div>
+      <span class="bot-name">repfind <span class="badge">AI</span></span>
+    </div>
+    <div class="verdict-text" id="verdictText-${Date.now()}"></div>
+    ${chipsHTML}
+  `;
+  container.appendChild(responseDiv);
+
+  // Stream the reply text
+  const textEl = responseDiv.querySelector('.verdict-text');
+  streamText(textEl, ai.reply, () => scrollToBottom());
+  scrollToBottom();
+}
+
+// ════════════════════════════════════════════════
+// RENDER - SEARCH RESULTS (after AI confirms)
+// ════════════════════════════════════════════════
+async function renderSearchResponse(ai, container) {
+  const query = ai.search_query;
+
+  // Show loading state for results
+  const resultsHeader = document.createElement('div');
+  resultsHeader.className = 'ai-response';
+  resultsHeader.innerHTML = `
+    <div class="verdict-header">
+      <div class="avatar"><img src="logo.png" alt=""></div>
+      <span class="bot-name">repfind <span class="badge">AI</span></span>
+    </div>
+    <div class="verdict-text" id="verdictText"></div>
+    <div class="stat-pills" id="statPills" style="display:none"></div>
+    <div class="action-bar" id="actionBar" style="display:none">
+      <button class="action-btn" onclick="copyVerdict()" title="Copy verdict">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        Copy
+      </button>
+      <button class="action-btn" onclick="exportSpreadsheet()" title="Download CSV spreadsheet">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+        Spreadsheet
+      </button>
+      <button class="action-btn" onclick="exportToGoogleSheets()" title="Copy for Google Sheets">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+        Copy Sheet
+      </button>
+      <button class="action-btn" onclick="regenerateSearch()" title="Search again">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        Refresh
+      </button>
+    </div>
+    <div class="provenance" id="provenance" style="display:none">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <span id="provenanceText">Searching database...</span>
+    </div>
+    <div class="results-section" id="resultsSection" style="display:none">
+      <div class="results-header">
+        <span class="results-label" id="resultsLabel">Loading...</span>
+        <div class="inline-filters">
+          <button class="inline-filter active" data-platform="all">All</button>
+          <button class="inline-filter" data-platform="weidian">Weidian</button>
+          <button class="inline-filter" data-platform="taobao">Taobao</button>
+          <button class="inline-filter" data-platform="1688">1688</button>
+        </div>
+      </div>
+      <div class="results-list" id="resultsList">
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-btn"></div></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-btn"></div></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-btn"></div></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-btn"></div></div></div>
+      </div>
+    </div>
+    <div class="follow-ups" id="followUps" style="display:none">
+      <div class="follow-up-label">Related searches</div>
+      <div class="follow-up-chips" id="followUpChips"></div>
+    </div>
+  `;
+  container.appendChild(resultsHeader);
+
+  // ─── Parallel execution: start DB search immediately, stream text in parallel ───
+  // Previously the search was chained inside streamText's callback, adding 2-4s of
+  // unnecessary delay (search didn't START until text animation finished).
+  // Now both run concurrently, and results render as soon as BOTH complete.
+
+  const searchPromise = (async () => {
+    await loadProductDB();
+    let rawProducts = [];
+
+    // Detect category intent (decor, electronics, bags, watches, jewelry, etc.)
+    const intent = detectCategoryIntent(query);
+    const userQuery = chatHistory[chatHistory.length - 2]?.content || query;
+    const intentFromUser = detectCategoryIntent(userQuery);
+    const activeIntent = intent || intentFromUser;
+
+    if (activeIntent && CATEGORY_TAXONOMY[activeIntent]) {
+      rawProducts = searchByCategory(activeIntent, 24);
+    } else {
+      rawProducts = searchProducts(query, 24);
+
+      // If AI query returned too few results, try broader fallbacks
+      if (rawProducts.length < 6) {
+        // Try with the original user query (not the AI-refined one)
+        if (userQuery && userQuery !== query) {
+          const fallback = searchProducts(userQuery, 24);
+          if (fallback.length > rawProducts.length) {
+            rawProducts = fallback;
+          }
+        }
+
+        // Still too few? Try each word individually — but skip if it was a category intent
+        // (category searches that returned 0 mean we genuinely don't carry it)
+        if (rawProducts.length < 4 && !intent && !intentFromUser) {
+          const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+          const bestWord = words.sort((a,b) => {
+            const ac = searchProducts(a, 100).length;
+            const bc = searchProducts(b, 100).length;
+            return bc - ac;
+          })[0];
+          if (bestWord) {
+            const wordResults = searchProducts(bestWord, 24);
+            if (wordResults.length > rawProducts.length) {
+              rawProducts = wordResults;
+            }
+          }
+        }
+      }
+    }
+
+    return { rawProducts, intentNote: activeIntent || '' };
+  })();
+
+  // Stream the AI reply in parallel
+  const textPromise = new Promise(resolve => {
+    streamText(document.getElementById('verdictText'), ai.reply, () => resolve());
+  });
+
+  // Wait for BOTH to complete
+  const { rawProducts, intentNote } = await searchPromise;
+  await textPromise;
+
+  const results = transformProducts(rawProducts);
+  {
+
+    // Store for export/cart functionality
+    results.forEach(r => { if (r.id) productIndex[r.id] = r; });
+    currentResults = results;
+    baseResults = [...results];
+    lastSearchQuery = query;
+
+    const verdict = generateVerdict(query, results);
+
+    // Show stats
+    showStats(verdict.stats);
+
+    setTimeout(() => {
+      document.getElementById('actionBar').style.display = 'flex';
+
+      // Update provenance
+      const provEl = document.getElementById('provenance');
+      const provText = document.getElementById('provenanceText');
+      if (results.length > 0) {
+        provText.innerHTML = `<strong style="color:var(--text-muted)">${results.length} listings</strong> from direct-link database <span class="dot-sep"></span> <span>${new Set(results.map(r => r.platform)).size} platforms</span>`;
+      } else {
+        const catCfg = intentNote ? CATEGORY_TAXONOMY[intentNote] : null;
+        provText.innerHTML = catCfg
+          ? `No ${catCfg.label.toLowerCase()} found — but we carry ${catCfg.stats}.`
+          : `No products found for "${escapeHtml(query)}". Try a different search term.`;
+      }
+      provEl.style.display = 'flex';
+
+      // AI insights
+      const statPills = document.getElementById('statPills');
+      if (verdict.insights && statPills) statPills.insertAdjacentHTML('afterend', renderInsights(verdict.insights));
+
+      // Agent toggle - inject before results
+      if (statPills) statPills.insertAdjacentHTML('beforebegin', renderAgentToggleHTML());
+
+      // Empty state or results
+      if (results.length === 0) {
+        const list = document.getElementById('resultsList');
+        const catCfg2 = intentNote ? CATEGORY_TAXONOMY[intentNote] : null;
+        const emptyNote = catCfg2 ? `We carry ${catCfg2.stats}. Try one of these:` : 'Our database has 66K+ direct-link products — try a broader term';
+        const emptySuggestions = catCfg2 ? catCfg2.suggestions : ['Patek Philippe','Designer Bags','Chrome Hearts','Jordan 4','Travis Scott'];
+        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">${emptyNote}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${emptySuggestions.map(s => `<span class="follow-up-chip" onclick="quickSearch('${escapeAttr(s)}')" style="cursor:pointer">${escapeHtml(s)}</span>`).join('')}</div></div>`;
+      } else {
+        renderResults(results, resultsHeader);
+      }
+
+      wireFilters(resultsHeader);
+      renderFollowUps(query, resultsHeader);
+
+      // Update results label
+      document.getElementById('resultsLabel').textContent = results.length > 0 ? `${results.length} results` : 'No results';
+
+      // Refinement chips
+
+
+      scrollToBottom();
+
+      // ─── Cross-sell: suggest complementary products ───
+      if (!crossSellShown && searchHistory.length <= 1) {
+        renderCrossSell(query, results, container);
+        crossSellShown = true;
+      }
+    }, 300);
+  }
+}
+
+// ─── Stream text ───
+function streamText(el, html, callback) {
+  if (!html) { if (callback) setTimeout(callback, 100); return; }
+  // Sanitize: only allow safe inline tags, strip everything else (XSS protection)
+  const safeHtml = String(html).replace(/<(?!\/?(strong|em|b|i|br|span)\b)[^>]*>/gi, '');
+  html = safeHtml;
+  const tokens = [];
+  let i = 0;
+  while (i < html.length) {
+    if (html[i] === '<') {
+      const end = html.indexOf('>', i);
+      tokens.push({ tag: true, text: html.slice(i, end + 1) });
+      i = end + 1;
+    } else {
+      tokens.push({ tag: false, text: html[i] });
+      i++;
+    }
+  }
+
+  el.innerHTML = '';
+  let idx = 0;
+  let displayed = '';
+
+  function tick() {
+    if (idx >= tokens.length) {
+      el.innerHTML = displayed;
+      if (callback) setTimeout(callback, 200);
+      return;
+    }
+    const token = tokens[idx];
+    if (token.tag) {
+      displayed += token.text;
+      idx++;
+      tick();
+    } else {
+      displayed += token.text;
+      idx++;
+      el.innerHTML = displayed + '<span class="cursor-blink"></span>';
+      setTimeout(tick, 15 + Math.random() * 25);
+    }
+    scrollToBottom();
+  }
+  tick();
+}
+
+// ─── Stats ───
+function showStats(stats) {
+  const el = document.getElementById('statPills');
+  if (!el) return;
+  el.innerHTML = stats.map((s, i) => {
+    const iconClass = s.label.toLowerCase().includes('price') ? 'price' :
+                      s.label.toLowerCase().includes('range') ? 'range' : 'legit';
+    const icon = iconClass === 'price' ? '¥' : iconClass === 'range' ? '↔' : '✓';
+    return `<div class="stat-pill" style="animation:cardIn 0.3s ease backwards;animation-delay:${i*0.12}s">
+      <div class="stat-pill-icon ${iconClass}">${icon}</div>
+      <div class="stat-pill-content">
+        <span class="stat-pill-label">${s.label}</span>
+        <span class="stat-pill-value ${s.class}">${s.value}</span>
+        ${s.sub ? `<span class="stat-pill-sub">${s.sub}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+  el.style.display = 'flex';
+}
+
+// ─── Results ───
+function renderResults(results, scope) {
+  const root = scope || document;
+  const list = root.querySelector('#resultsList');
+  const section = root.querySelector('#resultsSection');
+  if (!list || !section) return;
+  activeResultsList = list;
+  activeResultsSection = section;
+  section.style.display = 'block';
+  list.innerHTML = '';
+  results.forEach((r, i) => {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.dataset.platform = r.platform;
+    card.onclick = (e) => { if(e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; var c2 = card.querySelector('.add-to-cart-btn'); if(!c2) return; var oc = c2.getAttribute('onclick') || ''; var mt = oc.match(/addToCart..([^'"]+)/); if(mt) openDetail(mt[1]); };
+    card.style.animationDelay = `${Math.min(i * 0.06, 0.4)}s`;
+    card.innerHTML = renderCardHTML(r, i);
+    list.appendChild(card);
+  });
+  scrollToBottom();
+}
+
+// Global image fallback - avoids broken inline onerror quotes from SVG data URIs
+const FALLBACK_SVG = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2288%22 height=%2288%22%3E%3Crect fill=%22%231F1F1F%22 width=%2288%22 height=%2288%22 rx=%228%22/%3E%3Cg transform=%22translate(44,36)%22%3E%3Cpath d=%22M-14,-2 L0,-12 L14,-2 L14,12 L-14,12 Z%22 fill=%22none%22 stroke=%22%23444%22 stroke-width=%222%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%22-5%22 cy=%220%22 r=%223%22 fill=%22%23444%22/%3E%3Cpath d=%22M-14,8 L-5,2 L0,6 L5,1 L14,8%22 fill=%22none%22 stroke=%22%23444%22 stroke-width=%222%22 stroke-linejoin=%22round%22/%3E%3C/g%3E%3Ctext x=%2244%22 y=%2262%22 text-anchor=%22middle%22 fill=%22%23666%22 font-size=%228%22 font-family=%22system-ui,sans-serif%22 font-weight=%22600%22%3EREPFIND%3C/text%3E%3C/svg%3E';
+
+function imgFallback(img) {
+  if (img.dataset.fallback) return;
+  img.dataset.fallback = '1';
+  img.onerror = null;
+  img.src = FALLBACK_SVG;
+  img.classList.add('img-fallback');
+}
+
+// ─── Product Detail Panel ───
+function openDetail(productId) {
+  const p = productIndex[productId];
+  if (!p) return;
+  const plat = PLATFORMS[p.platform] || PLATFORMS['weidian'];
+  const sourceUrl = p.id && /^\d+$/.test(p.id)
+    ? (p.platform === 'taobao' ? `https://item.taobao.com/item.htm?id=${p.id}`
+       : p.platform === '1688' ? `https://detail.1688.com/offer/${p.id}.html`
+       : `https://weidian.com/item.html?itemID=${p.id}`)
+    : null;
+  const redditSearch = `https://www.reddit.com/r/FashionReps/search/?q=${encodeURIComponent(p.name || p.id)}&sort=relevance`;
+  // Build buy buttons for all selected agents
+  const detailBuyBtns = selectedAgents.map(key => {
+    const agent = AGENTS[key];
+    const link = buildAgentLink(key, p);
+    if (link === '#') return '';
+    return `<a class="detail-buy-btn" href="${link}" target="_blank" rel="noopener noreferrer" onclick="trackClick('${p.id}')" style="margin-bottom:6px">Open in ${agent.name}</a>`;
+  }).filter(Boolean).join('') || `<div style="color:var(--text-dim);font-size:0.82rem;text-align:center;padding:12px">No direct link available</div>`;
+  // Build agent links for the links section
+  const agentLinks = selectedAgents.map(key => {
+    const agent = AGENTS[key];
+    const link = buildAgentLink(key, p);
+    if (link === '#') return '';
+    return `<a class="detail-link" href="${link}" target="_blank" rel="noopener noreferrer">Open in ${agent.name} <span class="detail-link-arrow">↗</span></a>`;
+  }).filter(Boolean).join('');
+  document.getElementById('detailHero').innerHTML = `<img src="${p.img || FALLBACK_SVG}" alt="${escapeAttr(p.name)}" referrerpolicy="no-referrer" onerror="imgFallback(this)">`;
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-name">${escapeHtml(p.name)}</div>
+    <div class="detail-meta">
+      <span class="platform-badge ${plat.class}">${plat.label}</span>
+      <span class="verified-badge">Direct Link</span>
+    </div>
+    <div class="detail-price-box">
+      <div class="detail-price-main">${formatPrice(p.priceCNY || 0, currentCurrency)}</div>
+      <div class="detail-price-sub">${currentCurrency} approximate</div>
+    </div>
+    ${detailBuyBtns}
+    <button class="detail-haul-btn" onclick="addToCart('${p.id}', this); closeDetail();">+ Add to Haul</button>
+    <div class="detail-section">
+      <div class="detail-section-title">QC & Reviews</div>
+      <a class="detail-link" href="${redditSearch}" target="_blank" rel="noopener noreferrer" style="margin-bottom:8px">Search on r/FashionReps for reviews <span class="detail-link-arrow">↗</span></a>
+      <div class="detail-estimate" style="margin-top:10px">
+        · Ask the seller for QC photos before shipping<br>
+        · Compare with retail references<br>
+        · Higher price doesn't always mean better quality
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Product Links</div>
+      <div class="detail-link-list">
+        ${sourceUrl ? `<a class="detail-link" href="${sourceUrl}" target="_blank" rel="noopener noreferrer">View on ${plat.label} <span class="detail-link-arrow">↗</span></a>` : ''}
+        ${agentLinks}
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Notes for your order</div>
+      <textarea class="detail-note-input" placeholder="e.g. Size L, black colorway" oninput="this.dataset.note=this.value"></textarea>
+      <div class="detail-estimate" style="margin-top:6px;font-size:0.7rem">Copy this when checking out.</div>
+    </div>
+  `;
+  document.getElementById('detailOverlay').classList.add('show');
+  document.getElementById('detailPanel').classList.add('show');
+}
+
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.remove('show');
+  document.getElementById('detailPanel').classList.remove('show');
+}
+
+// Close detail on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeDetail();
+});
+
+function renderCardHTML(r, idx) {
+  const plat = PLATFORMS[r.platform] || PLATFORMS['weidian'];
+  const badges = '';
+  const isVerified = r.id && /^\d+$/.test(r.id);
+  const verifiedBadge = isVerified ? '<span class="verified-badge">Direct Link</span>' : '';
+
+  // Buy buttons for all selected agents
+  const agentButtons = selectedAgents.map(key => {
+    const agent = AGENTS[key];
+    const link = buildAgentLink(key, r);
+    if (link === '#') return '';
+    return `<a class="buy-btn" href="${link}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')">Open in ${agent.name}</a>`;
+  }).filter(Boolean).join(' ');
+  const buyBtn = agentButtons || `<span class="buy-btn" style="opacity:0.4;cursor:not-allowed;pointer-events:none" aria-disabled="true">Link unavailable</span>`;
+  const infoIcon = `<span class="kakobuy-info" onclick="event.stopPropagation();this.classList.toggle('tapped')">?<span class="kakobuy-tooltip">Shipping agents (KakoBuy, CNFans, OopBuy) buy from the Chinese seller on your behalf and ship to you. Pick whichever you prefer.</span></span>`;
+
+  // Add to cart button
+  const cartBtn = `<button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart('${r.id}', this)">+ Haul</button>`;
+
+  const fallbackImg = FALLBACK_SVG;
+  return `
+    <img class="result-img" src="${r.img || fallbackImg}" alt="${escapeAttr(r.name)}" loading="${(idx||0) < 8 ? 'eager' : 'lazy'}" referrerpolicy="no-referrer" onerror="imgFallback(this)">
+    <div class="result-body">
+      <div class="result-top">
+        <div class="result-info">
+          <div class="result-name" title="${escapeAttr(r.name)}">${escapeHtml(r.name)}${badges}</div>
+          <div class="result-seller"></div>
+          <div class="result-meta">
+            <span class="platform-badge ${plat.class}">${plat.label}</span>
+            ${verifiedBadge}
+          </div>
+        </div>
+        <div class="result-price" data-price-cny="${r.priceCNY || 0}">
+          <div class="price-main">${formatPrice(r.priceCNY || 0, currentCurrency)}</div>
+          <div class="price-cny">${currentCurrency} approx</div>
+        </div>
+      </div>
+      <div class="result-actions">${buyBtn}${infoIcon}${cartBtn}</div>
+    </div>
+  `;
+}
+
+// ─── Best Link Builder (prefers stored CNFans URL, falls back to building one) ───
+function buildBestLink(product) {
+  // KakoBuy accepts weidian source URLs and actually resolves them
+  return buildAgentLink('kakobuy', product);
+}
+
+// ─── Track Click (analytics, no popup) ───
+function trackClick(resultId) {
+  // Lightweight click tracking - no agent selector popup
+  const product = productIndex[resultId] || currentResults.find(r => r.id === resultId);
+  if (product) {
+    product.clicks = (product.clicks || 0) + 1;
+    trackEvent('agent_click', { product: product.name, platform: product.platform, agent: selectedAgents.join(',') });
+  }
+}
+
+// ─── Send to agent (legacy, kept for CSV export) ───
+function sendToAgent(agentKey, resultId, btn) {
+  // Find the product from current results
+  const card = btn.closest('.result-card');
+  if (!card) return;
+  const productName = card.querySelector('.result-name')?.textContent || '';
+
+  // Find product in current results
+  const product = productIndex[resultId] || currentResults.find(r => r.id === resultId);
+  if (!product) return;
+
+  const link = buildAgentLink(agentKey, product);
+  const agent = AGENTS[agentKey];
+
+  const original = btn.textContent;
+  btn.textContent = 'Opening...';
+  btn.style.background = 'var(--accent)';
+  btn.style.borderColor = 'var(--accent)';
+  btn.style.color = 'white';
+
+  // Open the affiliate link in new tab
+  window.open(link, '_blank', 'noopener,noreferrer');
+
+  setTimeout(() => {
+    btn.textContent = 'Opened';
+    showToast(`Opening ${agent.name}... Your referral is tagged`);
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.style.cssText = '';
+    }, 1400);
+  }, 400);
+}
+
+// ─── Export Spreadsheet (CSV) ───
+function exportSpreadsheet() {
+  if (!currentResults || currentResults.length === 0) {
+    showToast('No results to export');
+    return;
+  }
+
+  const query = lastSearchQuery || 'repfind';
+  const rows = [
+    ['Product', 'Platform', 'Price (CNY)', 'Price (USD)', 'Agent Direct Link']
+  ];
+
+  currentResults.forEach(r => {
+    const kakobuyLink = buildAgentLink(selectedAgents[0] || 'kakobuy', r);
+    rows.push([
+      r.name,
+      r.platform,
+      '¥' + r.priceCNY,
+      '$' + r.priceUSD,
+      kakobuyLink,
+    ]);
+  });
+
+  // Build CSV
+  const csv = rows.map(row =>
+    row.map(cell => {
+      const s = String(cell);
+      return s.includes(',') || s.includes('"') || s.includes('\n')
+        ? '"' + s.replace(/"/g, '""') + '"'
+        : s;
+    }).join(',')
+  ).join('\n');
+
+  // Download
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const filename = `repfind-${query.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}.csv`;
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(`Spreadsheet exported - ${currentResults.length} Kakobuy direct links`);
+}
+
+// ─── Google Sheet export (opens pre-filled link) ───
+function exportToGoogleSheets() {
+  if (!currentResults || currentResults.length === 0) {
+    showToast('No results to export');
+    return;
+  }
+  const query = lastSearchQuery || 'repfind';
+  // Build a simple HTML table that can be pasted into Google Sheets
+  const headers = ['Product','Platform','Price (CNY)','Price (USD)','Agent Direct Link'];
+  const rows = currentResults.map(r => [
+    r.name, r.platform, '¥'+r.priceCNY, '$'+r.priceUSD, buildAgentLink(selectedAgents[0] || 'kakobuy', r)
+  ]);
+  const tsv = [headers, ...rows].map(row => row.map(c => String(c).replace(/\t/g,' ').replace(/\n/g,' ')).join('\t')).join('\n');
+  navigator.clipboard?.writeText(tsv);
+  showToast('Copied to clipboard - paste into Google Sheets!');
+}
+
+// ─── Copy verdict ───
+function copyVerdict() {
+  const text = document.getElementById('verdictText').textContent.trim();
+  navigator.clipboard?.writeText(text);
+  showToast('Verdict copied');
+}
+
+// ─── Regenerate ───
+function regenerateSearch() {
+  const last = searchHistory[0];
+  if (last) {
+    mainInput.value = last;
+    doSearch();
+  }
+}
+
+// ─── Cross-sell: suggest complementary products ───
+function renderCrossSell(query, results, container) {
+  if (!PRODUCT_DB || results.length === 0) return;
+
+  // Map product categories to complementary categories
+  const CROSSSELL_MAP = {
+    'shoes': [
+      { cat: 'Pants/Shorts', label: 'Want pants that fit the same streetwear look?' },
+      { cat: 'Pants', label: 'Want pants that fit the same streetwear look?' },
+      { cat: 'Hoodies/Sweaters', label: 'Want a hoodie that works with these shoes?' },
+      { cat: 'Hoodies', label: 'Want a hoodie that works with these shoes?' },
+    ],
+    'shoe': [
+      { cat: 'Pants/Shorts', label: 'Want pants that fit the same streetwear look?' },
+      { cat: 'Pants', label: 'Want pants that fit the same streetwear look?' },
+    ],
+    'jersey': [
+      { cat: 'Shorts', label: 'Want shorts that match the jersey?' },
+      { cat: 'Pants/Shorts', label: 'Want bottoms that match the jersey?' },
+    ],
+    'hoodies/sweaters': [
+      { cat: 'Pants/Shorts', label: 'Want pants that fit the same streetwear look?' },
+      { cat: 'Pants', label: 'Want pants that fit the same streetwear look?' },
+    ],
+    'hoodies': [
+      { cat: 'Pants/Shorts', label: 'Want pants that fit the same streetwear look?' },
+      { cat: 'Pants', label: 'Want pants that fit the same streetwear look?' },
+    ],
+    't-shirts': [
+      { cat: 'Pants/Shorts', label: 'Want pants that fit the same streetwear look?' },
+      { cat: 'Pants', label: 'Want pants that fit the same streetwear look?' },
+    ],
+    't-shirt': [
+      { cat: 'Pants/Shorts', label: 'Want pants that fit the same streetwear look?' },
+      { cat: 'Pants', label: 'Want pants that fit the same streetwear look?' },
+    ],
+    'jackets': [
+      { cat: 'Pants', label: 'Want pants that fit the same outerwear look?' },
+      { cat: 'T-Shirts', label: 'Want a tee to layer under this?' },
+    ],
+    'coats / jackets': [
+      { cat: 'Pants', label: 'Want pants that fit the same outerwear look?' },
+      { cat: 'Hoodies/Sweaters', label: 'Want a hoodie to layer under this?' },
+    ],
+    'shorts': [
+      { cat: 'T-Shirts', label: 'Want a tee that fits the same look?' },
+      { cat: 'Hoodies/Sweaters', label: 'Want a hoodie that fits the same look?' },
+    ],
+    'belts': [
+      { cat: 'Pants', label: 'Want pants that work with this accessory?' },
+    ],
+    'accessories': [
+      { cat: 'Shoes', label: 'Want shoes that complete the same look?' },
+    ],
+  };
+
+  // Detect what category the user searched for
+  const queryLower = query.toLowerCase();
+  const resultCats = results.map(r => (r._category || '').toLowerCase());
+
+  let crossSellCat = null;
+  let crossSellLabel = null;
+
+  // Check result categories against our map
+  for (const result of results) {
+    const cat = (result._category || '').toLowerCase();
+    for (const [key, suggestions] of Object.entries(CROSSSELL_MAP)) {
+      if (cat.includes(key)) {
+        crossSellCat = suggestions[0].cat;
+        crossSellLabel = suggestions[0].label.replace('{q}', escapeHtml(query));
+        break;
+      }
+    }
+    if (crossSellCat) break;
+  }
+
+  // Also check query directly
+  if (!crossSellCat) {
+    const QUERY_MAP = {
+      'jordan': { cat: 'Pants/Shorts', label: 'Want pants that fit the same sneaker look?' },
+      'af1': { cat: 'Pants/Shorts', label: 'Want pants that fit the same sneaker look?' },
+      'dunk': { cat: 'Pants/Shorts', label: 'Want pants that fit the same sneaker look?' },
+      'yeezy': { cat: 'Pants/Shorts', label: 'Want pants that fit the same sneaker look?' },
+      'shoe': { cat: 'Pants/Shorts', label: 'Want pants that fit the same streetwear look?' },
+      'sneaker': { cat: 'Pants/Shorts', label: 'Want pants that fit the same streetwear look?' },
+      'hoodie': { cat: 'Pants', label: 'Want pants that fit the same streetwear look?' },
+      'jersey': { cat: 'Shorts', label: 'Want shorts that match the jersey?' },
+      'jacket': { cat: 'Pants', label: 'Want pants that fit the same outerwear look?' },
+      'tee': { cat: 'Pants/Shorts', label: 'Want pants that fit the same streetwear look?' },
+    };
+    for (const [key, suggestion] of Object.entries(QUERY_MAP)) {
+      if (queryLower.includes(key)) {
+        crossSellCat = suggestion.cat;
+        crossSellLabel = suggestion.label;
+        break;
+      }
+    }
+  }
+
+  if (!crossSellCat) return;
+
+  // Search for complementary products
+  const crossSellResults = searchProducts(crossSellCat, 3);
+  if (crossSellResults.length === 0) return;
+
+  const crossSellProducts = transformProducts(crossSellResults.map(p => ({ ...p, _category: crossSellCat })));
+
+  // Render the cross-sell section
+  const crossSellDiv = document.createElement('div');
+  crossSellDiv.className = 'ai-response';
+  crossSellDiv.style.animation = 'fadeInUp 0.4s ease';
+  crossSellDiv.innerHTML = `
+    <div class="verdict-header">
+      <div class="avatar"><img src="logo.png" alt=""></div>
+      <span class="bot-name">repfind <span class="badge">AI</span></span>
+    </div>
+    <div class="verdict-text" style="margin-bottom:16px">${crossSellLabel} These are direct-link products with your selected checkout agent applied.</div>
+    <div class="results-section" style="padding-left:0;margin-top:0">
+      <div class="results-list" id="crossSellList"></div>
+    </div>
+  `;
+  container.appendChild(crossSellDiv);
+
+  // Render the cross-sell product cards
+  const listEl = crossSellDiv.querySelector('#crossSellList');
+  crossSellProducts.forEach((r, i) => {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.dataset.platform = r.platform;
+    card.onclick = (e) => { if(e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; var c2 = card.querySelector('.add-to-cart-btn'); if(!c2) return; var oc = c2.getAttribute('onclick') || ''; var mt = oc.match(/addToCart..([^'"]+)/); if(mt) openDetail(mt[1]); };
+    card.style.animationDelay = `${i * 0.08}s`;
+
+    // Store for cart/click lookup across searches
+    if (r.id) productIndex[r.id] = r;
+
+    card.innerHTML = renderCardHTML(r);
+    listEl.appendChild(card);
+  });
+
+  scrollToBottom();
+}
+
+// ─── Follow-ups ───
+function renderFollowUps(query, scope) {
+  const root = scope || document;
+  const el = root.querySelector('#followUpChips');
+  const section = root.querySelector('#followUps');
+  if (!el || !section) return;
+  const clean = query.trim();
+  const isDecor = false; // Claude now handles decor redirects - never show decor suggestions
+  const suffixes = ['hoodie', 'jacket', 'pants', 'shirt', 'shorts', 'shoes'];
+  const base = clean;
+  const allSuggestions = suffixes
+    .filter(suffix => !base.toLowerCase().split(/\s+/).includes(suffix))
+    .map(suffix => `${base} ${suffix}`)
+    .filter((s, idx, arr) => {
+      const normalized = s.toLowerCase().replace(/\s+/g, ' ').trim();
+      return normalized !== clean.toLowerCase() && arr.findIndex(x => x.toLowerCase().replace(/\s+/g, ' ').trim() === normalized) === idx;
+    });
+  const suggestions = allSuggestions.slice(0, 3);
+  el.innerHTML = suggestions.map(s =>
+    `<div class="follow-up-chip" onclick="quickSearch('${escapeAttr(s)}')">${escapeHtml(s)}</div>`
+  ).join('');
+  section.style.display = suggestions.length ? 'block' : 'none';
+}
+
+// ─── Filters ───
+function wireFilters(scope) {
+  const root = scope || document;
+  root.querySelectorAll('.inline-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      root.querySelectorAll('.inline-filter').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentPlatform = btn.dataset.platform;
+      applyFilter(currentPlatform, root);
+    });
+  });
+}
+function applyFilter(platform, scope) {
+  const root = scope || document;
+  root.querySelectorAll('.result-card').forEach(card => {
+    card.style.display = (platform === 'all' || card.dataset.platform === platform) ? '' : 'none';
+  });
+}
+
+// ─── History ───
+function addHistory(query) {
+  if (searchHistory[0] === query) return;
+  searchHistory = [query, ...searchHistory.filter(q => q !== query)].slice(0, 10);
+  localStorage.setItem('repfind_history', JSON.stringify(searchHistory));
+  renderHistory();
+}
+function renderHistory() {
+  const el = document.getElementById('historyList');
+  if (searchHistory.length === 0) {
+    el.innerHTML = '<div class="history-item" style="opacity:0.5;cursor:default;">No searches yet</div>';
+    return;
+  }
+  el.innerHTML = '';
+  searchHistory.forEach(q => {
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><span>${escapeHtml(q)}</span>`;
+    item.onclick = () => { mainInput.value = q; doSearch(); };
+    el.appendChild(item);
+  });
+}
+
+// ─── Utils ───
+function scrollToBottom() {
+  const area = document.getElementById('chatArea');
+  if (area) area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
+}
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
+
+// ════════════════════════════════════════════════
+// REAL PRODUCT DATABASE - 67,944 direct-link products from static JSON
+// ════════════════════════════════════════════════
+
+const SUPABASE_URL = 'https://xacehhtgvubcqdoltazg.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_1TNu5hqotJ7GGQXfjliivQ_ttK51EAA';
+const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let authMode = 'login';
+let authReady = false;
+let isSyncingCart = false;
+
+function setAuthMode(mode) {
+  authMode = mode;
+  document.getElementById('loginTab')?.classList.toggle('active', mode === 'login');
+  document.getElementById('signupTab')?.classList.toggle('active', mode === 'signup');
+  const btn = document.getElementById('authSubmitBtn');
+  if (btn) btn.textContent = mode === 'login' ? 'Log in' : 'Create account';
+  const password = document.getElementById('authPassword');
+  if (password) password.autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+  setAuthMessage('');
+}
+function showAuthModal(message = '') {
+  document.getElementById('authModal')?.classList.add('show');
+  setAuthMessage(message);
+  setTimeout(() => document.getElementById('authEmail')?.focus(), 50);
+}
+function hideAuthModal() { document.getElementById('authModal')?.classList.remove('show'); }
+function setAuthMessage(message, ok = false) {
+  const el = document.getElementById('authMessage');
+  if (!el) return;
+  el.textContent = message || '';
+  el.classList.toggle('auth-success', !!ok);
+}
+function normalizeAuthError(err) {
+  const msg = err?.message || String(err || 'Auth failed');
+  if (msg.toLowerCase().includes('failed to fetch')) return 'Could not reach auth service. Try again.';
+  return msg;
+}
+async function submitAuth() {
+  if (!supabaseClient) return setAuthMessage('Auth client failed to load.');
+  const email = document.getElementById('authEmail')?.value.trim();
+  const password = document.getElementById('authPassword')?.value || '';
+  if (!email || !password) return setAuthMessage('Enter email and password.');
+  if (authMode === 'signup' && password.length < 6) return setAuthMessage('Password must be at least 6 characters.');
+  setAuthMessage(authMode === 'login' ? 'Logging in...' : 'Creating account...', true);
+  const res = authMode === 'login'
+    ? await supabaseClient.auth.signInWithPassword({ email, password })
+    : await supabaseClient.auth.signUp({ email, password, options: { emailRedirectTo: window.location.href.split('#')[0] } });
+  if (res.error) return setAuthMessage(normalizeAuthError(res.error));
+  hideAuthModal();
+  showToast('Signed in. Haul sync enabled.');
+  trackEvent(authMode === 'login' ? 'login' : 'signup', { method: 'password' });
+}
+async function sendMagicLink() {
+  if (!supabaseClient) return setAuthMessage('Auth client failed to load.');
+  const email = document.getElementById('authEmail')?.value.trim();
+  if (!email) return setAuthMessage('Enter your email first.');
+  setAuthMessage('Sending magic link...', true);
+  const { error } = await supabaseClient.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href.split('#')[0] } });
+  if (error) return setAuthMessage(normalizeAuthError(error));
+  setAuthMessage('Magic link sent. Check your email.', true);
+}
+async function signOut() {
+  if (!supabaseClient) return;
+  await supabaseClient.auth.signOut();
+  currentUser = null;
+  cart = JSON.parse(localStorage.getItem('repfind_cart') || '[]');
+  updateAuthUI(); updateCartBadge(); renderCart();
+  showToast('Signed out');
+}
+function updateAuthUI() {
+  const el = document.getElementById('authStatus');
+  if (!el) return;
+  if (currentUser) {
+    const email = currentUser.email || 'Account';
+    el.innerHTML = `<strong title="${escapeAttr(email)}">${escapeHtml(email.length > 22 ? email.slice(0, 19) + '...' : email)}</strong><button onclick="signOut()">Sign out</button>`;
+  } else {
+    el.innerHTML = '<strong>Guest</strong><button onclick="showAuthModal()">Sign in</button>';
+  }
+}
+function dbItemToCart(row) {
+  return { id: row.product_id, name: row.name, price: parseFloat(row.price_usd) || 0, priceCNY: parseFloat(row.price_cny) || 0, image: row.image_url || '', platform: row.platform || 'weidian' };
+}
+function cartItemToDb(item) {
+  return { user_id: currentUser.id, product_id: item.id, name: item.name, price_usd: item.price || 0, price_cny: item.priceCNY || 0, image_url: item.image || '', platform: item.platform || 'weidian' };
+}
+async function loadServerCart() {
+  if (!currentUser || !supabaseClient) return;
+  const { data, error } = await supabaseClient.from('repfind_haul_items').select('*').order('created_at', { ascending: false });
+  if (error) { console.error('Haul load error:', error); showToast('Haul table not ready yet'); return; }
+  cart = (data || []).map(dbItemToCart);
+  localStorage.setItem('repfind_cart', JSON.stringify(cart));
+  updateCartBadge(); renderCart();
+}
+async function syncLocalCartToServer() {
+  if (!currentUser || !supabaseClient || isSyncingCart) return;
+  const localCart = JSON.parse(localStorage.getItem('repfind_cart') || '[]');
+  if (!localCart.length) { await loadServerCart(); return; }
+  isSyncingCart = true;
+  try {
+    const rows = localCart.map(cartItemToDb).filter(row => row.product_id);
+    if (!rows.length) { cart = []; saveCart(); updateCartBadge(); renderCart(); return; }
+    const { error } = await supabaseClient.from('repfind_haul_items').upsert(rows, { onConflict: 'user_id,product_id' });
+    if (error) { console.error('Haul sync error:', error); showToast('Haul sync needs database setup'); return; }
+    await loadServerCart();
+  } catch (err) {
+    console.error('Haul sync exception:', err);
+    showToast('Haul sync failed. Saved locally.');
+  } finally {
+    isSyncingCart = false;
+  }
+}
+async function initAuth() {
+  if (!supabaseClient) { updateAuthUI(); return; }
+  const { data } = await supabaseClient.auth.getSession();
+  currentUser = data.session?.user || null;
+  authReady = true;
+  updateAuthUI();
+  if (currentUser) await syncLocalCartToServer();
+  supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+    currentUser = session?.user || null;
+    authReady = true;
+    updateAuthUI();
+    if (currentUser) await syncLocalCartToServer();
+    else { cart = JSON.parse(localStorage.getItem('repfind_cart') || '[]'); updateCartBadge(); renderCart(); }
+  });
+}
+
+let PRODUCT_DB = null;
+let _productDBPromise = null;
+
+async function loadProductDB() {
+  if (PRODUCT_DB) return PRODUCT_DB;
+  if (_productDBPromise) return _productDBPromise;
+  _productDBPromise = (async () => {
+    try {
+      const resp = await fetch('data/products.json');
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const raw = await resp.json();
+      // raw is array of: [name, price_usd, category, image, platform, itemID]
+      // Deduplicate: assign synthetic IDs to products sharing an itemID
+      const seenIds = new Map();
+      PRODUCT_DB = raw.map(p => {
+        let id = String(p[5] || '');
+        if (seenIds.has(id)) { id = id + '_' + seenIds.get(id); seenIds.set(p[5], seenIds.get(p[5]) + 1); }
+        else seenIds.set(id, 1);
+        return {
+          name: p[0],
+          price: p[1] ? `$${p[1]}` : '',
+          category: p[2] || '',
+          image: p[3] || '',
+          platform: p[4] || 'weidian',
+          itemID: id,
+          _priceUSD: p[1] || 0,
+          _priceCNY: p[1] ? Math.round(parseFloat(p[1]) / EXCHANGE_RATES.USD) : 0,
+        };
+      });
+      console.log(`Loaded ${PRODUCT_DB.length} products`);
+      return PRODUCT_DB;
+    } catch (err) {
+      console.error('Product DB load error:', err);
+      PRODUCT_DB = [];
+      return PRODUCT_DB;
+    }
+  })();
+  return _productDBPromise;
+}
+
+// ════════════════════════════════════════════════
+// TWO-PHASE SEARCH: Recall (find candidates) → Rank (sort by relevance)
+// ════════════════════════════════════════════════
+function searchProducts(query, limit = 12) {
+  if (!PRODUCT_DB || PRODUCT_DB.length === 0) return [];
+
+  // ─── Query normalization (shared by both phases) ───
+  let term = query.toLowerCase().trim()
+    .replace(/['']/g, '')
+    .replace(/\?/g, '')
+    .replace(/\s+/g, ' ');
+  if (!term) return [];
+
+  let words = term.split(/\s+/).filter(w => w.length > 0);
+  const STOPWORDS = new Set(['product','products','item','items','stuff','things','please','pls','want','wants','looking','look','for','show','me','some','like','id','i',"i'd",'im',"i'm",'the','a','an']);
+  const contentWords = words.filter(w => !STOPWORDS.has(w));
+  if (contentWords.length > 0) {
+    words = contentWords;
+    term = words.join(' ');
+  }
+  
+  // Singularize / normalize common plural forms: "4s"→"4", "11s"→"11", "1s"→"1"
+  words = words.map(w => {
+    const m = w.match(/^(\d+)s$/);
+    return m ? m[1] : w;
+  });
+  term = words.join(' ');
+  const CATEGORY_HINTS = {
+    'sneakers': ['老爹鞋','跑步鞋','篮球鞋','休闲鞋','板鞋','乐福鞋','运动鞋'],
+    'shoes': ['老爹鞋','跑步鞋','篮球鞋','休闲鞋','板鞋','乐福鞋','运动鞋','高跟鞋','细跟鞋','靴子','马丁靴'],
+    'hoodie': ['卫衣'],
+    'hoodies': ['卫衣'],
+    'jacket': ['夹克','防风夹克','羽绒服','皮衣','派克大衣'],
+    'jackets': ['夹克','防风夹克','羽绒服','皮衣','派克大衣'],
+    'tee': ['t恤'],
+    'tees': ['t恤'],
+    'shirt': ['t恤','衬衫','polo衫'],
+    'shirts': ['t恤','衬衫','polo衫'],
+    'jeans': ['牛仔裤'],
+    'pants': ['牛仔裤','运动裤','长裤','打底裤'],
+    'shorts': ['短裤'],
+    'bag': ['斜挎包','托特包','链条包','手提包','双肩包','旅行袋','腰包','腋下包'],
+    'bags': ['斜挎包','托特包','链条包','手提包','双肩包','旅行袋','腰包','腋下包'],
+    'wallet': ['长款钱包','短款钱包','卡包','钱包'],
+    'wallets': ['长款钱包','短款钱包','卡包','钱包'],
+    'backpack': ['双肩包','迷你双肩包','休闲双肩包'],
+    'watch': ['手表','机械表','石英表'],
+    'watches': ['手表','机械表','石英表'],
+    'jewelry': ['项链','手链','戒指','耳饰','首饰','胸针'],
+    'necklace': ['项链'],
+    'bracelet': ['手链'],
+    'ring': ['戒指'],
+    'earring': ['耳饰'],
+    'earrings': ['耳饰'],
+    'sunglasses': ['太阳镜','光学眼镜'],
+    'glasses': ['太阳镜','光学眼镜','眼镜'],
+    'hat': ['棒球帽','渔夫帽','针织帽','帽子'],
+    'hats': ['棒球帽','渔夫帽','针织帽','帽子'],
+    'cap': ['棒球帽'],
+    'caps': ['棒球帽'],
+    'socks': ['袜子'],
+    'sock': ['袜子'],
+    'perfume': ['香水'],
+    'fragrance': ['香水'],
+    'belt': ['皮带','帆布腰带','腰带'],
+    'belts': ['皮带','帆布腰带','腰带'],
+    'scarf': ['羊绒围巾','丝巾','围巾'],
+    'scarves': ['羊绒围巾','丝巾','围巾'],
+    'electronics': ['电子产品','智能手表','真无线耳机','便携音箱','智能音箱','耳机'],
+    'dress': ['连衣裙','针织连衣裙','裙子','衬衫裙'],
+    'dresses': ['连衣裙','针织连衣裙','裙子','衬衫裙'],
+    'swimwear': ['泳装'],
+    'bikini': ['泳装'],
+  };
+
+  // ─── Rep keyword synonyms ───
+  const SYNONYMS = {
+    'af1': ['air force 1', 'air force one'],
+    'af 1': ['air force 1', 'air force one'],
+    'aj1': ['air jordan 1', 'jordan 1'],
+    'aj4': ['air jordan 4', 'jordan 4'],
+    'aj11': ['air jordan 11', 'jordan 11'],
+    'nb': ['new balance'],
+    'fog': ['fear of god'],
+    'ts': ['travis scott'],
+    'lv': ['louis vuitton'],
+    'tee': ['t-shirt', 'tshirt'],
+    'dunk lows': ['dunk low'],
+    'yeezys': ['yeezy'],
+    'js': ['jordan'],
+    'ch': ['chrome hearts'],
+    'rh': ['rolex'],
+    'ow': ['off white', 'off-white'],
+    'pk': ['pk god', 'pkbatch'],
+    'og': ['og batch'],
+  };
+
+  // Expand query with synonyms
+  const expandedTerms = new Set([term]);
+  for (const [key, syns] of Object.entries(SYNONYMS)) {
+    if (term === key || words.includes(key)) {
+      syns.forEach(s => expandedTerms.add(s));
+    }
+  }
+  const searchTermList = [...expandedTerms];
+
+  // ─── Helper: fuzzy word match (handles typos, partial matches) ───
+  function fuzzyMatch(text, word) {
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (new RegExp('(^|[^a-z0-9])' + escaped + '([^a-z0-9]|$)').test(text)) return 'exact';
+    // Prefix match (e.g. "jord" matches "jordan")
+    const prefix = word.slice(0, Math.max(3, word.length - 1));
+    if (prefix.length >= 3 && text.match(new RegExp('\\b' + prefix))) return 'prefix';
+    // Levenshtein-lite for short query words (typos)
+    if (word.length >= 4) {
+      const threshold = word.length <= 5 ? 1 : 2;
+      const wordsInText = text.split(/[^a-z0-9]+/);
+      for (const w of wordsInText) {
+        if (w.length < 3) continue;
+        if (Math.abs(w.length - word.length) > threshold) continue;
+        let dist = 0;
+        const minLen = Math.min(w.length, word.length);
+        for (let i = 0; i < minLen && dist <= threshold; i++) {
+          if (w[i] !== word[i]) dist++;
+        }
+        dist += Math.abs(w.length - word.length);
+        if (dist <= threshold) return 'fuzzy';
+      }
+    }
+    return null;
+  }
+
+  // ════════════════════════════════════════════════
+  // PHASE 1: RECALL — Cast wide, find all possible candidates
+  // Goal: never miss a relevant product. Loose matching is fine here;
+  // Phase 2 will sort out the garbage.
+  // ════════════════════════════════════════════════
+  const candidates = [];
+  for (const p of PRODUCT_DB) {
+    const name = (p.name || '').toLowerCase();
+    const cat = (p.category || '').toLowerCase();
+    if (!name) continue;
+
+    let matchedWords = 0;
+    const matchTypes = {};
+
+    for (const w of words) {
+      const nm = fuzzyMatch(name, w);
+      const cm = fuzzyMatch(cat, w);
+      if (nm === 'exact') { matchedWords++; matchTypes[w] = 'name_exact'; }
+      else if (nm === 'prefix') { matchedWords++; matchTypes[w] = 'name_prefix'; }
+      else if (nm === 'fuzzy') { matchedWords++; matchTypes[w] = 'name_fuzzy'; }
+      else if (cm === 'exact') { matchedWords++; matchTypes[w] = 'cat_exact'; }
+      else if (cm === 'prefix') { matchedWords++; matchTypes[w] = 'cat_prefix'; }
+    }
+
+    // Check synonyms for any unmatched words
+    for (const w of words) {
+      if (matchTypes[w]) continue;
+      for (const [key, syns] of Object.entries(SYNONYMS)) {
+        if (w === key || words.includes(key)) {
+          for (const syn of syns) {
+            if (name.includes(syn)) { matchedWords++; matchTypes[w] = 'synonym'; break; }
+          }
+        }
+      }
+    }
+
+    // Accept if full term or any synonym phrase appears in name (even if word-by-word missed)
+    if (matchedWords === 0) {
+      if (name.includes(term)) matchedWords = 1;
+      else {
+        for (const st of searchTermList) {
+          if (st !== term && name.includes(st)) { matchedWords = 1; break; }
+        }
+      }
+    }
+
+    // Relaxed threshold: at least 1 match for short queries, 40% for long queries
+    const minMatch = words.length <= 2 ? 1 : Math.max(1, Math.ceil(words.length * 0.4));
+    if (matchedWords < minMatch) continue;
+
+    candidates.push({ ...p, _matchedWords: matchedWords, _totalWords: words.length, _matchTypes: matchTypes });
+  }
+
+  // ════════════════════════════════════════════════
+  // PHASE 2: RANK — Sort candidates by relevance, best on top
+  // This is where precision lives. Weak recall matches score near zero
+  // and sink to the bottom; exact matches dominate the top.
+  // ════════════════════════════════════════════════
+  const BRANDS = ['nike','jordan','air jordan','yeezy','adidas','new balance','dunk','air max','air force','travis scott','off white','off-white','louis vuitton','lv ','dior','balenciaga','bape','chrome hearts','fear of god','fog','kobe','amiri','cdg','comme des garcons','versace','givenchy','prada','gucci','patek','phillippe','rolex','audemars','hublot','cartier','nb ','samba','gazelle','campus','mamba','travis','cactus jack'];
+
+  const scored = [];
+  for (const p of candidates) {
+    const name = (p.name || '').toLowerCase();
+    const cat = (p.category || '').toLowerCase();
+    const nameWords = name.split(/\s+/);
+    const mw = p._matchedWords;
+    const tw = p._totalWords;
+    const mt = p._matchTypes;
+    let score = 0;
+
+    // ── TIER 1: Word match quality (how well did each word match?) ──
+    for (const w of words) {
+      const t = mt[w];
+      if (t === 'name_exact') score += 100;
+      else if (t === 'name_prefix') score += 70;
+      else if (t === 'name_fuzzy') score += 50;
+      else if (t === 'synonym') score += 60;
+      else if (t === 'cat_exact') score += 25;
+      else if (t === 'cat_prefix') score += 15;
+    }
+
+    // ── TIER 2: Phrase / exact match (the strongest relevance signals) ──
+    if (name === term) score += 400;                    // name IS the query
+    else if (name.startsWith(term)) score += 250;       // name starts with query
+    else if (name.includes(term)) score += 200;         // query is a substring of name
+
+    for (const st of searchTermList) {
+      if (st !== term && name.includes(st)) score += 150; // synonym phrase match
+    }
+
+    // ── TIER 3: Completeness (did all query words match?) ──
+    if (mw >= tw) score += 200;                         // every word matched
+    else if (mw >= tw * 0.6) score += 100;              // most words matched
+    if (mw < tw) score -= (tw - mw) * 40;               // penalize missing words
+
+    // ── TIER 4: Query density — query words vs total name length ──
+    // "Jordan 4 Bred" (3-word name, 3-word query) = 100% density
+    // "Air Jordan 4 Retro Bred Reimagined Quality BS112" = ~37% density
+    if (nameWords.length > 0) {
+      score += Math.round((mw / nameWords.length) * 150);
+    }
+
+    // ── TIER 5: Quality signals ──
+    if (BRANDS.some(b => name.includes(b))) score += 50;    // recognized brand
+    if (p.image && !p.image.includes('picsum')) score += 20; // has real image
+    if (p.clicks > 0) score += Math.min(p.clicks / 100, 15); // popularity
+    if (name.length > 80) score -= 20;                       // keyword stuffing
+    if (/^[\d\s\W]+$/.test(name)) score -= 30;                // gibberish name
+
+    // ── TIER 6: Demotions ──
+    if (name.startsWith('design ')) score -= 60;              // print-on-demand junk
+    if (/bs\d{3,}|cnfans spreadsheet|best quality/i.test(name)) score -= 25; // SEO stuffing
+
+    // ── Broad category boost (single-word searches) ──
+    if (words.length === 1 && CATEGORY_HINTS[term]?.some(c => cat.includes(c))) score += 80;
+
+    if (score > 0) scored.push({ ...p, score });
+  }
+
+  // Sort by score (desc), then by name length (asc) for tie-breaker
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return (a.name || '').length - (b.name || '').length;
+  });
+
+  // Deduplicate by itemID (keep highest scoring)
+  const seen = new Set();
+  const results = [];
+  for (const p of scored) {
+    if (!seen.has(p.itemID)) {
+      seen.add(p.itemID);
+      results.push(p);
+      if (results.length >= limit) break;
+    }
+  }
+
+  return results;
+}
+
+
+// ════════════════════════════════════════════════
+// CATEGORY TAXONOMY — drives intent detection, category search, and no-results messaging
+// Maps every product category in our 66K product DB to English, with keyword triggers
+// and inventory stats used when telling users what we actually carry.
+// ════════════════════════════════════════════════
+const CATEGORY_TAXONOMY = {
+  decor: {
+    label: 'Home Decor',
+    cnCategories: [],
+    primaryKeywords: ['rug','carpet','pillow','cushion','lamp','vase','incense','candle','mirror','clock','wall art','figurine','statue','sculpture','ornament','decorative','bobblehead','plush','lantern'],
+    nameKeywords: ['blanket','throw','poster','decoration','organizer','storage','desk lamp','table lamp','mat','tablecloth'],
+    excludeCategories: ['t恤','球衣','卫衣','短裤','polo衫','袜子','棒球帽','衬衫','牛仔裤','夹克','毛衣','运动裤','太阳镜','背心','项链','手链','拖鞋','长裤','戒指','老爹鞋','跑步鞋','泳装','板鞋','连衣裙'],
+    excludeKeywords: ['t-shirt','t shirt','tee','hoodie','shirt','jersey','shorts','pants','sweatpants','sneaker','shoes','dunk','air max','new balance','jordan','pineapple','green apple','trophy room','showroom','mushroom','bedroom athletics'],
+    stats: '200+ home decor items — rugs, lamps, pillows, decorative pieces, and more',
+    suggestions: ['rug','lamp','pillow','wall art','candle'],
+    scoreThreshold: 85,
+  },
+  electronics: {
+    label: 'Electronics',
+    cnCategories: ['电子产品','智能手表','真无线耳机','便携音箱','智能音箱','耳机','头戴式耳机','运动耳机','音箱','充电器','手机配件','手机壳','运动手表'],
+    primaryKeywords: ['apple','iphone','ipad','airpods','airpod','airtag','magsafe','smartwatch','smart watch','earbuds','earphone','bluetooth speaker','headphone','headphones','wireless earphone','tws'],
+    nameKeywords: ['charger','charging','phone case','silicone case','screen protector','watch series','watch ultra','apple pencil'],
+    excludeCategories: ['t恤','球衣','卫衣','短裤','老爹鞋','跑步鞋','篮球鞋','夹克','牛仔裤','运动裤','polo衫','连衣裙'],
+    excludeKeywords: ['t-shirt','t shirt','tee','hoodie','shirt','jersey','shorts','pants','shoes','sneaker','dunk','air max','new balance','jordan','pineapple','green apple'],
+    stats: '117 smartwatches & sports watches, 71 TWS earbuds, 41 bluetooth speakers, 190+ electronic items',
+    suggestions: ['smartwatch','AirPods','bluetooth speaker','phone case'],
+    scoreThreshold: 50,
+  },
+  watches: {
+    label: 'Watches',
+    cnCategories: ['手表','机械表','石英表'],
+    primaryKeywords: ['rolex','patek','audemars','cartier','hublot','omega','breitling','richard mille','iced out watch','submariner','datejust','nautilus'],
+    nameKeywords: ['watch','timepiece','wristwatch','mechanical','quartz','automatic'],
+    excludeCategories: ['智能手表','运动手表'],
+    excludeKeywords: ['apple watch','smartwatch','smart watch'],
+    stats: '197 watches, 95 mechanical watches, and 26 quartz watches',
+    suggestions: ['Rolex','Patek Philippe','Cartier watch','mechanical watch'],
+    scoreThreshold: 50,
+  },
+  jewelry: {
+    label: 'Jewelry',
+    cnCategories: ['项链','手链','戒指','耳饰','首饰','胸针'],
+    primaryKeywords: ['necklace','bracelet','earring','pendant','bangle','anklet','brooch'],
+    nameKeywords: ['ring','chain','jewelry','jewellery','locket','choker','gem','crystal','rhinestone'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '672 necklaces, 643 bracelets, 433 rings, and 272 earrings',
+    suggestions: ['necklace','gold bracelet','diamond ring','Chrome Hearts'],
+    scoreThreshold: 50,
+  },
+  bags: {
+    label: 'Bags & Wallets',
+    cnCategories: ['斜挎包','托特包','链条包','手提包','双肩包','卡包','菜篮子包','长款钱包','短款钱包','流浪包','腰包','迷你双肩包','旅行袋','腋下包','波士顿包','信封包','马鞍包','手拿包','钱包','相机包','零钱包','行李箱','电脑包','单肩包','邮差包','手腕包','箱包'],
+    primaryKeywords: ['tote','backpack','wallet','purse','clutch','handbag','crossbody','luggage','sling','wristlet','cardholder'],
+    nameKeywords: ['bag','pouch','holder'],
+    excludeCategories: ['t恤','球衣','卫衣','短裤','老爹鞋','跑步鞋'],
+    excludeKeywords: ['beanbag','sandbag','airbag'],
+    stats: '2,700+ bags — tote bags, backpacks, crossbody bags, wallets, chain bags, and more',
+    suggestions: ['Louis Vuitton bag','Gucci tote','crossbody bag','chain bag'],
+    scoreThreshold: 50,
+  },
+  sunglasses: {
+    label: 'Sunglasses & Eyewear',
+    cnCategories: ['太阳镜','光学眼镜','眼镜'],
+    primaryKeywords: ['sunglasses','sunglass','shades','eyewear'],
+    nameKeywords: ['glasses','optical','polarized','lens','uv protection','aviator'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '701 sunglasses and 111 optical frames',
+    suggestions: ['Oakley sunglasses','Dior sunglasses','polarized glasses','aviator'],
+    scoreThreshold: 50,
+  },
+  hats: {
+    label: 'Hats & Caps',
+    cnCategories: ['棒球帽','渔夫帽','针织帽','帽子','礼帽'],
+    primaryKeywords: ['snapback','fitted cap','trucker hat','bucket hat','beanie','beret'],
+    nameKeywords: ['hat','cap','visor'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '1,136 baseball caps, 159 bucket hats, and 85 beanies',
+    suggestions: ['New Era cap','bucket hat','beanie','snapback'],
+    scoreThreshold: 50,
+  },
+  socks: {
+    label: 'Socks',
+    cnCategories: ['袜子'],
+    primaryKeywords: ['socks','sock'],
+    nameKeywords: [],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '1,157 pairs of socks',
+    suggestions: ['Nike socks','crew socks','ankle socks','long socks'],
+    scoreThreshold: 50,
+  },
+  perfume: {
+    label: 'Fragrances',
+    cnCategories: ['香水'],
+    primaryKeywords: ['perfume','fragrance','cologne','eau de','parfum'],
+    nameKeywords: ['scent','deodorant','mist','body spray'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '176 fragrances',
+    suggestions: ['Dior perfume','Chanel No 5','Sauvage','luxury cologne'],
+    scoreThreshold: 50,
+  },
+  belts: {
+    label: 'Belts',
+    cnCategories: ['皮带','帆布腰带','腰带'],
+    primaryKeywords: ['belt'],
+    nameKeywords: ['strap','buckle','canvas belt','leather belt'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '361 belts — leather, canvas, and designer styles',
+    suggestions: ['Gucci belt','LV belt','canvas belt','leather belt'],
+    scoreThreshold: 50,
+  },
+  scarves: {
+    label: 'Scarves & Wraps',
+    cnCategories: ['羊绒围巾','丝巾','围巾'],
+    primaryKeywords: ['scarf','scarves','shawl'],
+    nameKeywords: ['wrap','silk scarf','cashmere','pashmina'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '108 scarves and wraps — silk, cashmere, and designer styles',
+    suggestions: ['cashmere scarf','silk scarf','LV scarf','Burberry scarf'],
+    scoreThreshold: 50,
+  },
+  dresses: {
+    label: 'Dresses & Skirts',
+    cnCategories: ['连衣裙','针织连衣裙','裙子','衬衫裙','正装连衣裙','休闲连衣裙'],
+    primaryKeywords: ['dress','sundress','gown','minidress'],
+    nameKeywords: ['skirt','maxi','midi'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '500+ dresses and skirts',
+    suggestions: ['summer dress','mini skirt','knit dress','bodycon dress'],
+    scoreThreshold: 50,
+  },
+  swimwear: {
+    label: 'Swimwear',
+    cnCategories: ['泳装'],
+    primaryKeywords: ['bikini','swimsuit','swimwear','swim trunks','boardshort'],
+    nameKeywords: ['beach','swim','bathing suit'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '345 swimwear items — bikinis, one-pieces, and swim trunks',
+    suggestions: ['bikini','swim trunks','one-piece','beach shorts'],
+    scoreThreshold: 50,
+  },
+  jerseys: {
+    label: 'Jerseys',
+    cnCategories: ['球衣'],
+    primaryKeywords: ['jersey','nba jersey','nfl jersey','soccer jersey'],
+    nameKeywords: ['uniform','kit'],
+    excludeCategories: [],
+    excludeKeywords: [],
+    stats: '4,958 jerseys — NBA, NFL, soccer, and more',
+    suggestions: ['NBA jersey','soccer jersey','vintage jersey','football jersey'],
+    scoreThreshold: 50,
+  },
+};
+
+// ─── Category intent detection ───
+// Converts a user's natural-language query into a category slug, or null for regular search.
+// Conservative: only activates for clear concept queries where the category system
+// provides better results than literal keyword search (decor, electronics, etc.)
+// or where we need accurate no-results messaging.
+function detectCategoryIntent(query) {
+  const q = query.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+
+  // Major brand signal → regular search handles brand-specific queries better
+  const hasBrand = /\b(nike|jordan|air jordan|adidas|yeezy|bape|supreme|gucci|lv|louis vuitton|prada|chanel|dior|hermes|off white|travis scott|fear of god|fog|chrome hearts|balenciaga|new balance|asics|reebok|puma|vans|converse|burberry|givenchy|versace|amiri|cdg|stussy|palace|kith|vlone|gallery dept)\b/.test(q);
+
+  // Decor — must always special-case: "room" and "decor" match too many unrelated products
+  if (/\b(decor|decorations?|homeware|home goods|room accessories)\b/.test(q)) return 'decor';
+  if (/\b(room|home|house|apartment|bedroom|living room|dorm)\b/.test(q) && /\b(decorations?|accessories|furnish)\b/.test(q)) return 'decor';
+
+  // Electronics — tech terms that don't appear in clothing names
+  if (/\b(earbuds?|earphones?|headphones?|bluetooth speaker|smartwatch|smart watch|airpods?|airtag|magsafe|phone case|screen protector)\b/.test(q)) return 'electronics';
+  if (/\b(iphone|ipad)\b/.test(q)) return 'electronics';
+  if (/\bapple\b/.test(q) && /\b(products?|electronics|tech|accessories|watch|airpods|cases?)\b/.test(q)) return 'electronics';
+  if (/\b(electronics|gadgets?)\b/.test(q) && !hasBrand) return 'electronics';
+
+  // Watches — unambiguous watch brands always route here
+  if (/\b(rolex|patek|richard mille|hublot)\b/.test(q)) return 'watches';
+  if (/\b(watches?|wristwatch|mechanical watch|luxury watch|replica watch)\b/.test(q) && !hasBrand) return 'watches';
+
+  // Jewelry
+  if (/\b(jewelry|jewellery|necklaces?|bracelets?|earrings?|pendants?|bangles?)\b/.test(q) && !hasBrand) return 'jewelry';
+  if (/\brings?\b/.test(q) && /\b(gold|silver|diamond|gemstone)\b/.test(q) && !hasBrand) return 'jewelry';
+
+  // Bags & wallets
+  if (/\b(bags?|totes?|backpacks?|wallets?|purses?|clutches?|handbags?|crossbody)\b/.test(q) && !hasBrand) return 'bags';
+
+  // Sunglasses
+  if (/\b(sunglasses?|shades|eyewear)\b/.test(q) && !hasBrand) return 'sunglasses';
+  if (/\bglasses\b/.test(q) && !hasBrand) return 'sunglasses';
+
+  // Hats
+  if (/\b(hats?|caps?|beanies?|bucket hats?|snapbacks?)\b/.test(q) && !hasBrand) return 'hats';
+
+  // Socks
+  if (/\bsocks?\b/.test(q) && !hasBrand) return 'socks';
+
+  // Fragrance
+  if (/\b(perfumes?|fragrances?|cologne|parfum|eau de)\b/.test(q) && !hasBrand) return 'perfume';
+
+  // Belts
+  if (/\bbelts?\b/.test(q) && !hasBrand) return 'belts';
+
+  // Scarves
+  if (/\b(scarves?|scarf|shawl)\b/.test(q) && !hasBrand) return 'scarves';
+
+  // Dresses & skirts
+  if (/\b(dresses?|skirts?|gowns?|sundress)\b/.test(q) && !hasBrand) return 'dresses';
+
+  // Swimwear
+  if (/\b(swimwear|bikinis?|swimsuits?|swim trunks|boardshorts?|bathing suits?)\b/.test(q) && !hasBrand) return 'swimwear';
+
+  // Jerseys
+  if (/\bjerseys?\b/.test(q) && !hasBrand) return 'jerseys';
+
+  return null;
+}
+
+// General-purpose category search. Scores every product in PRODUCT_DB by how well it
+// matches the given category slug from CATEGORY_TAXONOMY, returning the top N results.
+function searchByCategory(slug, limit = 24) {
+  if (!PRODUCT_DB || PRODUCT_DB.length === 0) return [];
+  const cfg = CATEGORY_TAXONOMY[slug];
+  if (!cfg) return [];
+
+  const cnCats = (cfg.cnCategories || []).map(c => c.toLowerCase());
+  const primary = cfg.primaryKeywords || [];
+  const secondary = cfg.nameKeywords || [];
+  const exclCats = (cfg.excludeCategories || []).map(c => c.toLowerCase());
+  const exclKws = cfg.excludeKeywords || [];
+  const threshold = cfg.scoreThreshold || 50;
+
+  const scored = [];
+  for (const p of PRODUCT_DB) {
+    const name = (p.name || '').toLowerCase();
+    const cat = (p.category || '').toLowerCase();
+    if (!name || !p.itemID) continue;
+
+    let score = 0;
+
+    // Chinese category match — the strongest anchor signal
+    if (cnCats.some(c => cat.includes(c))) score += 90;
+
+    // Primary keyword match in product name (strong category signal)
+    for (const kw of primary) {
+      if (name.includes(kw.toLowerCase())) score += 80;
+    }
+
+    // Secondary keyword match (weaker but still relevant)
+    for (const kw of secondary) {
+      if (name.includes(kw.toLowerCase())) score += 45;
+    }
+
+    // Decor special-case: "poster" on clothing shouldn't count
+    if (slug === 'decor' && name.includes('poster')) {
+      if (['tee','t-shirt','hoodie','jersey','sweatshirt'].some(k => name.includes(k))) score -= 60;
+    }
+
+    // Excluded category hard-penalty
+    if (exclCats.some(c => cat.includes(c))) score -= 200;
+
+    // Excluded keyword penalty
+    if (exclKws.some(k => name.includes(k.toLowerCase()))) score -= 180;
+
+    // Quality signals
+    if (p.image && !p.image.includes('picsum')) score += 20;
+    if (parseFloat(p._priceUSD) > 0) score += 10;
+
+    if (score >= threshold) scored.push({ ...p, score });
+  }
+
+  scored.sort((a, b) => b.score - a.score || (parseFloat(a._priceUSD) || 9999) - (parseFloat(b._priceUSD) || 9999));
+
+  const seen = new Set();
+  const out = [];
+  for (const p of scored) {
+    if (!seen.has(p.itemID)) {
+      seen.add(p.itemID);
+      out.push(p);
+      if (out.length >= limit) break;
+    }
+  }
+  return out;
+}
+
+function transformProducts(rawProducts) {
+  return rawProducts.filter(p => parseFloat(p._priceUSD) > 0).map((p) => ({
+    id: p.itemID,
+    name: p.name || 'Unknown Product',
+    seller: p.platform ? PLATFORMS[p.platform]?.label || 'Weidian' : 'Weidian',
+    platform: p.platform || 'weidian',
+    priceCNY: p._priceCNY || '',
+    priceUSD: p._priceUSD ? parseFloat(p._priceUSD).toFixed(2) : '',
+    img: p.image || '',
+    _category: p.category || '',
+  }));
+}
+
+// ════════════════════════════════════════════════
+// AI ANALYSIS ENGINE - Smart verdicts, badges, insights, refinement
+// ════════════════════════════════════════════════
+
+let lastAnalysis = null;
+let baseResults = [];
+
+function analyzeResults(results) {
+  return null; // Budgeting analysis removed
+}
+
+function generateSmartVerdict(query, results, a) {
+  if (!results || results.length === 0) return { verdict: `No exact matches for <strong>"${escapeHtml(query)}"</strong> in our 66K+ direct-link product database. Try <strong>Jordan</strong>, <strong>Yeezy</strong>, or <strong>Travis Scott</strong>.`, stats: [], insights: [] };
+  if (!a) {
+    const platforms = [...new Set(results.map(r => r.platform))];
+    const platNames = platforms.map(p => (PLATFORMS[p] || PLATFORMS['weidian']).label);
+    return { verdict: `Found <strong>${results.length} ${escapeHtml(query)}</strong> listings across ${platNames.join(' and ')}.`, stats: [], insights: [] };
+  }
+  const avg = a.avgPrice.toFixed(2), min = a.minPrice.toFixed(2), max = a.maxPrice.toFixed(2);
+  let parts = [`Found <strong>${a.totalResults} listings</strong> for "${escapeHtml(query)}"`];
+  if (a.priceSpread > 20) parts.push(`Prices range from <strong>$${min}</strong> to <strong>$${max}</strong> - a <strong>$${a.priceSpread.toFixed(0)} spread</strong>`);
+  else if (a.avgPrice > 0) parts.push(`Prices cluster around <strong>$${avg}</strong>`);
+  const stats = a.avgPrice > 0 ? [
+    { label: 'Avg Price', value: `$${avg}`, sub: `¥${Math.round(a.avgPrice / EXCHANGE_RATES.USD)}`, class: 'accent' },
+    { label: 'Price Range', value: `$${min}-$${max}`, class: '' },
+    { label: 'Listings', value: `${a.totalResults}`, class: 'green' },
+  ] : [{ label: 'Listings', value: `${a.totalResults}`, class: 'accent' }];
+  const insights = [];
+  if (a.lowestPriceIdx >= 0 && a.avgPrice > 0) {
+    const p = results[a.lowestPriceIdx]; const price = parseFloat(p.priceUSD) || 0;
+    const pctBelow = Math.round((1 - price / a.avgPrice) * 100);
+    if (pctBelow > 5) insights.push({ type: 'deal', icon: '$', text: `<strong>Lowest price:</strong> ${escapeHtml(p.name)} at $${price.toFixed(2)} - ${pctBelow}% below the $${avg} average.` });
+  }
+  if (a.priceSpread > 30 && a.totalResults >= 4) insights.push({ type: 'info', icon: 'i', text: `Big price gap ($${min} to $${max}). Higher price doesn't always mean better quality - do your own QC research.` });
+  return { verdict: parts.join('. ') + '.', stats, insights };
+}
+
+function renderInsights(insights) {
+  if (!insights || !insights.length) return '';
+  return '<div class="ai-insight">' + insights.map(ins => {
+    const cls = ins.type === 'pick' ? 'pick' : ins.type === 'warn' ? 'warn' : ins.type === 'deal' ? 'deal' : 'info';
+    return `<div class="insight-row"><span class="insight-icon ${cls}">${ins.icon}</span><span>${ins.text}</span></div>`;
+  }).join('') + '</div>';
+}
+
+function renderSmartBadges(idx, analysis) {
+  if (!analysis) return '';
+  let b = '';
+  if (idx === analysis.lowestPriceIdx) b += '<span class="smart-badge badge-lowest-price">Lowest Price</span>';
+  return b;
+}
+
+function renderRefinementHint() { return ''; } // Budgeting removed
+
+function refineResults(mode) {
+  if (!baseResults.length) return;
+  const list = activeResultsList;
+  if (!list) return;
+  let filtered = [...baseResults];
+  const avg = lastAnalysis ? lastAnalysis.avgPrice : 0;
+  switch(mode) {
+    case 'cheaper': filtered = filtered.filter(r => parseFloat(r.priceUSD) > 0 && parseFloat(r.priceUSD) <= avg).sort((a,b) => parseFloat(a.priceUSD) - parseFloat(b.priceUSD)); showToast(`Showing ${filtered.length} under $${avg.toFixed(2)}`); break;
+    case 'expensive': filtered = filtered.filter(r => parseFloat(r.priceUSD) > avg).sort((a,b) => parseFloat(b.priceUSD) - parseFloat(a.priceUSD)); showToast(`Premium picks`); break;
+    case 'cheapest': filtered.sort((a,b) => parseFloat(a.priceUSD || 9999) - parseFloat(b.priceUSD || 9999)); showToast('Sorted cheapest first'); break;
+    default: showToast('Showing all'); break;
+  }
+  list.innerHTML = '';
+  filtered.forEach((r, i) => {
+    const origIdx = baseResults.indexOf(r);
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.dataset.platform = r.platform;
+    card.onclick = (e) => { if(e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; var c2 = card.querySelector('.add-to-cart-btn'); if(!c2) return; var oc = c2.getAttribute('onclick') || ''; var mt = oc.match(/addToCart..([^'"]+)/); if(mt) openDetail(mt[1]); };
+    card.style.animationDelay = `${Math.min(i * 0.04, 0.3)}s`;
+    card.innerHTML = renderCardHTML(r, origIdx);
+    list.appendChild(card);
+  });
+  scrollToBottom();
+}
+
+function generateVerdict(query, results) {
+  const analysis = analyzeResults(results);
+  lastAnalysis = analysis;
+  return generateSmartVerdict(query, results, analysis);
+}
+
+
+document.querySelectorAll('.currency-btn').forEach(b => {
+  b.classList.toggle('active', b.dataset.currency === currentCurrency);
+});
+const initialQuery = new URLSearchParams(location.search).get('q');
+if (initialQuery) {
+  mainInput.value = initialQuery;
+  mainSend.disabled = false;
+  setTimeout(() => doSearch(), 0);
+} else {
+  mainInput.focus();
+}
+
+// ════════════════════════════════════════════════
+// CART / HAUL SYSTEM
+// ════════════════════════════════════════════════
+
+let cart = JSON.parse(localStorage.getItem('repfind_cart') || '[]');
+
+function saveCart() { localStorage.setItem('repfind_cart', JSON.stringify(cart)); }
+
+async function saveCartItemToServer(item) {
+  if (!currentUser || !supabaseClient) return;
+  const { error } = await supabaseClient.from('repfind_haul_items').upsert([cartItemToDb(item)], { onConflict: 'user_id,product_id' });
+  if (error) { console.error('Haul save error:', error); showToast('Saved locally. Server haul needs setup.'); }
+}
+
+async function deleteCartItemFromServer(productId) {
+  if (!currentUser || !supabaseClient) return;
+  const { error } = await supabaseClient.from('repfind_haul_items').delete().eq('user_id', currentUser.id).eq('product_id', productId);
+  if (error) { console.error('Haul delete error:', error); showToast('Removed locally. Server haul needs setup.'); }
+}
+
+async function addToCart(productId, btn) {
+  // Must be signed in to add to haul
+  if (!currentUser) {
+    showAuthModal('Sign up to save products to your haul and sync across devices.');
+    return;
+  }
+  const product = productIndex[productId] || currentResults.find(r => r.id === productId);
+  if (!product) return;
+  if (cart.find(item => item.id === productId)) { showToast('Already in your haul'); return; }
+  const item = { id: product.id, name: product.name, price: parseFloat(product.priceUSD) || 0, priceCNY: product.priceCNY || 0, image: product.img || '', platform: product.platform || 'weidian' };
+  cart.push(item);
+  saveCart(); updateCartBadge(); renderCart();
+  if (currentUser) await saveCartItemToServer(item);
+  if (btn) { btn.textContent = 'Added'; btn.classList.add('added'); setTimeout(() => { btn.textContent = '+ Haul'; btn.classList.remove('added'); }, 1200); }
+  showToast(`Saved to your haul (${cart.length} items)`);
+  trackEvent('haul_add', { product: item.name, platform: item.platform, price_usd: item.price });
+}
+
+async function removeFromCart(productId) {
+  cart = cart.filter(item => item.id !== productId);
+  saveCart(); updateCartBadge(); renderCart();
+  if (currentUser) await deleteCartItemFromServer(productId);
+}
+
+function updateCartBadge() {
+  const badge = document.getElementById('cartBadge');
+  if (!badge) return;
+  if (cart.length > 0) { badge.textContent = cart.length; badge.classList.add('show'); }
+  else { badge.classList.remove('show'); }
+}
+
+function renderCart() {
+  const itemsEl = document.getElementById('cartItems');
+  const totalEl = document.getElementById('cartTotal');
+  const checkoutBtn = document.getElementById('cartCheckoutBtn');
+  if (!itemsEl) return;
+
+  const authTeaser = !currentUser ? `<div class="cart-auth-teaser">
+    <h3>Save your haul</h3>
+    <p>Your haul is saved on this device. Sign in to sync it across devices and come back later.</p>
+    <button class="cart-checkout-btn" onclick="showAuthModal('Sign in to sync your haul across devices.')">Sign up or log in</button>
+  </div>` : '';
+
+  if (cart.length === 0) {
+    itemsEl.innerHTML = `${authTeaser}<div class="cart-empty">Your haul is empty.<br>Add products to build your order.</div>`;
+    totalEl.textContent = '$0.00';
+    if (checkoutBtn) checkoutBtn.disabled = true;
+    return;
+  }
+
+  const itemRows = cart.map(item => `
+    <div class="cart-item">
+      <img class="cart-item-img" src="${item.image || FALLBACK_SVG}" alt="" referrerpolicy="no-referrer" onerror="imgFallback(this)">
+      <div class="cart-item-info">
+        <div class="cart-item-name" title="${escapeAttr(item.name)}">${escapeHtml(item.name)}</div>
+        <div class="cart-item-price">${formatPrice(item.priceCNY || 0, currentCurrency)}</div>
+      </div>
+      <button class="cart-item-remove" onclick="removeFromCart('${item.id}')">&times;</button>
+    </div>`).join('');
+  const guestNotice = !currentUser ? `<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px;font-size:0.82rem;color:var(--text-dim)">Sign in to sync your haul across devices. <button style="background:none;border:none;color:var(--accent-light);cursor:pointer;font-size:0.82rem;padding:0;text-decoration:underline" onclick="showAuthModal('Sign in to sync your haul across devices.')">Sign in</button></div>` : '';
+  itemsEl.innerHTML = `${itemRows}${guestNotice}`;
+  const total = cart.reduce((sum, item) => sum + (item.priceCNY || 0), 0);
+  totalEl.textContent = formatPrice(total, currentCurrency);
+  if (checkoutBtn) {
+    checkoutBtn.disabled = false;
+    checkoutBtn.textContent = cart.length === 1 ? 'Open direct product link' : 'Open first link + copy haul links';
+  }
+}
+
+function toggleCart() {
+  const panel = document.getElementById('cartPanel');
+  const overlay = document.getElementById('cartOverlay');
+  panel.classList.toggle('show');
+  overlay.classList.toggle('show');
+  if (panel.classList.contains('show')) renderCart();
+}
+
+function checkoutCart() {
+  if (cart.length === 0) return;
+  const primaryAgent = selectedAgents[0] || 'kakobuy';
+  const agentName = AGENTS[primaryAgent]?.name || 'KakoBuy';
+  const links = cart.map(item => ({
+    name: item.name,
+    link: buildAgentLink(primaryAgent, item),
+  })).filter(l => l.link && l.link !== '#');
+  if (!links.length) { showToast('No direct links in this haul'); return; }
+
+  if (links.length === 1) {
+    window.open(links[0].link, '_blank', 'noopener,noreferrer');
+    showToast(`Opening ${agentName}...`);
+    return;
+  }
+
+  // Show numbered list modal, then copy + open first
+  const items = links.map((l, i) => `
+    <div class="checkout-list-item">
+      <div class="checkout-list-num">${i + 1}</div>
+      <div class="checkout-list-name" title="${escapeAttr(l.name)}">${escapeHtml(l.name)}</div>
+    </div>`).join('');
+  document.getElementById('checkoutListModal').innerHTML = `
+    <div class="checkout-list-title">${links.length} items in your haul</div>
+    <div class="checkout-list-sub">Copy all links below, then open them one by one in ${agentName}.</div>
+    <div class="checkout-list-items">${items}</div>
+    <div class="checkout-list-btns">
+      <button class="checkout-list-btn secondary" onclick="copyAllLinks(links2)">Copy all links</button>
+      <button class="checkout-list-btn primary" onclick="openFirstAndCopy()">Open first + copy rest</button>
+    </div>`;
+  window.links2 = links;
+  document.getElementById('checkoutOverlay2').classList.add('show');
+  document.getElementById('checkoutListModal').classList.add('show');
+}
+
+function copyAllLinks(links) {
+  const text = links.map(l => l.name + '\n' + l.link).join('\n\n');
+  Promise.resolve(navigator.clipboard?.writeText(text)).finally(() => {
+    showToast(links.length + ' links copied to clipboard');
+  });
+}
+
+function openFirstAndCopy() {
+  const links = window.links2 || [];
+  if (!links.length) return;
+  const text = links.map(l => l.name + '\n' + l.link).join('\n\n');
+  const agentName = AGENTS[selectedAgents[0] || 'kakobuy']?.name || 'KakoBuy';
+  Promise.resolve(navigator.clipboard?.writeText(text)).finally(() => {
+    window.open(links[0].link, '_blank', 'noopener,noreferrer');
+    closeCheckoutList();
+    showToast(`${links.length} links copied - first item opened in ${agentName}`);
+  });
+}
+
+// ─── Better Checkout List ───
+function closeCheckoutList() {
+  document.getElementById('checkoutOverlay2').classList.remove('show');
+  document.getElementById('checkoutListModal').classList.remove('show');
+}
+
+// Init auth + cart badge on load
+// ════════════════════════════════════════════════
+// ANALYTICS — Supabase-backed, no external deps
+// ════════════════════════════════════════════════
+const ANALYTICS_SESSION = (function() {
+  let s = sessionStorage.getItem('rf_sid');
+  if (!s) { s = Date.now().toString(36) + Math.random().toString(36).slice(2, 8); sessionStorage.setItem('rf_sid', s); }
+  return s;
+})();
+const ANALYTICS_DEVICE = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : (/iPad|Tablet/i.test(navigator.userAgent) ? 'tablet' : 'desktop');
+
+async function trackPageView() {
+  if (!supabaseClient) return;
+  try {
+    // Route through repfind_searches (works with publishable key).
+    // repfind_page_views table is RLS-blocked for anon inserts.
+    await supabaseClient.from('repfind_searches').insert({
+      conversation_id: null,
+      user_id: currentUser?.id || null,
+      query: '',
+      action: 'page_view',
+      results_count: 0,
+    });
+  } catch(e) { /* silent fail */ }
+}
+
+async function trackSearch(query, action, resultCount) {
+  if (!supabaseClient) return;
+  try {
+    // Coerce query to string — older code sometimes passed objects ([object Object] bug)
+    const q = (typeof query === 'string' ? query : String(query || '')).slice(0, 200);
+    await supabaseClient.from('repfind_searches').insert({
+      conversation_id: null,
+      user_id: currentUser?.id || null,
+      query: q,
+      action: action || 'search',
+      results_count: resultCount || 0,
+    });
+  } catch(e) { /* silent fail — RLS may block */ }
+}
+
+async function trackEvent(type, data) {
+  if (!supabaseClient) return;
+  try {
+    // Route through repfind_searches (repfind_events table is RLS-blocked for anon).
+    await supabaseClient.from('repfind_searches').insert({
+      conversation_id: null,
+      user_id: currentUser?.id || null,
+      query: type,
+      action: 'event',
+      results_count: 0,
+    });
+  } catch(e) { /* silent fail */ }
+}
+
+// Track page view on load
+trackPageView();
+// Track on SPA-style navigations (hash/route changes)
+let _lastPath = location.pathname + location.search;
+setInterval(() => {
+  const p = location.pathname + location.search;
+  if (p !== _lastPath) { _lastPath = p; trackPageView(); }
+}, 2000);
+
+initAuth();
+updateCartBadge();
+renderCart();
+
+// Preload product database in background
+loadProductDB();
+</script>
+</body>
+</html>

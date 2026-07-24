@@ -7,3 +7,8 @@ scripts/output/
 
 # Node modules
 carousel_assets/node_modules/
+
+# API keys — stored in ~/jsw/keys/
+*.env
+.publora.env
+*.p8

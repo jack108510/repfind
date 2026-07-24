@@ -1,0 +1,17 @@
+{
+  "name": "repfind-screen-recording",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "serve": "node recording-server.js",
+    "preview": "node preview-recording.js",
+    "preview:mobile": "node preview-recording-mobile.js",
+    "record": "node record-screen-demo.js",
+    "record:mobile:raw": "node record-screen-demo-mobile.js",
+    "record:mobile": "node record-and-render-mobile.js"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.54.2"
+  }
+}
