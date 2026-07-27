@@ -1107,10 +1107,12 @@
       margin-top: 10px;
     }
     .buy-btn {
-      flex: 1;
+      flex: 0 0 auto;
+      width: fit-content;
+      max-width: 100%;
       font-size: 0.78rem;
       font-weight: 700;
-      padding: 8px 0;
+      padding: 8px 12px;
       border-radius: var(--radius-xs);
       border: 1px solid var(--accent);
       background: var(--accent);
@@ -1118,6 +1120,7 @@
       cursor: pointer;
       transition: all var(--transition);
       text-align: center;
+      white-space: nowrap;
       letter-spacing: 0.02em;
     }
     .buy-btn:hover {
