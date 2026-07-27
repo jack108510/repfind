@@ -1402,18 +1402,15 @@
       .price-main { font-size: 0.82rem; color: var(--accent-light); }
       .price-cny { font-size: 0.62rem; color: rgba(255,255,255,0.6); }
       .result-actions {
-        position: absolute; top: 6px; right: 6px;
-        display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end;
+        position: static;
+        display: flex; gap: 4px; padding: 4px 6px 6px;
       }
       .buy-btn {
-        font-size: 0.6rem; font-weight: 700; padding: 4px 8px;
+        flex: 1; width: auto; font-size: 0.62rem; font-weight: 700; padding: 5px 8px;
         border-radius: 5px; white-space: nowrap;
-        backdrop-filter: blur(4px);
-        background: rgba(200,75,47,0.92);
       }
       .add-to-cart-btn {
-        font-size: 0.6rem; padding: 4px 7px; border-radius: 5px;
-        backdrop-filter: blur(4px);
+        font-size: 0.62rem; padding: 5px 8px; border-radius: 5px;
       }
       .kakobuy-info { display: none; }
       .stat-pills { gap: 4px; }
