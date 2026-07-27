@@ -310,6 +310,11 @@
       padding: 12px 0;
       border-bottom: 1px solid var(--border);
       align-items: center;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .cart-item:hover {
+      background: var(--surface-hover, rgba(255,255,255,0.04));
     }
     .cart-item-img {
       width: 48px;
@@ -3944,13 +3949,13 @@ function renderCart() {
   }
 
   const itemRows = cart.map(item => `
-    <div class="cart-item">
+    <div class="cart-item" onclick="openDetail('${item.id}')">
       <img class="cart-item-img" src="${item.image || FALLBACK_SVG}" alt="" referrerpolicy="no-referrer" onerror="imgFallback(this)">
       <div class="cart-item-info">
         <div class="cart-item-name" title="${escapeAttr(item.name)}">${escapeHtml(item.name)}</div>
         <div class="cart-item-price">${formatPrice(item.priceCNY || 0, currentCurrency)}</div>
       </div>
-      <button class="cart-item-remove" onclick="removeFromCart('${item.id}')">&times;</button>
+      <button class="cart-item-remove" onclick="event.stopPropagation(); removeFromCart('${item.id}')">&times;</button>
     </div>`).join('');
   const guestNotice = !currentUser ? `<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px;font-size:0.82rem;color:var(--text-dim)">Sign in to sync your haul across devices. <button style="background:none;border:none;color:var(--accent-light);cursor:pointer;font-size:0.82rem;padding:0;text-decoration:underline" onclick="showAuthModal('Sign in to sync your haul across devices.')">Sign in</button></div>` : '';
   itemsEl.innerHTML = `${itemRows}${guestNotice}`;
