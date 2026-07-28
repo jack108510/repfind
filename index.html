@@ -2314,14 +2314,16 @@ async function doSearch(fromDocked) {
     if (ai.action === 'search' && ai.search_query) {
       // AI says search - show results with the refined query
       await renderSearchResponse(ai, inner);
-      trackSearch(query, 'search', 0);
+      const resultCount = document.querySelectorAll('#resultsList .product-card').length;
+      trackSearch(query, 'search', resultCount);
     } else if (ai.action === 'clarify') {
       // AI wants to clarify - search our DB first, offer data-driven narrowing
       await renderDataDrivenClarify(query, ai, inner);
-      trackSearch(query, 'clarify', 0);
+      const clarifyCount = document.querySelectorAll('#resultsList .product-card').length;
+      trackSearch(query, 'clarify', clarifyCount);
     } else {
       renderChatResponse(ai, inner);
-      trackSearch(query, ai.action || 'chat', 0);
+      trackSearch(query, _sanitizeQuery(ai.action || 'chat'), 0);
     }
 
     addHistory(query);
@@ -4082,6 +4084,19 @@ const ANALYTICS_DEVICE = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'mob
 
 // All analytics routed through repfind_searches (has anon INSERT policy).
 // action field differentiates event types; refined_query holds JSON metadata.
+// Use localStorage for persistent visitor ID (survives browser restarts).
+const ANALYTICS_VISITOR = (function() {
+  let v = localStorage.getItem('rf_vid');
+  if (!v) { v = 'v_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); localStorage.setItem('rf_vid', v); }
+  return v;
+})();
+
+function _sanitizeQuery(q) {
+  if (typeof q === 'object') { try { q = JSON.stringify(q); } catch(e) { q = String(q); } }
+  if (!q) q = '';
+  return String(q).slice(0, 200);
+}
+
 async function trackPageView() {
   if (!supabaseClient) return;
   try {
@@ -4089,7 +4104,7 @@ async function trackPageView() {
       query: (location.pathname + location.search).slice(0, 200) || '/',
       action: 'page_view',
       results_count: 0,
-      refined_query: JSON.stringify({ device: ANALYTICS_DEVICE, referrer: document.referrer || '', session: ANALYTICS_SESSION }),
+      refined_query: JSON.stringify({ device: ANALYTICS_DEVICE, referrer: document.referrer || '', session: ANALYTICS_SESSION, visitor: ANALYTICS_VISITOR, utm: JSON.parse(sessionStorage.getItem('rf_utm') || '{}') }),
     });
   } catch(e) { /* silent fail */ }
 }
@@ -4098,10 +4113,10 @@ async function trackSearch(query, action, resultCount) {
   if (!supabaseClient) return;
   try {
     await supabaseClient.from('repfind_searches').insert({
-      query: (query || '').slice(0, 200),
+      query: _sanitizeQuery(query),
       action: action || 'search',
       results_count: resultCount || 0,
-      refined_query: JSON.stringify({ session: ANALYTICS_SESSION }),
+      refined_query: JSON.stringify({ session: ANALYTICS_SESSION, visitor: ANALYTICS_VISITOR, device: ANALYTICS_DEVICE }),
     });
   } catch(e) { /* silent fail */ }
 }
@@ -4110,15 +4125,24 @@ async function trackEvent(type, data) {
   if (!supabaseClient) return;
   try {
     await supabaseClient.from('repfind_searches').insert({
-      query: type.slice(0, 200),
+      query: _sanitizeQuery(type),
       action: 'event',
       results_count: 0,
-      refined_query: JSON.stringify({ ...data, session: ANALYTICS_SESSION, device: ANALYTICS_DEVICE }),
+      refined_query: JSON.stringify({ ...data, session: ANALYTICS_SESSION, visitor: ANALYTICS_VISITOR, device: ANALYTICS_DEVICE }),
     });
   } catch(e) { /* silent fail */ }
 }
 
-// Track page view on load
+// Track page view on load — capture UTM params for source attribution
+(function() {
+  const params = new URLSearchParams(location.search);
+  const utm = {};
+  for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']) {
+    const val = params.get(key);
+    if (val) utm[key] = val;
+  }
+  if (Object.keys(utm).length) sessionStorage.setItem('rf_utm', JSON.stringify(utm));
+})();
 trackPageView();
 // Track on SPA-style navigations (hash/route changes)
 let _lastPath = location.pathname + location.search;
