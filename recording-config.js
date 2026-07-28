@@ -1,10 +1,10 @@
 /*
  * Repfind recording configuration — auto-generated
- * Product context: corteiz tee Batman
- * Generated: 2026-07-24T16:46:22Z
+ * Product context: Pop Mart The Monsters Bunny Plush Keychain Beige Accessories
+ * Generated: 2026-07-28T17:00:00Z
  */
 const recordingConfig = {
-  searchTerm: 'corteiz tee',
+  searchTerm: 'Pop Mart',
   verifyLiveKakobuy: false
 };
 

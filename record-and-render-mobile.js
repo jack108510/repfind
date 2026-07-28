@@ -6,7 +6,7 @@ const rawCapture = path.join(root, 'output', 'repfind-mobile-screen-recording.we
 const deliveryMp4 = path.join(root, 'output', 'repfind-mobile-screen-recording.mp4');
 
 function run(command, args) {
-  execFileSync(command, args, { cwd: root, stdio: 'inherit' });
+  execFileSync(command, args, { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
 }
 
 try {

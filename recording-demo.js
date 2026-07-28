@@ -60,48 +60,45 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 30px;
-      height: 40px;
+      width: 28px;
+      height: 28px;
       z-index: 9999;
       pointer-events: none;
       opacity: 0;
-      transform: translate(-3px, -3px);
       transition: left 300ms cubic-bezier(.18,.84,.25,1), top 300ms cubic-bezier(.18,.84,.25,1), opacity 160ms ease;
       will-change: left, top, opacity;
-      filter: drop-shadow(0 2px 2px rgba(0,0,0,.55));
+      filter: drop-shadow(0 1px 3px rgba(0,0,0,.45));
     }
     #recordingCursor::before {
       content: '';
       position: absolute;
-      width: 0;
-      height: 0;
-      border-top: 0 solid transparent;
-      border-bottom: 26px solid #fff;
-      border-right: 18px solid transparent;
-      transform: rotate(-18deg);
-      transform-origin: 0 0;
-      -webkit-clip-path: polygon(0 0, 100% 100%, 45% 76%, 31% 100%);
-      clip-path: polygon(0 0, 100% 100%, 45% 76%, 31% 100%);
+      top: 0;
+      left: 0;
+      width: 28px;
+      height: 28px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cdefs%3E%3Cfilter id='s' x='-20%25' y='-20%25' width='140%25' height='140%25'%3E%3CfeDropShadow dx='1' dy='1.5' stdDeviation='1' flood-color='%23000' flood-opacity='.4'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M3 2 L3 22 L9 17 L12.5 24.5 L15.5 23 L12 15.5 L20 15.5 Z' fill='%23ffffff' stroke='%23000' stroke-width='1.5' stroke-linejoin='round' filter='url(%23s)'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-size: contain;
     }
     #recordingCursor::after {
       content: '';
       position: absolute;
-      width: 8px;
-      height: 8px;
-      border: 3px solid #e8624a;
+      width: 24px;
+      height: 24px;
+      border: 2.5px solid #4A90D9;
       border-radius: 999px;
-      left: 9px;
-      top: 11px;
+      left: 2px;
+      top: 2px;
       opacity: 0;
-      transform: scale(.5);
+      transform: scale(.4);
     }
     #recordingCursor.clicked::after {
       animation: recordingClick 420ms ease-out;
     }
     @keyframes recordingClick {
-      0% { opacity: .95; transform: scale(.5); }
-      65% { opacity: .9; transform: scale(2.6); }
-      100% { opacity: 0; transform: scale(3.1); }
+      0% { opacity: .8; transform: scale(.4); }
+      50% { opacity: .7; transform: scale(1.8); }
+      100% { opacity: 0; transform: scale(2.4); }
     }
   `;
   document.head.appendChild(style);

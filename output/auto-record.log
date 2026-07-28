@@ -409,3 +409,132 @@ frame=  328 fps=299 q=-1.0 Lsize=    1915KiB time=00:00:13.04 bitrate=1202.8kbit
 Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
 [2026-07-24 10:46:38] Recording complete: /Users/jackserver/repfind/output/repfind-20260724-104638.mp4
 [2026-07-24 10:46:38] === Done ===
+[2026-07-24 10:50:10] === RepFind Auto-Record Start ===
+[2026-07-24 10:50:10] Selected: Hermès Chaine d'Ancre Flat Sandals Black Gladiator Sandals (ID: 7742444736, ¥265.2)
+[2026-07-24 10:50:10] Search term: Hermès Chaine
+[2026-07-24 10:50:10] Config updated
+[2026-07-24 10:50:10] Starting recording...
+
+Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
+[2026-07-24 10:50:24] Recording complete: /Users/jackserver/repfind/output/repfind-20260724-105024.mp4
+[2026-07-24 10:50:25] === Done ===
+[2026-07-24 11:00:00] === RepFind Auto-Record Start ===
+[2026-07-24 11:00:00] Selected: Far From What Distorted Logo Gray Hoodie (ID: 7741632949, ¥165.0)
+[2026-07-24 11:00:00] Search term: Far From
+[2026-07-24 11:00:00] Config updated
+[2026-07-24 11:00:00] Starting recording...
+
+Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
+[2026-07-24 11:00:14] Recording complete: /Users/jackserver/repfind/output/repfind-20260724-110014.mp4
+[2026-07-24 11:00:14] === Done ===
+[2026-07-24 12:32:56] === RepFind Auto-Record Start ===
+[2026-07-24 12:32:56] Selected: Vertabrate Graffiti Logo Black T-Shirt (ID: 7742358627, ¥140.25)
+[2026-07-24 12:32:56] Search term: Vertabrate Graffiti
+[2026-07-24 12:32:56] Config updated
+[2026-07-24 12:32:56] Starting recording...
+
+Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
+[2026-07-24 12:33:12] Recording complete: /Users/jackserver/repfind/output/repfind-20260724-123312.mp4
+[2026-07-24 12:33:12] === Done ===
+[2026-07-24 15:00:00] === RepFind Auto-Record Start ===
+[2026-07-24 15:00:00] Selected: Adidas x Dragon Ball Z Manga Panel Jersey White / Blue / Pink (ID: 7711848988, ¥94.05)
+[2026-07-24 15:00:00] Search term: Adidas x
+[2026-07-24 15:00:00] Config updated
+[2026-07-24 15:00:00] Starting recording...
+
+Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
+[2026-07-24 15:00:15] Recording complete: /Users/jackserver/repfind/output/repfind-20260724-150015.mp4
+[2026-07-24 15:00:15] === Done ===
+[2026-07-25 15:00:00] === RepFind Auto-Record Start ===
+[2026-07-25 15:00:00] Selected: Amiri Cracked Logo Graphic Black T-Shirt (ID: 7728317065, ¥134.4)
+[2026-07-25 15:00:00] Search term: Amiri Cracked
+[2026-07-25 15:00:00] Config updated
+[2026-07-25 15:00:00] Starting recording...
+
+Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
+[2026-07-25 15:00:15] Recording complete: /Users/jackserver/repfind/output/repfind-20260725-150015.mp4
+[2026-07-25 15:00:15] === Done ===
+[2026-07-26 07:00:00] === RepFind Auto-Record Start ===
+[2026-07-26 07:00:00] Selected: Dior DIOR Logo Black T-Shirt (ID: 7649776444, ¥162.0)
+[2026-07-26 07:00:00] Search term: Dior DIOR
+[2026-07-26 07:00:00] Config updated
+[2026-07-26 07:00:00] Starting recording...
+
+Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
+[2026-07-26 07:00:15] Recording complete: /Users/jackserver/repfind/output/repfind-20260726-070015.mp4
+[2026-07-26 07:00:15] === Done ===
+[2026-07-26 11:00:00] === RepFind Auto-Record Start ===
+[2026-07-26 11:00:00] Selected: Nike x Bed Stuy 13 White Multicolor Jersey (ID: 7745569092, ¥99.0)
+[2026-07-26 11:00:00] Search term: Nike x
+[2026-07-26 11:00:00] Config updated
+[2026-07-26 11:00:00] Starting recording...
+
+Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
+[2026-07-26 11:00:14] Recording complete: /Users/jackserver/repfind/output/repfind-20260726-110014.mp4
+[2026-07-26 11:00:14] === Done ===
+[2026-07-26 15:00:00] === RepFind Auto-Record Start ===
+[2026-07-26 15:00:00] Selected: Gucci Horsebit 1955 Mini Crossbody Bag Beige GG Marmont Canvas (ID: 7742619952, ¥135.0)
+[2026-07-26 15:00:00] Search term: Gucci Horsebit
+[2026-07-26 15:00:00] Config updated
+[2026-07-26 15:00:00] Starting recording...
+Command failed: /opt/homebrew/Cellar/node/25.8.1_1/bin/node /Users/jackserver/repfind/record-screen-demo-mobile.js
+page.waitForFunction: Timeout 15000ms exceeded.
+    at runGuestFlow (/Users/jackserver/repfind/recording-actions.js:301:14)
+    at async main (/Users/jackserver/repfind/record-screen-demo-mobile.js:54:5) {
+  log: [],
+  name: 'TimeoutError'
+}
+
+[2026-07-27 07:00:00] === RepFind Auto-Record Start ===
+[2026-07-27 07:00:00] Selected: Design Performance Mesh Panel T-Shirt Gray (ID: 7768835000, ¥70.0)
+[2026-07-27 07:00:00] Search term: Performance Mesh
+[2026-07-27 07:00:00] Config updated
+[2026-07-27 07:00:00] Starting recording...
+Command failed: /opt/homebrew/Cellar/node/25.8.1_1/bin/node /Users/jackserver/repfind/record-screen-demo-mobile.js
+page.waitForFunction: Timeout 15000ms exceeded.
+    at runGuestFlow (/Users/jackserver/repfind/recording-actions.js:301:14)
+    at async main (/Users/jackserver/repfind/record-screen-demo-mobile.js:54:5) {
+  log: [],
+  name: 'TimeoutError'
+}
+
+[2026-07-27 11:00:00] === RepFind Auto-Record Start ===
+[2026-07-27 11:00:00] Selected: Prada Cahier Suede Tan Handbag (ID: 7740774151, ¥365.0)
+[2026-07-27 11:00:00] Search term: Prada Cahier
+[2026-07-27 11:00:00] Config updated
+[2026-07-27 11:00:00] Starting recording...
+Command failed: /opt/homebrew/Cellar/node/25.8.1_1/bin/node /Users/jackserver/repfind/record-screen-demo-mobile.js
+page.waitForFunction: Timeout 15000ms exceeded.
+    at runGuestFlow (/Users/jackserver/repfind/recording-actions.js:301:14)
+    at async main (/Users/jackserver/repfind/record-screen-demo-mobile.js:54:5) {
+  log: [],
+  name: 'TimeoutError'
+}
+
+[2026-07-27 15:00:00] === RepFind Auto-Record Start ===
+[2026-07-27 15:00:00] Selected: Saint Tears Flame Heart Graphic T-Shirt White (ID: 7744419066, ¥100.0)
+[2026-07-27 15:00:00] Search term: Saint Tears
+[2026-07-27 15:00:00] Config updated
+[2026-07-27 15:00:00] Starting recording...
+
+Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
+[2026-07-27 15:00:15] Recording complete: /Users/jackserver/repfind/output/repfind-20260727-150015.mp4
+[2026-07-27 15:00:15] === Done ===
+[2026-07-28 07:00:00] === RepFind Auto-Record Start ===
+[2026-07-28 07:00:00] Selected: Ray-Ban Round Sunglasses Blue Gradient Lens Black Frame (ID: 7714707450, ¥80.0)
+[2026-07-28 07:00:00] Search term: Ray-Ban Round
+[2026-07-28 07:00:00] Config updated
+[2026-07-28 07:00:00] Starting recording...
+
+Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
+[2026-07-28 07:00:20] Recording complete: /Users/jackserver/repfind/output/repfind-20260728-070020.mp4
+[2026-07-28 07:00:20] === Done ===
+[2026-07-28 11:00:00] === RepFind Auto-Record Start ===
+[2026-07-28 11:00:00] Selected: Pop Mart The Monsters Bunny Plush Keychain Beige Accessories (ID: 7741671266, ¥46.75)
+[2026-07-28 11:00:00] Search term: Pop Mart
+[2026-07-28 11:00:00] Config updated
+[2026-07-28 11:00:00] Starting recording...
+
+Portrait MP4 written to: /Users/jackserver/repfind/output/repfind-mobile-screen-recording.mp4
+[2026-07-28 11:00:16] Recording complete: /Users/jackserver/repfind/output/repfind-20260728-110016.mp4
+[2026-07-28 11:00:16] === Done ===

@@ -12,7 +12,7 @@ LOG_FILE="$BASE/output/auto-record.log"
 
 mkdir -p "$BASE/output"
 
-log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"; }
+log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG_FILE"; }
 
 log "=== RepFind Auto-Record Start ==="
 
@@ -102,9 +102,8 @@ if ! curl -s -o /dev/null http://127.0.0.1:4173/ 2>/dev/null; then
   exit 1
 fi
 
-# 4. Run the recording
 log "Starting recording..."
-cd "$BASE" && node record-and-render-mobile.js >> "$LOG_FILE" 2>&1
+cd "$BASE" && node record-and-render-mobile.js >> "$LOG_FILE" 2>&1 </dev/null
 
 if [[ ! -f "$OUTPUT_MP4" ]]; then
   log "ERROR: Recording failed — no MP4 produced"
