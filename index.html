@@ -3481,18 +3481,53 @@ function searchProducts(query, limit = 12) {
   });
   term = words.join(' ');
   const CATEGORY_HINTS = {
-    'sneakers': ['shoes', 'sneakers'],
-    'shoes': ['shoes', 'sneakers'],
-    'hoodies': ['hoodies', 'hoodies/sweaters'],
-    'hoodie': ['hoodies', 'hoodies/sweaters'],
-    'jackets': ['jackets', 'coats / jackets'],
-    'jacket': ['jackets', 'coats / jackets'],
-    'tees': ['t-shirts', 't-shirt'],
-    'tee': ['t-shirts', 't-shirt'],
-    'shirt': ['t-shirts', 't-shirt'],
-    'pants': ['pants', 'pants/shorts'],
-    'shorts': ['shorts', 'pants/shorts'],
-    'electronics': ['electronics'],
+    // Fashion
+    'sneakers': ['shoes', 'sneakers', '老爹鞋', '跑步鞋', '篮球鞋', '板鞋'],
+    'shoes': ['shoes', 'sneakers', '老爹鞋', '跑步鞋', '篮球鞋', '板鞋'],
+    'hoodies': ['hoodies', '卫衣'],
+    'hoodie': ['hoodies', '卫衣'],
+    'jackets': ['jackets', '夹克', '羽绒服', '防风夹克'],
+    'jacket': ['jackets', '夹克', '羽绒服', '防风夹克'],
+    'tees': ['t-shirts', 't-shirt', 't恤'],
+    'tee': ['t-shirts', 't-shirt', 't恤'],
+    'shirt': ['t-shirts', 't-shirt', '衬衫', 't恤'],
+    'pants': ['pants', '裤子', '运动裤', '长裤'],
+    'shorts': ['shorts', '短裤'],
+    'jersey': ['jerseys', '球衣'],
+    'jordan': ['jordan', '乔丹'],
+    // Electronics & tech
+    'electronics': ['electronics', '电子产品'],
+    'tech': ['electronics', '电子产品'],
+    'smartwatch': ['smartwatch', '智能手表', '智能手环'],
+    'smart watch': ['smartwatch', '智能手表', '智能手环'],
+    'watch': ['watch', '手表', '智能手表', '机械表', '石英表'],
+    'earbuds': ['earbuds', '耳机', '真无线耳机'],
+    'earphones': ['earphones', '耳机', '真无线耳机'],
+    'headphones': ['headphones', '头戴式耳机'],
+    'airpods': ['airpods', '耳机', '真无线耳机'],
+    'speaker': ['speaker', '音箱', '便携音箱', '智能音箱'],
+    'speakers': ['speaker', '音箱', '便携音箱', '智能音箱'],
+    'charger': ['charger', '充电器'],
+    'keyboard': ['keyboard', '键盘'],
+    'mouse': ['mouse', '鼠标'],
+    'phone case': ['phone case', '手机壳'],
+    'case': ['phone case', '手机壳'],
+    // Lifestyle
+    'perfume': ['perfume', '香水'],
+    'fragrance': ['perfume', '香水'],
+    'cologne': ['perfume', '香水'],
+    'sunglasses': ['sunglasses', '太阳镜'],
+    'glasses': ['glasses', '太阳镜', '光学眼镜'],
+    'luggage': ['luggage', '行李箱'],
+    'suitcase': ['luggage', '行李箱'],
+    'jewelry': ['jewelry', '首饰', '项链', '手链'],
+    'jewellery': ['jewelry', '首饰', '项链', '手链'],
+    'necklace': ['necklace', '项链'],
+    'bracelet': ['bracelet', '手链'],
+    'ring': ['ring', '戒指'],
+    'sleepwear': ['sleepwear', '睡衣家居服'],
+    'pyjamas': ['sleepwear', '睡衣家居服'],
+    'pajamas': ['sleepwear', '睡衣家居服'],
   };
 
   // ─── Rep keyword synonyms ───
@@ -3515,6 +3550,24 @@ function searchProducts(query, limit = 12) {
     'ow': ['off white', 'off-white'],
     'pk': ['pk god', 'pkbatch'],
     'og': ['og batch'],
+    // ── Electronics / tech ──
+    'tws': ['tws earbuds', 'true wireless', '真无线耳机'],
+    'pods': ['airpods', 'earpods', 'airpod'],
+    'max': ['airpods max', 'headphones'],
+    'xm4': ['wh-1000xm4'],
+    'xm5': ['wh-1000xm5'],
+    'iwatch': ['apple watch', 'smartwatch'],
+    'galaxy watch': ['samsung watch', 'galaxy watch'],
+    // ── Fragrance ──
+    'aqs': ['aqsoumlating', 'eau de parfum', 'edp'],
+    'edp': ['eau de parfum'],
+    'edt': ['eau de toilette'],
+    // ── Watches / jewelry ──
+    'pp': ['patek philippe', 'patek'],
+    'ap': ['audemars piguet', 'audemars'],
+    // ── Lifestyle ──
+    'luggage': ['suitcase', '行李箱'],
+    'travel bag': ['travel', '行李箱'],
   };
 
   // Expand query with synonyms
@@ -3610,7 +3663,14 @@ function searchProducts(query, limit = 12) {
   // This is where precision lives. Weak recall matches score near zero
   // and sink to the bottom; exact matches dominate the top.
   // ════════════════════════════════════════════════
-  const BRANDS = ['nike','jordan','air jordan','yeezy','adidas','new balance','dunk','air max','air force','travis scott','off white','off-white','louis vuitton','lv ','dior','balenciaga','bape','chrome hearts','fear of god','fog','kobe','amiri','cdg','comme des garcons','versace','givenchy','prada','gucci','patek','phillippe','rolex','audemars','hublot','cartier','nb ','samba','gazelle','campus','mamba','travis','cactus jack'];
+  const BRANDS = ['nike','jordan','air jordan','yeezy','adidas','new balance','dunk','air max','air force','travis scott','off white','off-white','louis vuitton','lv ','dior','balenciaga','bape','chrome hearts','fear of god','fog','kobe','amiri','cdg','comme des garcons','versace','givenchy','prada','gucci','patek','phillippe','rolex','audemars','hublot','cartier','nb ','samba','gazelle','campus','mamba','travis','cactus jack',
+    // Tech & electronics brands
+    'apple','iphone','ipad','airpods','airpod','airpods max','sony','wh-1000','bose','samsung','galaxy','xiaomi','amazfit','huawei','jbl','harman kardon','harman','anker','magsafe',
+    // Fashion luxury (watches/jewelry beyond sneakers)
+    'rimowa','tissot','prx','omega','tag heuer','tudor','panerai','iwc','burberry','chanel','celine','miumiu','fendi','moncler','stone island','carhartt','ralph lauren','lacoste','tommy hilfigher','bape','stussy','supreme','essentials',
+    // Fragrance / beauty
+    'creed','tom ford','dior savage','versace eros','chanel bleu','parfums de marly','initio','byredo','le labo','memo','roja',
+  ];
 
   const scored = [];
   for (const p of candidates) {
