@@ -3656,7 +3656,8 @@ function searchProducts(query, limit = 12) {
 
     // ── TIER 5: Quality signals ──
     if (BRANDS.some(b => name.includes(b))) score += 50;    // recognized brand
-    if (p.image && !p.image.includes('picsum')) score += 20; // has real image
+    if (p.image && !p.image.includes('picsum')) score += 35; // has real image
+    if (/^\d+$/.test(p.itemID)) score += 50;                 // has working buy link (not a synthetic dedup ID)
     if (p.clicks > 0) score += Math.min(p.clicks / 100, 15); // popularity
     if (name.length > 80) score -= 20;                       // keyword stuffing
     if (/^[\d\s\W]+$/.test(name)) score -= 30;                // gibberish name
@@ -3671,9 +3672,13 @@ function searchProducts(query, limit = 12) {
     if (score > 0) scored.push({ ...p, score });
   }
 
-  // Sort by score (desc), then by name length (asc) for tie-breaker
+  // Sort: score (desc) → has both image+link first → name length (asc)
   scored.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
+    // Tie-breaker: results with a real photo AND a working link go first
+    const aComplete = (a.image && !a.image.includes('picsum') && /^\d+$/.test(a.itemID)) ? 1 : 0;
+    const bComplete = (b.image && !b.image.includes('picsum') && /^\d+$/.test(b.itemID)) ? 1 : 0;
+    if (bComplete !== aComplete) return bComplete - aComplete;
     return (a.name || '').length - (b.name || '').length;
   });
 
@@ -3740,11 +3745,18 @@ function searchDecorProducts(limit = 24) {
     // Hard-exclude any product in a fashion/sneaker category
     if (fashionCats.some(k => cat.includes(k))) score -= 200;
     if (/\b(trophy room|showroom|mushroom|bedroom athletics|living room best quality)\b/.test(text)) score -= 160;
-    if (p.image && !p.image.includes('picsum')) score += 20;
+    if (p.image && !p.image.includes('picsum')) score += 35;
+    if (/^\d+$/.test(p.itemID)) score += 50;
     if (parseFloat(p._priceUSD) > 0) score += 10;
     if (score > 45) scored.push({ ...p, score });
   }
-  scored.sort((a,b) => b.score - a.score || (parseFloat(a._priceUSD)||9999) - (parseFloat(b._priceUSD)||9999));
+  scored.sort((a,b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    const aComplete = (a.image && !a.image.includes('picsum') && /^\d+$/.test(a.itemID)) ? 1 : 0;
+    const bComplete = (b.image && !b.image.includes('picsum') && /^\d+$/.test(b.itemID)) ? 1 : 0;
+    if (bComplete !== aComplete) return bComplete - aComplete;
+    return (parseFloat(a._priceUSD)||9999) - (parseFloat(b._priceUSD)||9999);
+  });
   const seen = new Set();
   const out = [];
   for (const p of scored) {
@@ -3772,11 +3784,18 @@ function searchAppleElectronics(limit = 24) {
     for (const k of include) if (text.includes(k)) score += k.includes('apple') || k.includes('iphone') || k.includes('airpod') ? 90 : 45;
     if (exclude.some(k => text.includes(k))) score -= 220;
     if (/电子产品|智能手表|耳机|手机|phone|electronics|smartwatch|earphones|tws|phone accessories|phone case/.test(text)) score += 80;
-    if (p.image && !p.image.includes('picsum')) score += 15;
+    if (p.image && !p.image.includes('picsum')) score += 35;
+    if (/^\d+$/.test(p.itemID)) score += 50;
     if (parseFloat(p._priceUSD) > 0) score += 10;
     if (score > 40) scored.push({ ...p, score });
   }
-  scored.sort((a,b) => b.score - a.score || (parseFloat(a._priceUSD)||9999) - (parseFloat(b._priceUSD)||9999));
+  scored.sort((a,b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    const aComplete = (a.image && !a.image.includes('picsum') && /^\d+$/.test(a.itemID)) ? 1 : 0;
+    const bComplete = (b.image && !b.image.includes('picsum') && /^\d+$/.test(b.itemID)) ? 1 : 0;
+    if (bComplete !== aComplete) return bComplete - aComplete;
+    return (parseFloat(a._priceUSD)||9999) - (parseFloat(b._priceUSD)||9999);
+  });
   const seen = new Set();
   const out = [];
   for (const p of scored) {
