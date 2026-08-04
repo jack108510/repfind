@@ -4113,22 +4113,36 @@ async function deleteCartItemFromServer(productId) {
   if (error) { console.error('Haul delete error:', error); showToast('Removed locally. Server haul needs setup.'); }
 }
 
+const GUEST_HAUL_LIMIT = 3;
+
 async function addToCart(productId, btn) {
-  // Must be signed in to add to haul
-  if (!currentUser) {
-    showAuthModal('Sign up to save products to your haul and sync across devices.');
-    return;
-  }
   const product = productIndex[productId] || currentResults.find(r => r.id === productId);
   if (!product) return;
   if (cart.find(item => item.id === productId)) { showToast('Already in your haul'); return; }
+
+  // Guests can save up to GUEST_HAUL_LIMIT items, then must sign up
+  if (!currentUser && cart.length >= GUEST_HAUL_LIMIT) {
+    showAuthModal(`You've saved ${GUEST_HAUL_LIMIT} products! Sign up to save unlimited and sync across devices.`);
+    return;
+  }
+
   const item = { id: product.id, name: product.name, price: parseFloat(product.priceUSD) || 0, priceCNY: product.priceCNY || 0, image: product.img || '', platform: product.platform || 'weidian' };
   cart.push(item);
   saveCart(); updateCartBadge(); renderCart();
   if (currentUser) await saveCartItemToServer(item);
   if (btn) { btn.textContent = 'Added'; btn.classList.add('added'); setTimeout(() => { btn.textContent = '+ Haul'; btn.classList.remove('added'); }, 1200); }
-  showToast(`Saved to your haul (${cart.length} items)`);
-  trackEvent('haul_add', { product: item.name, platform: item.platform, price_usd: item.price });
+
+  if (!currentUser) {
+    const remaining = GUEST_HAUL_LIMIT - cart.length;
+    if (remaining > 0) {
+      showToast(`Saved! ${remaining} free save${remaining === 1 ? '' : 's'} left — sign up for unlimited`);
+    } else {
+      showToast(`That's your ${GUEST_HAUL_LIMIT} free saves! Sign up for unlimited`);
+    }
+  } else {
+    showToast(`Saved to your haul (${cart.length} items)`);
+  }
+  trackEvent('haul_add', { product: item.name, platform: item.platform, price_usd: item.price, guest: !currentUser });
 }
 
 async function removeFromCart(productId) {
@@ -4151,9 +4165,9 @@ function renderCart() {
   if (!itemsEl) return;
 
   const authTeaser = !currentUser ? `<div class="cart-auth-teaser">
-    <h3>Save your haul</h3>
-    <p>Your haul is saved on this device. Sign in to sync it across devices and come back later.</p>
-    <button class="cart-checkout-btn" onclick="showAuthModal('Sign in to sync your haul across devices.')">Sign up or log in</button>
+    <h3>${cart.length >= GUEST_HAUL_LIMIT ? 'Free saves used up!' : 'Save your haul'}</h3>
+    <p>${cart.length >= GUEST_HAUL_LIMIT ? `You've used all ${GUEST_HAUL_LIMIT} free saves. Sign up to save unlimited products and sync across devices.` : `You can save ${GUEST_HAUL_LIMIT - cart.length} more product${GUEST_HAUL_LIMIT - cart.length === 1 ? '' : 's'} for free. Sign up for unlimited saves and sync across devices.`}</p>
+    <button class="cart-checkout-btn" onclick="showAuthModal('Sign up for unlimited saves.')">Sign up — it's free</button>
   </div>` : '';
 
   if (cart.length === 0) {
@@ -4172,7 +4186,7 @@ function renderCart() {
       </div>
       <button class="cart-item-remove" onclick="event.stopPropagation(); removeFromCart('${item.id}')">&times;</button>
     </div>`).join('');
-  const guestNotice = !currentUser ? `<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px;font-size:0.82rem;color:var(--text-dim)">Sign in to sync your haul across devices. <button style="background:none;border:none;color:var(--accent-light);cursor:pointer;font-size:0.82rem;padding:0;text-decoration:underline" onclick="showAuthModal('Sign in to sync your haul across devices.')">Sign in</button></div>` : '';
+  const guestNotice = !currentUser ? `<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px;font-size:0.82rem;color:var(--text-dim)">${cart.length >= GUEST_HAUL_LIMIT ? `<strong style="color:var(--accent-light)">Free saves limit reached.</strong> ` : ''}Sign up for unlimited saves + sync across devices. <button style="background:none;border:none;color:var(--accent-light);cursor:pointer;font-size:0.82rem;padding:0;text-decoration:underline" onclick="showAuthModal('Sign up for unlimited saves.')">Sign up</button></div>` : '';
   itemsEl.innerHTML = `${itemRows}${guestNotice}`;
   const total = cart.reduce((sum, item) => sum + (item.priceCNY || 0), 0);
   totalEl.textContent = formatPrice(total, currentCurrency);
