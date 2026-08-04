@@ -2014,14 +2014,14 @@ const AFFILIATE_CODES = {
 };
 
 const AGENTS = {
-  kakobuy: { name: 'KakoBuy', color: '#C84B2F' },
-  cnfans:  { name: 'CNFans',  color: '#4A90D9' },
-  oopbuy:  { name: 'OopBuy',  color: '#E8843C' },
+  kakobuy: { name: 'KakoBuy', color: '#C84B2F', desc: 'Fast processing, English UI' },
+  cnfans:  { name: 'CNFans',  color: '#4A90D9', desc: 'Popular, wide warehouse' },
+  oopbuy:  { name: 'OopBuy',  color: '#E8843C', desc: 'Low service fee' },
 };
 
 // ─── Agent Selection (user picks which sites to buy from) ───
-let savedAgents = ['kakobuy'];
-try { savedAgents = JSON.parse(localStorage.getItem('repfind_agents')) || ['kakobuy']; } catch(e) {}
+let savedAgents = ['kakobuy', 'cnfans', 'oopbuy'];
+try { savedAgents = JSON.parse(localStorage.getItem('repfind_agents')) || ['kakobuy', 'cnfans', 'oopbuy']; } catch(e) {}
 let selectedAgents = savedAgents;
 localStorage.setItem('repfind_agents', JSON.stringify(selectedAgents));
 
@@ -2329,7 +2329,7 @@ async function doSearch(fromDocked) {
       trackSearch(query, 'clarify', clarifyCount);
     } else {
       renderChatResponse(ai, inner);
-      trackSearch(query, _sanitizeQuery(ai.action || 'chat'), 0);
+      trackSearch(query, 'chat', 0);
     }
 
     addHistory(query);
@@ -2418,14 +2418,14 @@ async function renderDataDrivenClarify(query, ai, container) {
     rawProducts = searchAppleElectronics(50);
   } else {
     // Search our actual database for this query
-    rawProducts = searchProducts(query, 50);
+    rawProducts = await searchProducts(query, 50);
 
     // If no results, try the AI's suggested chips as fallback searches
     if (rawProducts.length === 0 && ai.chips && ai.chips.length) {
       for (const chip of ai.chips) {
         // Don't use chip fallbacks for concept queries we don't have data for
         if (detectSpecialIntent(chip)) continue;
-        const chipResults = searchProducts(chip, 30);
+        const chipResults = await searchProducts(chip, 30);
         if (chipResults.length > 0) {
           rawProducts = chipResults;
           break;
@@ -2629,13 +2629,13 @@ async function renderSearchResponse(ai, container) {
       rawProducts = searchAppleElectronics(24);
       intentNote = 'apple_electronics';
     } else {
-      rawProducts = searchProducts(query, 24);
+      rawProducts = await searchProducts(query, 24);
 
       // If AI query returned too few results, try broader fallbacks
       if (rawProducts.length < 6) {
         // Try with the original user query (not the AI-refined one)
         if (userQuery && userQuery !== query) {
-          const fallback = searchProducts(userQuery, 24);
+          const fallback = await searchProducts(userQuery, 24);
           if (fallback.length > rawProducts.length) {
             rawProducts = fallback;
           }
@@ -2647,12 +2647,12 @@ async function renderSearchResponse(ai, container) {
         if (rawProducts.length < 4 && !detectSpecialIntent(query) && !detectSpecialIntent(userQuery)) {
           const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
           const bestWord = words.sort((a,b) => {
-            const ac = searchProducts(a, 100).length;
-            const bc = searchProducts(b, 100).length;
+            const ac = (PRODUCT_DB||[]).filter(p => (p.name||'').toLowerCase().includes(a)).length;
+            const bc = (PRODUCT_DB||[]).filter(p => (p.name||'').toLowerCase().includes(b)).length;
             return bc - ac;
           })[0];
           if (bestWord) {
-            const wordResults = searchProducts(bestWord, 24);
+            const wordResults = await searchProducts(bestWord, 24);
             if (wordResults.length > rawProducts.length) {
               rawProducts = wordResults;
             }
@@ -2727,7 +2727,7 @@ async function renderSearchResponse(ai, container) {
 
       // ─── Cross-sell: suggest complementary products ───
       if (!crossSellShown && searchHistory.length <= 1) {
-        renderCrossSell(query, results, container);
+        renderCrossSell(query, results, container); // fire-and-forget — cross-sell is non-critical
         crossSellShown = true;
       }
     }, 300);
@@ -2979,7 +2979,7 @@ function renderCardHTML(r, idx) {
     return `<a class="buy-btn" href="${link}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')">Open in ${agent.name}</a>`;
   }).filter(Boolean).join(' ');
   const buyBtn = agentButtons || `<span class="buy-btn" style="opacity:0.4;cursor:not-allowed;pointer-events:none" aria-disabled="true">Link unavailable</span>`;
-  const infoIcon = `<span class="kakobuy-info" onclick="event.stopPropagation();this.classList.toggle('tapped')">?<span class="kakobuy-tooltip">Shipping agents (KakoBuy, CNFans, OopBuy) buy from the Chinese seller on your behalf and ship to you. Pick whichever you prefer.</span></span>`;
+  const infoIcon = `<span class="kakobuy-info" onclick="event.stopPropagation();this.classList.toggle('tapped')">?<span class="kakobuy-tooltip">Shipping agents buy from Chinese sellers on your behalf and ship worldwide. KakoBuy (fast, English UI), CNFans (popular, big warehouse), OopBuy (low fees). Use whichever you have an account with — links are pre-tagged with our referral.</span></span>`;
 
   // Add to cart button
   const cartBtn = `<button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart('${r.id}', this)">+ Haul</button>`;
@@ -3137,7 +3137,7 @@ function regenerateSearch() {
 }
 
 // ─── Cross-sell: suggest complementary products ───
-function renderCrossSell(query, results, container) {
+async function renderCrossSell(query, results, container) {
   if (!PRODUCT_DB || results.length === 0) return;
 
   // Map product categories to complementary categories
@@ -3238,7 +3238,7 @@ function renderCrossSell(query, results, container) {
   if (!crossSellCat) return;
 
   // Search for complementary products
-  const crossSellResults = searchProducts(crossSellCat, 3);
+  const crossSellResults = await searchProducts(crossSellCat, 3);
   if (crossSellResults.length === 0) return;
 
   const crossSellProducts = transformProducts(crossSellResults.map(p => ({ ...p, _category: crossSellCat })));
@@ -3489,6 +3489,11 @@ async function initAuth() {
 let PRODUCT_DB = null;
 let _productDBPromise = null;
 
+// Preload immediately on script parse — don't wait for first search.
+// The 12.8MB fetch + parse takes 1-3s; starting it ASAP means it's likely
+// ready before the user even types. searchProducts() will await this.
+_productDBPromise = loadProductDB();
+
 // ─── Product name cleanup ───
 // Source data has scrape artifacts: "Design " prefix on ~30% of items,
 // doubled words ("Revenge Revenge"), and source-category suffixes
@@ -3569,7 +3574,12 @@ async function loadProductDB() {
 // ════════════════════════════════════════════════
 // TWO-PHASE SEARCH: Recall (find candidates) → Rank (sort by relevance)
 // ════════════════════════════════════════════════
-function searchProducts(query, limit = 12) {
+async function searchProducts(query, limit = 12) {
+  // Ensure DB is loaded — if first search fires before preload finishes,
+  // wait for it here instead of returning empty results.
+  if (!PRODUCT_DB || PRODUCT_DB.length === 0) {
+    await loadProductDB();
+  }
   if (!PRODUCT_DB || PRODUCT_DB.length === 0) return [];
 
   // ─── Query normalization (shared by both phases) ───
@@ -4116,6 +4126,8 @@ async function deleteCartItemFromServer(productId) {
 const GUEST_HAUL_LIMIT = 3;
 
 async function addToCart(productId, btn) {
+  // Guests can build a haul — it saves to localStorage.
+  // After 3 items, gently nudge toward signup (non-blocking).
   const product = productIndex[productId] || currentResults.find(r => r.id === productId);
   if (!product) return;
   if (cart.find(item => item.id === productId)) { showToast('Already in your haul'); return; }
@@ -4332,6 +4344,10 @@ async function trackPageView() {
 
 async function trackSearch(query, action, resultCount) {
   if (!supabaseClient) return;
+  // Ensure query is always a clean string — not an object or undefined
+  if (typeof query === 'object') { try { query = JSON.stringify(query); } catch(e) { query = String(query); } }
+  if (!query || typeof query !== 'string') query = '';
+  query = query.slice(0, 200);
   try {
     await supabaseClient.from('repfind_searches').insert({
       query: _sanitizeQuery(query),
