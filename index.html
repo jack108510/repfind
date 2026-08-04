@@ -1035,6 +1035,12 @@
     .result-card:hover .result-img {
       opacity: 0.9;
     }
+    /* Placeholder for products without a usable image */
+    .result-img.img-fallback {
+      object-fit: contain;
+      padding: 8px;
+      background: var(--surface-2);
+    }
     .result-body {
       flex: 1;
       display: flex;
@@ -2536,7 +2542,16 @@ function renderChatResponse(ai, container) {
 // RENDER - SEARCH RESULTS (after AI confirms)
 // ════════════════════════════════════════════════
 async function renderSearchResponse(ai, container) {
-  const query = ai.search_query;
+  // Prefer the AI's refined query for search, but fall back to the user's
+  // original input if the AI didn't provide one or it looks unreliable.
+  const userQuery = chatHistory[chatHistory.length - 2]?.content || '';
+  let query = ai.search_query || userQuery;
+  // If the AI's search_query is clearly different from what the user typed
+  // and looks like a hallucination, prefer the user's original words.
+  if (userQuery && query && query.toLowerCase() !== userQuery.toLowerCase()) {
+    // AI refined the query — use it for search but keep user's words for display
+  }
+  const displayQuery = userQuery || query;
 
   // Show loading state for results
   const resultsHeader = document.createElement('div');
@@ -2594,8 +2609,9 @@ async function renderSearchResponse(ai, container) {
   `;
   container.appendChild(resultsHeader);
 
-  // Stream the AI reply first
-  streamText(document.getElementById('verdictText'), ai.reply, async () => {
+  // Show a neutral loading message while we search the real database.
+  // The actual summary is generated from results (never the AI's guess).
+  streamText(document.getElementById('verdictText'), '', async () => {
     // Search real product database. Use intent-specific searches for concept queries.
     await loadProductDB();
     let rawProducts = [];
@@ -2653,7 +2669,15 @@ async function renderSearchResponse(ai, container) {
     baseResults = [...results];
     lastSearchQuery = query;
 
-    const verdict = generateVerdict(query, results);
+    const verdict = generateVerdict(displayQuery, results);
+
+    // Replace the AI's hallucinated summary with the data-driven verdict.
+    // The webhook guesses without seeing our actual products; generateVerdict
+    // is built from the real results so it never lies about what's here.
+    const verdictEl = document.getElementById('verdictText');
+    if (verdictEl && verdict.verdict) {
+      verdictEl.innerHTML = verdict.verdict;
+    }
 
     // Show stats
     showStats(verdict.stats);
@@ -2671,7 +2695,7 @@ async function renderSearchResponse(ai, container) {
           ? `No decor results yet, but we have 66K+ products. Try searching for sneakers, bags, watches, or jewelry.`
           : intentNote === 'apple_electronics'
           ? `No Apple electronics yet, but we have 66K+ products. Try searching for sneakers, bags, watches, or jewelry.`
-          : `No products found for "${escapeHtml(query)}". Try a different search term.`;
+          : `No products found for "${escapeHtml(displayQuery)}". Try a different search term.`;
       }
       provEl.style.display = 'flex';
 
@@ -2685,7 +2709,7 @@ async function renderSearchResponse(ai, container) {
       // Empty state or results
       if (results.length === 0) {
         const list = document.getElementById('resultsList');
-        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(query)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">${intentNote ? 'Our database focuses on reps & fashion - try these instead' : 'Our database has 66K+ direct-link products - try a broader term'}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Patek Philippe','Designer Bags','Chrome Hearts','Jordan 4','Travis Scott'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
+        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(displayQuery)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">${intentNote ? 'Our database focuses on reps & fashion - try these instead' : 'Our database has 66K+ direct-link products - try a broader term'}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Patek Philippe','Designer Bags','Chrome Hearts','Jordan 4','Travis Scott'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
       } else {
         renderResults(results, resultsHeader);
       }
@@ -2808,13 +2832,62 @@ function renderResults(results, scope) {
 }
 
 // Global image fallback - avoids broken inline onerror quotes from SVG data URIs
-const FALLBACK_SVG = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2288%22 height=%2288%22%3E%3Crect fill=%22%231F1F1F%22 width=%2288%22 height=%2288%22 rx=%228%22/%3E%3Cg transform=%22translate(44,36)%22%3E%3Cpath d=%22M-14,-2 L0,-12 L14,-2 L14,12 L-14,12 Z%22 fill=%22none%22 stroke=%22%23444%22 stroke-width=%222%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%22-5%22 cy=%220%22 r=%223%22 fill=%22%23444%22/%3E%3Cpath d=%22M-14,8 L-5,2 L0,6 L5,1 L14,8%22 fill=%22none%22 stroke=%22%23444%22 stroke-width=%222%22 stroke-linejoin=%22round%22/%3E%3C/g%3E%3Ctext x=%2244%22 y=%2262%22 text-anchor=%22middle%22 fill=%22%23666%22 font-size=%228%22 font-family=%22system-ui,sans-serif%22 font-weight=%22600%22%3EREPFIND%3C/text%3E%3C/svg%3E';
+// These domains are confirmed dead (404/hotlink-blocked). Blank them at load
+// so cards render the designed placeholder instantly instead of flashing broken.
+const DEAD_IMAGE_DOMAINS = new Set([
+  'oopbuy-spreadsheets.com',
+  'iili.io',
+  'imgproxy.ch-webdev.com',
+  'www.oopbuysite.com',
+  'www.basetao.com',
+  'foooound.com',
+  'images.soleretriever.com',
+  'www.soleretriever.com',
+  'csspic2.oss-us-west-1.aliyuncs.com',
+  'www.mitchellinstrument.com',
+  'i.pinimg.com',
+  'shstore.eu',
+  'item-shopping.c.yimg.jp',
+  'i.etsystatic.com',
+  'images-wp.stockx.com',
+]);
+
+function isDeadImage(url) {
+  if (!url || !url.trim()) return true;
+  try { return DEAD_IMAGE_DOMAINS.has(new URL(url).hostname); }
+  catch { return true; }
+}
+
+// Branded placeholder: gradient background + category icon + "repfind"
+// Looks intentional, not like a broken image.
+function fallbackImage(seed) {
+  // Pick from a palette of dark gradients based on a hash of the seed
+  const palettes = [
+    ['#2E2E2E', '#242424'], // default grey
+    ['#3A2A24', '#2E2018'], // warm dark
+    ['#243028', '#1C241E'], // green dark
+    ['#2A2830', '#221F28'], // purple dark
+    ['#303028', '#262620'], // gold dark
+  ];
+  let h = 0;
+  const s = String(seed || '');
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  const [c1, c2] = palettes[Math.abs(h) % palettes.length];
+  const initials = (s.split(' ').filter(w => w.length > 0).slice(0, 2).map(w => w[0]).join('') || '?').toUpperCase();
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="88" height="88" rx="10" fill="url(#g)"/><text x="44" y="40" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="28" font-family="system-ui,sans-serif" font-weight="700">${initials}</text><text x="44" y="62" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="7" font-family="system-ui,sans-serif" font-weight="600" letter-spacing="0.5">repfind</text></svg>`;
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+
+const FALLBACK_SVG = fallbackImage('repfind');
 
 function imgFallback(img) {
   if (img.dataset.fallback) return;
   img.dataset.fallback = '1';
   img.onerror = null;
-  img.src = FALLBACK_SVG;
+  // Use the card's product name for a unique-looking placeholder
+  const card = img.closest('.result-card');
+  const name = card ? (card.querySelector('.result-name')?.textContent || '') : '';
+  img.src = fallbackImage(name);
   img.classList.add('img-fallback');
 }
 
@@ -3416,6 +3489,46 @@ async function initAuth() {
 let PRODUCT_DB = null;
 let _productDBPromise = null;
 
+// ─── Product name cleanup ───
+// Source data has scrape artifacts: "Design " prefix on ~30% of items,
+// doubled words ("Revenge Revenge"), and source-category suffixes
+// ("...Gold Accessories", "...T-Shirt T-Shirts"). Clean at load time
+// so cards read naturally and search isn't polluted.
+const _GENERIC_CAT_SUFFIXES = new Set([
+  'accessories','accessory','electronics','speakers','speaker',
+  'jewelry','clothing','collectible','automotive',
+]);
+function cleanProductName(raw) {
+  if (!raw) return '';
+  let n = String(raw);
+  // Strip "Design " prefix (scrape artifact from source marketplace)
+  n = n.replace(/^Design\s+/i, '');
+  // Collapse doubled consecutive words: "White White" -> "White"
+  n = n.replace(/\b(\w+)(\s+\1\b)+/gi, '$1');
+  // Collapse runs of whitespace
+  n = n.replace(/\s+/g, ' ').trim();
+  // Strip redundant source-category suffix (only on descriptive names)
+  const words = n.split(' ');
+  if (words.length >= 4) {
+    const last = words[words.length - 1].toLowerCase();
+    if (_GENERIC_CAT_SUFFIXES.has(last)) {
+      words.pop();
+      n = words.join(' ');
+    } else if (words.length >= 3) {
+      // "...Watch Watches", "...T-Shirt T-Shirts"
+      const prev = words[words.length - 2].toLowerCase();
+      if (last === prev || last === prev + 's' || prev === last + 's') {
+        words.pop();
+        n = words.join(' ');
+      } else if (last === 'watches' && words.slice(0, -1).join(' ').toLowerCase().includes('watch')) {
+        words.pop();
+        n = words.join(' ');
+      }
+    }
+  }
+  return n;
+}
+
 async function loadProductDB() {
   if (PRODUCT_DB) return PRODUCT_DB;
   if (_productDBPromise) return _productDBPromise;
@@ -3432,10 +3545,10 @@ async function loadProductDB() {
         if (seenIds.has(id)) { id = id + '_' + seenIds.get(id); seenIds.set(p[5], seenIds.get(p[5]) + 1); }
         else seenIds.set(id, 1);
         return {
-          name: p[0],
+          name: cleanProductName(p[0]),
           price: p[1] ? `$${p[1]}` : '',
           category: p[2] || '',
-          image: p[3] || '',
+          image: isDeadImage(p[3]) ? '' : (p[3] || ''),
           platform: p[4] || 'weidian',
           itemID: id,
           _priceUSD: p[1] || 0,
@@ -3717,13 +3830,13 @@ function searchProducts(query, limit = 12) {
     // ── TIER 5: Quality signals ──
     if (BRANDS.some(b => name.includes(b))) score += 50;    // recognized brand
     if (p.image && !p.image.includes('picsum')) score += 35; // has real image
+    else score -= 40;                                        // no image — demote so image results surface first
     if (/^\d+$/.test(p.itemID)) score += 50;                 // has working buy link (not a synthetic dedup ID)
     if (p.clicks > 0) score += Math.min(p.clicks / 100, 15); // popularity
     if (name.length > 80) score -= 20;                       // keyword stuffing
     if (/^[\d\s\W]+$/.test(name)) score -= 30;                // gibberish name
 
     // ── TIER 6: Demotions ──
-    if (name.startsWith('design ')) score -= 60;              // print-on-demand junk
     if (/bs\d{3,}|cnfans spreadsheet|best quality/i.test(name)) score -= 25; // SEO stuffing
 
     // ── Broad category boost (single-word searches) ──
@@ -4161,8 +4274,8 @@ const ANALYTICS_SESSION = (function() {
 })();
 const ANALYTICS_DEVICE = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : (/iPad|Tablet/i.test(navigator.userAgent) ? 'tablet' : 'desktop');
 
-// All analytics routed through repfind_searches (has anon INSERT policy).
-// action field differentiates event types; refined_query holds JSON metadata.
+// Analytics: page_views → repfind_page_views, events → repfind_events,
+// searches → repfind_searches. Each table now has permissive INSERT RLS.
 // Use localStorage for persistent visitor ID (survives browser restarts).
 const ANALYTICS_VISITOR = (function() {
   let v = localStorage.getItem('rf_vid');
@@ -4176,14 +4289,29 @@ function _sanitizeQuery(q) {
   return String(q).slice(0, 200);
 }
 
+// Metadata object attached to every analytics event for consistent attribution
+function _analyticsMeta() {
+  return { session: ANALYTICS_SESSION, visitor: ANALYTICS_VISITOR, device: ANALYTICS_DEVICE };
+}
+
 async function trackPageView() {
   if (!supabaseClient) return;
+  const utm = JSON.parse(sessionStorage.getItem('rf_utm') || '{}');
+  try {
+    await supabaseClient.from('repfind_page_views').insert({
+      session_id: ANALYTICS_SESSION,
+      path: (location.pathname + location.search).slice(0, 200) || '/',
+      referrer: document.referrer || '',
+      device: ANALYTICS_DEVICE,
+    });
+  } catch(e) { /* silent fail */ }
+  // Also log to repfind_searches for backward compat (action=page_view)
   try {
     await supabaseClient.from('repfind_searches').insert({
       query: (location.pathname + location.search).slice(0, 200) || '/',
       action: 'page_view',
       results_count: 0,
-      refined_query: JSON.stringify({ device: ANALYTICS_DEVICE, referrer: document.referrer || '', session: ANALYTICS_SESSION, visitor: ANALYTICS_VISITOR, utm: JSON.parse(sessionStorage.getItem('rf_utm') || '{}') }),
+      refined_query: JSON.stringify({ ..._analyticsMeta(), referrer: document.referrer || '', utm }),
     });
   } catch(e) { /* silent fail */ }
 }
@@ -4195,19 +4323,28 @@ async function trackSearch(query, action, resultCount) {
       query: _sanitizeQuery(query),
       action: action || 'search',
       results_count: resultCount || 0,
-      refined_query: JSON.stringify({ session: ANALYTICS_SESSION, visitor: ANALYTICS_VISITOR, device: ANALYTICS_DEVICE }),
+      refined_query: JSON.stringify(_analyticsMeta()),
     });
   } catch(e) { /* silent fail */ }
 }
 
 async function trackEvent(type, data) {
   if (!supabaseClient) return;
+  // Insert into the proper events table
+  try {
+    await supabaseClient.from('repfind_events').insert({
+      session_id: ANALYTICS_SESSION,
+      event_type: type,
+      event_data: { ...data, ..._analyticsMeta() },
+    });
+  } catch(e) { /* silent fail */ }
+  // Also log to repfind_searches for backward compat (action=event)
   try {
     await supabaseClient.from('repfind_searches').insert({
       query: _sanitizeQuery(type),
       action: 'event',
       results_count: 0,
-      refined_query: JSON.stringify({ ...data, session: ANALYTICS_SESSION, visitor: ANALYTICS_VISITOR, device: ANALYTICS_DEVICE }),
+      refined_query: JSON.stringify({ ...data, ..._analyticsMeta() }),
     });
   } catch(e) { /* silent fail */ }
 }
