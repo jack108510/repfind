@@ -5,21 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="no-referrer">
   <title>repfind - find the best reps, fast</title>
-  <meta name="description" content="Search 66K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings - send straight to your agent.">
+  <meta name="description" content="Search 250K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no BS.">
   <meta name="keywords" content="repfind, reps, replica, weidian, taobao, 1688, cnfans, kakobuy, oopbuy, travis scott, jordan, yeezy, nike">
   <meta name="author" content="repfind">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="repfind - find the best reps, fast">
-  <meta property="og:description" content="Search 66K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings.">
+  <meta property="og:description" content="Search 250K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no BS.">
   <meta property="og:url" content="https://repfind.ca/">
   <meta property="og:site_name" content="repfind">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="repfind - find the best reps, fast">
-  <meta name="twitter:description" content="Search 66K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings.">
+  <meta name="twitter:description" content="Search 250K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no BS.">
 
   <!-- Canonical -->
   <link rel="canonical" href="https://repfind.ca/">
@@ -32,7 +32,7 @@
     "@type": "WebApplication",
     "name": "repfind",
     "url": "https://repfind.ca/",
-    "description": "Search 66K+ direct-link rep products across Weidian, Taobao, and 1688. No dead search pages, no fake ratings.",
+    "description": "Search 250K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no BS.",
     "applicationCategory": "ShoppingApplication",
     "operatingSystem": "Web",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
@@ -561,16 +561,17 @@
       animation: welcomeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
     }
     .welcome-logo img {
-      height: 96px;
+      height: 88px;
       width: auto;
+      filter: drop-shadow(0 4px 20px rgba(0,0,0,0.3));
     }
     .welcome-logo .find { color: var(--accent); }
     .topbar-logo img { height: 32px; width: auto; vertical-align: middle; }
     .welcome-tagline {
-      font-size: 1rem;
+      font-size: 1.05rem;
       color: var(--text-muted);
-      margin-bottom: 40px;
-      max-width: 420px;
+      margin-bottom: 36px;
+      max-width: 380px;
       text-align: center;
       line-height: 1.6;
       animation: welcomeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.08s backwards;
@@ -1864,7 +1865,7 @@
   <!-- Welcome -->
   <div class="welcome" id="welcome">
     <div class="welcome-logo"><img src="logo.png" alt="repfind"></div>
-    <p class="welcome-tagline">Search 66K+ direct-buy rep links. No dead search pages. No fake ratings.</p>
+    <p class="welcome-tagline">Search 250K+ replica products. Direct links, real prices.</p>
     <div class="prompt-container">
       <div class="prompt-box">
         <input type="text" id="searchInput" placeholder="Search - Patek, Jordan, designer bags, room decor...">
@@ -1873,19 +1874,10 @@
         </button>
       </div>
       <div class="suggestions">
-        <div class="suggestion" onclick="quickSearch('Patek Philippe watch')">Patek Philippe</div>
-        <div class="suggestion" onclick="quickSearch('Chrome Hearts glasses')">Chrome Hearts Glasses</div>
-        <div class="suggestion" onclick="quickSearch('designer bags')">Designer Bags</div>
-        <div class="suggestion" onclick="quickSearch('Travis Scott AF1')">Travis Scott AF1</div>
-        <div class="suggestion" onclick="quickSearch('Jordan 4')">Jordan 4</div>
-        <div class="suggestion" onclick="quickSearch('room decor')">Room Decor</div>
-      </div>
-      <div style="display:flex;justify-content:center;gap:1px;margin-top:14px;flex-wrap:wrap">
-        <button class="currency-btn" data-currency="USD" onclick="setCurrency('USD')">USD</button>
-        <button class="currency-btn" data-currency="CAD" onclick="setCurrency('CAD')">CAD</button>
-        <button class="currency-btn" data-currency="AUD" onclick="setCurrency('AUD')">AUD</button>
-        <button class="currency-btn" data-currency="EUR" onclick="setCurrency('EUR')">EUR</button>
-        <button class="currency-btn" data-currency="CNY" onclick="setCurrency('CNY')">CNY</button>
+        <div class="suggestion" onclick="quickSearch('Jordan 4')">👟 Jordan 4</div>
+        <div class="suggestion" onclick="quickSearch('designer bags')">👜 Designer Bags</div>
+        <div class="suggestion" onclick="quickSearch('Patek Philippe')">⌚ Patek Philippe</div>
+        <div class="suggestion" onclick="quickSearch('Chrome Hearts')">🕶️ Chrome Hearts</div>
       </div>
     </div>
   </div>
@@ -1903,13 +1895,6 @@
         <button class="send-btn" id="dockedSendBtn" onclick="doSearch(true)" disabled>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
-      </div>
-      <div style="display:flex;justify-content:center;gap:1px;margin-bottom:2px">
-        <button class="currency-btn" data-currency="USD" onclick="setCurrency('USD')">USD</button>
-        <button class="currency-btn" data-currency="CAD" onclick="setCurrency('CAD')">CAD</button>
-        <button class="currency-btn" data-currency="AUD" onclick="setCurrency('AUD')">AUD</button>
-        <button class="currency-btn" data-currency="EUR" onclick="setCurrency('EUR')">EUR</button>
-        <button class="currency-btn" data-currency="CNY" onclick="setCurrency('CNY')">CNY</button>
       </div>
       <div class="disclaimer">repfind is a discovery tool. Not affiliated with any agent or platform. Prices are approximate.</div>
     </div>
@@ -1970,7 +1955,7 @@
   <div class="onboard-card">
     <div class="onboard-logo"><img src="logo.png" alt="repfind"></div>
     <div class="onboard-title">How repfind works</div>
-    <div class="onboard-sub">Search 66K+ direct-link rep products. We send you straight to the listing - no dead search pages.</div>
+    <div class="onboard-sub">Search 250K+ products with direct links. Straight to the listing — no detours.</div>
     <div class="onboard-steps">
       <div class="onboard-step">
         <div class="onboard-step-num">1</div>
