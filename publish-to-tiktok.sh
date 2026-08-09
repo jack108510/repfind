@@ -21,7 +21,7 @@ CAPTION="${2:-Finding reps just got way too easy. Search 66K+ direct-buy links i
 
 # Hard safety check — refuse if somehow pointed at salessparring
 _LOWER_USER="$(echo "${PUBLORA_TIKTOK_USERNAME:-}" | tr '[:upper:]' '[:lower:]')"
-if [[ "${PUBLORA_TIKTOK_PLATFORM_ID}" == *"salessparring"* ]] || \
+if [[ "${PUBLORA_TIKTOK_PLATFORM_ID:-}" == *"salessparring"* ]] || \
    [[ "$_LOWER_USER" == "salessparring" ]]; then
   echo "FATAL: Platform ID/username is salessparring, but this script is for rep.find.ai ONLY. Aborting." >&2
   exit 99
