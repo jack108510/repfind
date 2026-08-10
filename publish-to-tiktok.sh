@@ -3,7 +3,7 @@ set -euo pipefail
 
 # ═══════════════════════════════════════════════════════════════
 # RepFind TikTok Publisher — @rep.find.ai ONLY
-# Creates a DRAFT post. Jack adds TikTok sound in-app, then publishes.
+# Uploads a video, finalizes the media, then schedules it to publish.
 # Hardcoded to rep.find.ai — can NEVER post to @salessparring.
 # ═══════════════════════════════════════════════════════════════
 
@@ -42,6 +42,7 @@ fi
 
 python3 - "$VIDEO" "$CAPTION" <<'PY'
 import json, mimetypes, os, pathlib, sys, urllib.request, urllib.error, uuid
+from datetime import datetime, timedelta, timezone
 
 video_path = pathlib.Path(sys.argv[1])
 caption = sys.argv[2]
@@ -118,17 +119,39 @@ with video_path.open('rb') as f:
     except urllib.error.HTTPError as e:
         raise SystemExit(f'S3 upload HTTP {e.code}: {e.read().decode("utf-8", "ignore")[:1000]}')
 
+media_id = up.get('mediaId')
+if not media_id:
+    raise SystemExit('Publora get-upload-url did not return mediaId: ' + json.dumps(up))
+
+# Publora's documented local-file flow requires media finalization before scheduling.
+finalize = api('POST', f'/complete-media/{media_id}', {})
+
+# Schedule after upload/finalize. Publora recommends at least 2 minutes ahead;
+# use 5 minutes to avoid race conditions with TikTok media processing.
+scheduled_time = (datetime.now(timezone.utc) + timedelta(minutes=5)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+schedule = api('PUT', f'/update-post/{post_group_id}', {
+    'status': 'scheduled',
+    'scheduledTime': scheduled_time,
+}, {'Idempotency-Key': 'repfind-schedule-' + post_group_id})
+
+# Read back the stored status so n8n logs prove it is not just a draft.
+verify = api('GET', f'/get-post/{post_group_id}')
+
 result = {
     'success': True,
-    'mode': 'draft',
+    'mode': 'scheduled',
     'account': username,
     'platform': 'tiktok',
     'platformId': platform_id,
     'postGroupId': post_group_id,
-    'mediaId': up.get('mediaId'),
+    'mediaId': media_id,
     'fileUrl': up.get('fileUrl'),
     'uploadStatus': upload_status,
-    'nextStep': 'Open TikTok app on phone → Drafts → select this post → add sound → publish',
+    'finalizeSuccess': finalize.get('success'),
+    'scheduledTime': schedule.get('scheduledTime') or scheduled_time,
+    'verifiedStatus': verify.get('status'),
+    'postStatus': (verify.get('posts') or [{}])[0].get('status'),
+    'nextStep': 'Publora will publish automatically at scheduledTime; no manual TikTok draft step required.',
 }
 print(json.dumps(result, indent=2))
 PY
