@@ -109,15 +109,16 @@
   document.addEventListener('DOMContentLoaded', () => document.body.appendChild(cursor));
 
   const moveCursor = (x, y) => {
+    // Keep scripted interactions, but do not render a visible cursor in marketing/social videos.
+    // Jack rejected the old screen-recording style with the mouse cursor visible.
     cursor.style.left = `${Math.round(x)}px`;
     cursor.style.top = `${Math.round(y)}px`;
-    cursor.style.opacity = '1';
+    cursor.style.opacity = '0';
   };
 
   const pulseCursor = () => {
     cursor.classList.remove('clicked');
-    void cursor.offsetWidth;
-    cursor.classList.add('clicked');
+    cursor.style.opacity = '0';
   };
 
   // The production page automatically scrolls to each appended chat update.  The recording copy
@@ -230,6 +231,6 @@
     pulseCursor,
     hideCursor: () => { cursor.style.opacity = '0'; },
     sequence: 'guest-search-results-detail-haul',
-    version: '1.0.0'
+    version: '1.1.0-no-visible-cursor'
   };
 })();

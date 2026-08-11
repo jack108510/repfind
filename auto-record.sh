@@ -5,7 +5,7 @@ set -euo pipefail
 # Called by n8n 3x/day to record a new product demo and post to TikTok
 # Picks a random product, updates config, records, outputs JSON for caption generation
 
-BASE="/Users/jackserver/repfind"
+BASE="/Users/jackserver/RepFind"
 CONFIG="$BASE/recording-config.js"
 OUTPUT_MP4="$BASE/output/repfind-mobile-screen-recording.mp4"
 LOG_FILE="$BASE/output/auto-record.log"
@@ -20,7 +20,7 @@ log "=== RepFind Auto-Record Start ==="
 PRODUCT_JSON=$(python3 << 'PYEOF'
 import json, random
 
-with open('/Users/jackserver/repfind/data/products.json') as f:
+with open('/Users/jackserver/RepFind/data/products.json') as f:
     products = json.load(f)
 
 # Filter for products with real images, IDs, and meaningful titles
