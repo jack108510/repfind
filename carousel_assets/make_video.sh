@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-ASSETS="/Users/jackserver/repfind/carousel_assets"
+ASSETS="/Users/jackserver/RepFind/carousel_assets"
 TMP="/tmp/repfind_slides"
 OUT="/Users/jackserver/.openclaw/workspace/repfind-ad.mp4"
 FPS=25
