@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RepFind logo concepts</title>
+<style>
+  :root{--bg:#0f0f0f;--panel:#181818;--surface:#242424;--text:#f5f5f5;--muted:#9a9a9a;--accent:#C84B2F;--accent2:#E8624A;--border:#2e2e2e}
+  *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 20% 0%,#24120e 0,#0f0f0f 34%,#0b0b0b 100%);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:36px;}
+  header{max-width:1050px;margin:0 auto 28px} h1{margin:0;font-size:32px;letter-spacing:-.05em} p{color:var(--muted);margin:8px 0 0;line-height:1.5}
+  .grid{max-width:1050px;margin:0 auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+  .card{background:rgba(24,24,24,.78);border:1px solid var(--border);border-radius:22px;padding:22px;box-shadow:0 18px 60px rgba(0,0,0,.35);backdrop-filter:blur(10px)}
+  .stage{height:190px;border-radius:16px;background:#101010;border:1px solid #242424;display:grid;place-items:center;margin-bottom:16px;position:relative;overflow:hidden}
+  .stage.light{background:#f6f2ee}.stage.light:after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,75,47,.08),transparent 50%)}
+  h2{font-size:15px;margin:0 0 6px;letter-spacing:-.02em}.tag{display:inline-flex;align-items:center;gap:6px;color:#ffd2c7;background:rgba(200,75,47,.12);border:1px solid rgba(200,75,47,.26);padding:5px 9px;border-radius:999px;font-size:12px;margin-bottom:10px}
+  ul{padding-left:18px;margin:10px 0 0;color:#c8c8c8;font-size:13px;line-height:1.55}.scale{max-width:100%;height:auto}.app-row{max-width:1050px;margin:22px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:18px}.mock{background:var(--panel);border:1px solid var(--border);border-radius:22px;padding:18px}.sidebar{width:260px;background:#0f0f0f;border-radius:16px;border:1px solid #292929;padding:14px}.top{height:62px;background:#151515;border-radius:16px;border:1px solid #292929;padding:15px 18px;display:flex;align-items:center}.small{font-size:12px;color:#777;margin-top:10px}
+</style>
+</head>
+<body>
+<header>
+  <h1>RepFind logo directions</h1>
+  <p>Three vector directions that fit the current dark, utility-first product. I’d ship Direction A unless you want a louder app-icon-first brand.</p>
+</header>
+
+<section class="grid">
+  <article class="card">
+    <div class="stage"><img class="scale" src="repfind-logo-direction-a.svg" alt="RepFind logo direction A" width="265"></div>
+    <span class="tag">A · search utility</span>
+    <h2>Lens wordmark</h2>
+    <ul><li>Most mature and product-like</li><li>Works in sidebar/topbar</li><li>Subtle magnifier mark around “find”</li></ul>
+  </article>
+  <article class="card">
+    <div class="stage"><img class="scale" src="repfind-logo-direction-b.svg" alt="RepFind logo direction B" width="265"></div>
+    <span class="tag">B · marketplace</span>
+    <h2>Tag scanner</h2>
+    <ul><li>More obviously shopping/search</li><li>Good for landing pages</li><li>Slightly busier at small sizes</li></ul>
+  </article>
+  <article class="card">
+    <div class="stage"><img class="scale" src="repfind-logo-direction-c.svg" alt="RepFind logo direction C" width="265"></div>
+    <span class="tag">C · app icon</span>
+    <h2>RF monogram</h2>
+    <ul><li>Best for favicon/social avatar</li><li>Feels more like a mobile app</li><li>Needs wordmark beside it on web</li></ul>
+  </article>
+</section>
+
+<section class="app-row">
+  <div class="mock"><div class="sidebar"><img src="repfind-logo-direction-a.svg" width="160" alt="A in sidebar"><p class="small">Sidebar scale</p></div></div>
+  <div class="mock"><div class="top"><img src="repfind-logo-direction-a.svg" width="142" alt="A in topbar"></div><p class="small">Mobile topbar scale</p></div>
+</section>
+</body>
+</html>

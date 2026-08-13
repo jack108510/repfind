@@ -1,0 +1,13 @@
+<svg width="900" height="240" viewBox="0 0 900 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="240" rx="48" fill="#0F0F0F"/>
+  <g transform="translate(58 38)">
+    <rect x="0" y="0" width="164" height="164" rx="42" fill="#C84B2F"/>
+    <path d="M45 120V45H89C113 45 128 58 128 78C128 95 117 106 99 110L130 120" stroke="#0F0F0F" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M45 82H91" stroke="#0F0F0F" stroke-width="17" stroke-linecap="round"/>
+    <circle cx="116" cy="116" r="23" stroke="#F5F5F5" stroke-width="11"/>
+    <path d="M132 132L151 151" stroke="#F5F5F5" stroke-width="12" stroke-linecap="round"/>
+  </g>
+  <text x="254" y="143" fill="#F5F5F5" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="900" letter-spacing="-6">rep</text>
+  <text x="407" y="143" fill="#C84B2F" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="900" letter-spacing="-6">find</text>
+  <text x="258" y="181" fill="#8E8E8E" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="600" letter-spacing="2.8">250K+ REPLICA PRODUCTS</text>
+</svg>

@@ -23,7 +23,7 @@
 
   <!-- Canonical -->
   <link rel="canonical" href="https://repfind.ca/">
-  <link rel="icon" href="logo.png">
+  <link rel="icon" href="logo-icon.svg" type="image/svg+xml">
 
   <!-- Structured Data -->
   <script type="application/ld+json">
@@ -1811,7 +1811,7 @@
 <!-- ─── SIDEBAR ─── -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <span class="sidebar-logo"><img src="logo.png" alt="repfind"></span>
+    <span class="sidebar-logo"><img src="logo.svg" alt="repfind"></span>
   </div>
   <button class="new-search-btn" onclick="newSearch()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -1842,13 +1842,13 @@
     <button class="menu-btn" onclick="toggleSidebar()">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
     </button>
-    <span class="topbar-logo"><img src="logo.png" alt="repfind"></span>
+    <span class="topbar-logo"><img src="logo.svg" alt="repfind"></span>
     <div style="width:22px"></div>
   </div>
 
   <!-- Top bar -->
   <div class="topbar" id="topbar">
-    <span class="topbar-logo"><img src="logo.png" alt="repfind"></span>
+    <span class="topbar-logo"><img src="logo.svg" alt="repfind"></span>
     <div class="topbar-right">
       <div class="currency-switcher" id="topbarCurrency">
         <button class="currency-btn" data-currency="USD" onclick="setCurrency('USD')">USD</button>
@@ -1864,7 +1864,7 @@
 
   <!-- Welcome -->
   <div class="welcome" id="welcome">
-    <div class="welcome-logo"><img src="logo.png" alt="repfind"></div>
+    <div class="welcome-logo"><img src="logo.svg" alt="repfind"></div>
     <p class="welcome-tagline">Search 250K+ replica products. Direct links, real prices.</p>
     <div class="prompt-container">
       <div class="prompt-box">
@@ -1953,7 +1953,7 @@
 <!-- Onboarding Modal -->
 <div class="onboard-overlay" id="onboardOverlay">
   <div class="onboard-card">
-    <div class="onboard-logo"><img src="logo.png" alt="repfind"></div>
+    <div class="onboard-logo"><img src="logo-icon.svg" alt="repfind"></div>
     <div class="onboard-title">How repfind works</div>
     <div class="onboard-sub">Search 250K+ products with direct links. Straight to the listing — no detours.</div>
     <div class="onboard-steps">
@@ -2246,7 +2246,7 @@ async function doSearch(fromDocked) {
 
   loadingDiv.innerHTML = `
     <div class="loading-header">
-      <div class="avatar"><img src="logo.png" alt=""></div>
+      <div class="avatar"><img src="logo-icon.svg" alt=""></div>
       <span class="bot-name">repfind <span class="badge">AI</span></span>
     </div>
     <div class="loading-steps">
@@ -2471,7 +2471,7 @@ async function renderDataDrivenClarify(query, ai, container) {
 
   responseDiv.innerHTML = `
     <div class="verdict-header">
-      <div class="avatar"><img src="logo.png" alt=""></div>
+      <div class="avatar"><img src="logo-icon.svg" alt=""></div>
     </div>
     <div class="verdict-text" style="margin-bottom:4px">Found <strong>${rawProducts.length} matches</strong> for "${escapeHtml(query)}" across <strong>${sortedCats.length} categories</strong>. What are you looking for?</div>
     <div class="follow-ups" style="display:block;margin-top:12px;padding-left:0">
@@ -2509,7 +2509,7 @@ function renderChatResponse(ai, container) {
 
   responseDiv.innerHTML = `
     <div class="verdict-header">
-      <div class="avatar"><img src="logo.png" alt=""></div>
+      <div class="avatar"><img src="logo-icon.svg" alt=""></div>
       <span class="bot-name">repfind <span class="badge">AI</span></span>
     </div>
     <div class="verdict-text" id="verdictText-${Date.now()}"></div>
@@ -2543,7 +2543,7 @@ async function renderSearchResponse(ai, container) {
   resultsHeader.className = 'ai-response';
   resultsHeader.innerHTML = `
     <div class="verdict-header">
-      <div class="avatar"><img src="logo.png" alt=""></div>
+      <div class="avatar"><img src="logo-icon.svg" alt=""></div>
       <span class="bot-name">repfind <span class="badge">AI</span></span>
     </div>
     <div class="verdict-text" id="verdictText"></div>
@@ -3234,7 +3234,7 @@ async function renderCrossSell(query, results, container) {
   crossSellDiv.style.animation = 'fadeInUp 0.4s ease';
   crossSellDiv.innerHTML = `
     <div class="verdict-header">
-      <div class="avatar"><img src="logo.png" alt=""></div>
+      <div class="avatar"><img src="logo-icon.svg" alt=""></div>
       <span class="bot-name">repfind <span class="badge">AI</span></span>
     </div>
     <div class="verdict-text" style="margin-bottom:16px">${crossSellLabel} These are direct-link products with your selected checkout agent applied.</div>

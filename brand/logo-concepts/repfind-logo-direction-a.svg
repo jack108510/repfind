@@ -1,0 +1,12 @@
+<svg width="900" height="240" viewBox="0 0 900 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="240" rx="48" fill="#0F0F0F"/>
+  <g transform="translate(58 42)">
+    <circle cx="78" cy="78" r="62" fill="#181818" stroke="#343434" stroke-width="8"/>
+    <circle cx="78" cy="78" r="34" stroke="#C84B2F" stroke-width="16"/>
+    <path d="M121 121L158 158" stroke="#E8624A" stroke-width="18" stroke-linecap="round"/>
+    <path d="M61 79L75 94L101 63" stroke="#F5F5F5" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="254" y="143" fill="#F5F5F5" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="900" letter-spacing="-6">rep</text>
+  <text x="407" y="143" fill="#C84B2F" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="900" letter-spacing="-6">find</text>
+  <text x="258" y="181" fill="#8E8E8E" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="600" letter-spacing="2.8">SEARCH REPS FAST</text>
+</svg>

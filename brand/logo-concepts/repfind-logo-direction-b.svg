@@ -1,0 +1,13 @@
+<svg width="900" height="240" viewBox="0 0 900 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="240" rx="48" fill="#0F0F0F"/>
+  <g transform="translate(54 50)">
+    <path d="M18 26C18 15 27 6 38 6H148C159 6 168 15 168 26V112C168 123 159 132 148 132H38C27 132 18 123 18 112V26Z" fill="#1B1B1B" stroke="#343434" stroke-width="8"/>
+    <path d="M44 42H120" stroke="#F5F5F5" stroke-width="12" stroke-linecap="round"/>
+    <path d="M44 72H104" stroke="#8E8E8E" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="126" cy="93" r="26" stroke="#C84B2F" stroke-width="12"/>
+    <path d="M145 112L166 133" stroke="#E8624A" stroke-width="13" stroke-linecap="round"/>
+  </g>
+  <text x="254" y="143" fill="#F5F5F5" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="900" letter-spacing="-6">rep</text>
+  <text x="407" y="143" fill="#C84B2F" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="900" letter-spacing="-6">find</text>
+  <text x="258" y="181" fill="#8E8E8E" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="600" letter-spacing="2.8">DIRECT LINKS · REAL PRICES</text>
+</svg>

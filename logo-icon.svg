@@ -1,0 +1,7 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="repfind icon">
+  <rect width="1024" height="1024" rx="236" fill="#0F0F0F"/>
+  <circle cx="460" cy="448" r="252" fill="#181818" stroke="#343434" stroke-width="56"/>
+  <circle cx="460" cy="448" r="132" stroke="#C84B2F" stroke-width="76"/>
+  <path d="M636 624L816 804" stroke="#E8624A" stroke-width="92" stroke-linecap="round"/>
+  <path d="M390 454L444 510L548 386" stroke="#F5F5F5" stroke-width="56" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
