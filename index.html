@@ -5,21 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="no-referrer">
   <title>repfind - find the best reps, fast</title>
-  <meta name="description" content="Search 66K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.">
+  <meta name="description" content="Search 69K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.">
   <meta name="keywords" content="repfind, reps, replica, weidian, taobao, 1688, cnfans, kakobuy, oopbuy, travis scott, jordan, yeezy, nike">
   <meta name="author" content="repfind">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="repfind - find the best reps, fast">
-  <meta property="og:description" content="Search 66K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.">
+  <meta property="og:description" content="Search 69K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.">
   <meta property="og:url" content="https://repfind.ca/">
   <meta property="og:site_name" content="repfind">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="repfind - find the best reps, fast">
-  <meta name="twitter:description" content="Search 66K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.">
+  <meta name="twitter:description" content="Search 69K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.">
 
   <!-- Canonical -->
   <link rel="canonical" href="https://repfind.ca/">
@@ -32,7 +32,7 @@
     "@type": "WebApplication",
     "name": "repfind",
     "url": "https://repfind.ca/",
-    "description": "Search 66K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.",
+    "description": "Search 69K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.",
     "applicationCategory": "ShoppingApplication",
     "operatingSystem": "Web",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
@@ -1894,7 +1894,7 @@ window.siteTrack=function(name){try{if(window.clarity&&name)window.clarity("even
   <!-- Welcome -->
   <div class="welcome" id="welcome">
     <div class="welcome-logo"><img src="logo.svg" alt="repfind"></div>
-    <p class="welcome-tagline">Search 66K+ replica products. Direct links, real prices, faster checkout.</p>
+    <p class="welcome-tagline">Search 69K+ replica products. Direct links, real prices, faster checkout.</p>
     <div class="welcome-proof">
       <span>Direct marketplace links</span>
       <span>KakoBuy, CNFans, OopBuy</span>
@@ -1990,7 +1990,7 @@ window.siteTrack=function(name){try{if(window.clarity&&name)window.clarity("even
   <div class="onboard-card">
     <div class="onboard-logo"><img src="logo-icon.svg" alt="repfind"></div>
     <div class="onboard-title">How repfind works</div>
-    <div class="onboard-sub">Search 66K+ products with direct links. Straight to the listing, no detours.</div>
+    <div class="onboard-sub">Search 69K+ products with direct links. Straight to the listing, no detours.</div>
     <div class="onboard-steps">
       <div class="onboard-step">
         <div class="onboard-step-num">1</div>
@@ -2273,7 +2273,7 @@ async function doSearch(fromDocked) {
     'Let me dig through the stacks...',
     'Searching direct-link listings...',
     'Checking what we actually have...',
-    'Scanning 66K+ direct links...',
+    'Scanning 69K+ direct links...',
     'Checking prices and direct links...',
     'Hunting for matching direct links...',
   ];
@@ -2298,7 +2298,7 @@ async function doSearch(fromDocked) {
 
   // Progressive loading - show what's actually happening
   const stepTimers = [
-    setTimeout(() => updateLoadingStep(1, 'Querying 66K+ direct-link products...'), 1200),
+    setTimeout(() => updateLoadingStep(1, 'Querying 69K+ direct-link products...'), 1200),
     setTimeout(() => updateLoadingStep(2, 'Analyzing price spread and platforms...'), 2500),
   ];
 
@@ -2754,7 +2754,7 @@ async function renderSearchResponse(ai, container) {
       if (inlineFilters) inlineFilters.style.display = results.length > 0 ? 'flex' : 'none';
       if (results.length === 0) {
         const list = document.getElementById('resultsList');
-        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(displayQuery)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">${intentNote ? 'Our database focuses on reps & fashion - try these instead' : 'Our database has 66K+ direct-link products - try a broader term'}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Patek Philippe','Designer Bags','Chrome Hearts','Jordan 4','Travis Scott'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
+        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(displayQuery)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">${intentNote ? 'Our database focuses on reps & fashion - try these instead' : 'Our database has 69K+ direct-link products - try a broader term'}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Patek Philippe','Designer Bags','Chrome Hearts','Jordan 4','Travis Scott'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
       } else {
         renderResults(results, resultsHeader);
       }
@@ -4103,7 +4103,7 @@ function analyzeResults(results) {
 }
 
 function generateSmartVerdict(query, results, a) {
-  if (!results || results.length === 0) return { verdict: `No exact matches for <strong>"${escapeHtml(query)}"</strong> in our 66K+ direct-link product database. Try <strong>Jordan 4</strong>, <strong>Chrome Hearts</strong>, <strong>Patek Philippe</strong>, or <strong>AirPods</strong>.`, stats: [], insights: [] };
+  if (!results || results.length === 0) return { verdict: `No exact matches for <strong>"${escapeHtml(query)}"</strong> in our 69K+ direct-link product database. Try <strong>Jordan 4</strong>, <strong>Chrome Hearts</strong>, <strong>Patek Philippe</strong>, or <strong>AirPods</strong>.`, stats: [], insights: [] };
   if (!a) {
     const platforms = [...new Set(results.map(r => r.platform))];
     const platNames = platforms.map(p => (PLATFORMS[p] || PLATFORMS['weidian']).label);
