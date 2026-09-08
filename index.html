@@ -5,21 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="no-referrer">
   <title>repfind - find the best reps, fast</title>
-  <meta name="description" content="Search 250K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no BS.">
+  <meta name="description" content="Search 66K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.">
   <meta name="keywords" content="repfind, reps, replica, weidian, taobao, 1688, cnfans, kakobuy, oopbuy, travis scott, jordan, yeezy, nike">
   <meta name="author" content="repfind">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="repfind - find the best reps, fast">
-  <meta property="og:description" content="Search 250K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no BS.">
+  <meta property="og:description" content="Search 66K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.">
   <meta property="og:url" content="https://repfind.ca/">
   <meta property="og:site_name" content="repfind">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="repfind - find the best reps, fast">
-  <meta name="twitter:description" content="Search 250K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no BS.">
+  <meta name="twitter:description" content="Search 66K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.">
 
   <!-- Canonical -->
   <link rel="canonical" href="https://repfind.ca/">
@@ -32,7 +32,7 @@
     "@type": "WebApplication",
     "name": "repfind",
     "url": "https://repfind.ca/",
-    "description": "Search 250K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no BS.",
+    "description": "Search 66K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.",
     "applicationCategory": "ShoppingApplication",
     "operatingSystem": "Web",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
@@ -581,6 +581,25 @@
     }
     .suggestions {
       animation: welcomeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.22s backwards;
+    }
+    .welcome-proof {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: -18px 0 26px;
+      max-width: 640px;
+      animation: welcomeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.12s backwards;
+    }
+    .welcome-proof span {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.035);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      padding: 6px 10px;
     }
 
     /* ─── PROMPT ─── */
@@ -1875,19 +1894,25 @@ window.siteTrack=function(name){try{if(window.clarity&&name)window.clarity("even
   <!-- Welcome -->
   <div class="welcome" id="welcome">
     <div class="welcome-logo"><img src="logo.svg" alt="repfind"></div>
-    <p class="welcome-tagline">Search 250K+ replica products. Direct links, real prices.</p>
+    <p class="welcome-tagline">Search 66K+ replica products. Direct links, real prices, faster checkout.</p>
+    <div class="welcome-proof">
+      <span>Direct marketplace links</span>
+      <span>KakoBuy, CNFans, OopBuy</span>
+      <span>No account needed to search</span>
+    </div>
     <div class="prompt-container">
       <div class="prompt-box">
-        <input type="text" id="searchInput" placeholder="Search - Patek, Jordan, designer bags, room decor...">
+        <input type="text" id="searchInput" placeholder="Search reps: Jordan 4, Chrome Hearts, Patek, AirPods...">
         <button class="send-btn" id="sendBtn" onclick="doSearch()" disabled>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
       </div>
       <div class="suggestions">
         <div class="suggestion" onclick="quickSearch('Jordan 4')">👟 Jordan 4</div>
-        <div class="suggestion" onclick="quickSearch('designer bags')">👜 Designer Bags</div>
-        <div class="suggestion" onclick="quickSearch('Patek Philippe')">⌚ Patek Philippe</div>
         <div class="suggestion" onclick="quickSearch('Chrome Hearts')">🕶️ Chrome Hearts</div>
+        <div class="suggestion" onclick="quickSearch('Patek Philippe')">⌚ Patek Philippe</div>
+        <div class="suggestion" onclick="quickSearch('AirPods')">🎧 AirPods</div>
+        <div class="suggestion" onclick="quickSearch('designer bags')">👜 Bags</div>
       </div>
     </div>
   </div>
@@ -1901,7 +1926,7 @@ window.siteTrack=function(name){try{if(window.clarity&&name)window.clarity("even
   <div class="docked-input" id="dockedInput">
     <div class="docked-input-inner">
       <div class="prompt-box">
-        <input type="text" id="dockedSearchInput" placeholder="Search another rep...">
+        <input type="text" id="dockedSearchInput" placeholder="Search another rep or paste a product name...">
         <button class="send-btn" id="dockedSendBtn" onclick="doSearch(true)" disabled>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
@@ -1965,7 +1990,7 @@ window.siteTrack=function(name){try{if(window.clarity&&name)window.clarity("even
   <div class="onboard-card">
     <div class="onboard-logo"><img src="logo-icon.svg" alt="repfind"></div>
     <div class="onboard-title">How repfind works</div>
-    <div class="onboard-sub">Search 250K+ products with direct links. Straight to the listing — no detours.</div>
+    <div class="onboard-sub">Search 66K+ products with direct links. Straight to the listing, no detours.</div>
     <div class="onboard-steps">
       <div class="onboard-step">
         <div class="onboard-step-num">1</div>
@@ -2702,30 +2727,31 @@ async function renderSearchResponse(ai, container) {
     showStats(verdict.stats);
 
     setTimeout(() => {
-      document.getElementById('actionBar').style.display = 'flex';
+      const actionBar = document.getElementById('actionBar');
+      if (actionBar) actionBar.style.display = results.length > 0 ? 'flex' : 'none';
 
       // Update provenance
       const provEl = document.getElementById('provenance');
       const provText = document.getElementById('provenanceText');
       if (results.length > 0) {
         provText.innerHTML = `<strong style="color:var(--text-muted)">${results.length} listings</strong> from direct-link database <span class="dot-sep"></span> <span>${new Set(results.map(r => r.platform)).size} platforms</span>`;
+        provEl.style.display = 'flex';
       } else {
-        provText.innerHTML = intentNote === 'decor'
-          ? `No decor results yet, but we have 66K+ products. Try searching for sneakers, bags, watches, or jewelry.`
-          : intentNote === 'apple_electronics'
-          ? `No Apple electronics yet, but we have 66K+ products. Try searching for sneakers, bags, watches, or jewelry.`
-          : `No products found for "${escapeHtml(displayQuery)}". Try a different search term.`;
+        provEl.style.display = 'none';
       }
-      provEl.style.display = 'flex';
 
       // AI insights
       const statPills = document.getElementById('statPills');
       if (verdict.insights && statPills) statPills.insertAdjacentHTML('afterend', renderInsights(verdict.insights));
 
-      // Agent toggle - inject before results
-      if (statPills) statPills.insertAdjacentHTML('beforebegin', renderAgentToggleHTML());
+      // Agent toggle - only show when there are products to open
+      if (statPills && results.length > 0) statPills.insertAdjacentHTML('beforebegin', renderAgentToggleHTML());
 
       // Empty state or results
+      const resultsSection = document.getElementById('resultsSection');
+      if (resultsSection) resultsSection.style.display = 'block';
+      const inlineFilters = resultsHeader.querySelector('.inline-filters');
+      if (inlineFilters) inlineFilters.style.display = results.length > 0 ? 'flex' : 'none';
       if (results.length === 0) {
         const list = document.getElementById('resultsList');
         if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(displayQuery)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">${intentNote ? 'Our database focuses on reps & fashion - try these instead' : 'Our database has 66K+ direct-link products - try a broader term'}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Patek Philippe','Designer Bags','Chrome Hearts','Jordan 4','Travis Scott'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
@@ -2745,7 +2771,7 @@ async function renderSearchResponse(ai, container) {
       scrollToBottom();
 
       // ─── Cross-sell: suggest complementary products ───
-      if (!crossSellShown && searchHistory.length <= 1) {
+      if (results.length > 0 && !crossSellShown && searchHistory.length <= 1) {
         renderCrossSell(query, results, container); // fire-and-forget — cross-sell is non-critical
         crossSellShown = true;
       }
@@ -2986,7 +3012,7 @@ document.addEventListener('keydown', (e) => {
 
 function renderCardHTML(r, idx) {
   const plat = PLATFORMS[r.platform] || PLATFORMS['weidian'];
-  const badges = '';
+  const badges = renderSmartBadges(idx, lastAnalysis);
   const isVerified = r.id && /^\d+$/.test(r.id);
   const verifiedBadge = isVerified ? '<span class="verified-badge">Direct Link</span>' : '';
 
@@ -3303,18 +3329,35 @@ function renderFollowUps(query, scope) {
   const el = root.querySelector('#followUpChips');
   const section = root.querySelector('#followUps');
   if (!el || !section) return;
-  const clean = query.trim();
-  const isDecor = false; // Claude now handles decor redirects - never show decor suggestions
-  const suffixes = ['hoodie', 'jacket', 'pants', 'shirt', 'shorts', 'shoes'];
-  const base = clean;
-  const allSuggestions = suffixes
-    .filter(suffix => !base.toLowerCase().split(/\s+/).includes(suffix))
-    .map(suffix => `${base} ${suffix}`)
-    .filter((s, idx, arr) => {
-      const normalized = s.toLowerCase().replace(/\s+/g, ' ').trim();
-      return normalized !== clean.toLowerCase() && arr.findIndex(x => x.toLowerCase().replace(/\s+/g, ' ').trim() === normalized) === idx;
-    });
-  const suggestions = allSuggestions.slice(0, 3);
+
+  const clean = String(query || '').trim();
+  const lower = clean.toLowerCase();
+  const hasResults = currentResults && currentResults.length > 0;
+  const fallback = ['Jordan 4', 'Chrome Hearts', 'Patek Philippe', 'AirPods', 'designer bags'];
+  let suggestions = [];
+
+  if (!hasResults) {
+    section.style.display = 'none';
+    return;
+  } else if (/jordan|dunk|yeezy|travis|shoe|sneaker|air force|new balance|asics/.test(lower)) {
+    suggestions = ['Chrome Hearts hoodie', 'streetwear pants', 'designer bags', 'Nike socks'];
+  } else if (/chrome hearts|hoodie|shirt|tee|jacket|carhartt|stussy|supreme/.test(lower)) {
+    suggestions = ['matching pants', 'designer bags', 'Jordan 4', 'Chrome Hearts jewelry'];
+  } else if (/bag|purse|tote|duffle|luggage/.test(lower)) {
+    suggestions = ['wallet', 'jewelry', 'sunglasses', 'designer shoes'];
+  } else if (/patek|rolex|watch|smartwatch/.test(lower)) {
+    suggestions = ['watch box', 'bracelet', 'sunglasses', 'designer bags'];
+  } else if (/airpod|iphone|ipad|charger|case|electronics|smartwatch/.test(lower)) {
+    suggestions = ['phone case', 'charger', 'smartwatch', 'AirPods'];
+  } else {
+    suggestions = fallback;
+  }
+
+  suggestions = suggestions
+    .filter(s => s && s.toLowerCase() !== lower)
+    .filter((s, idx, arr) => arr.findIndex(x => x.toLowerCase() === s.toLowerCase()) === idx)
+    .slice(0, 4);
+
   el.innerHTML = suggestions.map(s =>
     `<div class="follow-up-chip" onclick="quickSearch('${escapeAttr(s)}')">${escapeHtml(s)}</div>`
   ).join('');
@@ -4031,33 +4074,57 @@ let lastAnalysis = null;
 let baseResults = [];
 
 function analyzeResults(results) {
-  return null; // Budgeting analysis removed
+  if (!results || !results.length) return null;
+  const prices = results
+    .map((r, idx) => ({ idx, value: parseFloat(r.priceUSD) || 0 }))
+    .filter(p => p.value > 0);
+  if (!prices.length) {
+    return { totalResults: results.length, avgPrice: 0, minPrice: 0, maxPrice: 0, priceSpread: 0, lowestPriceIdx: -1, bestValueIdx: -1 };
+  }
+  const values = prices.map(p => p.value);
+  const sum = values.reduce((a, b) => a + b, 0);
+  const avgPrice = sum / values.length;
+  const min = prices.reduce((a, b) => a.value <= b.value ? a : b);
+  const max = prices.reduce((a, b) => a.value >= b.value ? a : b);
+  const complete = results
+    .map((r, idx) => ({ idx, price: parseFloat(r.priceUSD) || 0, hasImage: !!r.img, hasLink: /^\d+$/.test(r.id || '') }))
+    .filter(r => r.price > 0 && r.hasImage && r.hasLink)
+    .sort((a, b) => a.price - b.price);
+  return {
+    totalResults: results.length,
+    avgPrice,
+    minPrice: min.value,
+    maxPrice: max.value,
+    priceSpread: max.value - min.value,
+    lowestPriceIdx: min.idx,
+    bestValueIdx: complete[0]?.idx ?? min.idx,
+    platforms: [...new Set(results.map(r => r.platform))],
+  };
 }
 
 function generateSmartVerdict(query, results, a) {
-  if (!results || results.length === 0) return { verdict: `No exact matches for <strong>"${escapeHtml(query)}"</strong> in our 66K+ direct-link product database. Try <strong>Jordan</strong>, <strong>Yeezy</strong>, or <strong>Travis Scott</strong>.`, stats: [], insights: [] };
+  if (!results || results.length === 0) return { verdict: `No exact matches for <strong>"${escapeHtml(query)}"</strong> in our 66K+ direct-link product database. Try <strong>Jordan 4</strong>, <strong>Chrome Hearts</strong>, <strong>Patek Philippe</strong>, or <strong>AirPods</strong>.`, stats: [], insights: [] };
   if (!a) {
     const platforms = [...new Set(results.map(r => r.platform))];
     const platNames = platforms.map(p => (PLATFORMS[p] || PLATFORMS['weidian']).label);
     return { verdict: `Found <strong>${results.length} ${escapeHtml(query)}</strong> listings across ${platNames.join(' and ')}.`, stats: [], insights: [] };
   }
   const avg = a.avgPrice.toFixed(2), min = a.minPrice.toFixed(2), max = a.maxPrice.toFixed(2);
-  let parts = [`Found <strong>${a.totalResults} listings</strong> for "${escapeHtml(query)}"`];
-  if (a.priceSpread > 20) parts.push(`Prices range from <strong>$${min}</strong> to <strong>$${max}</strong> - a <strong>$${a.priceSpread.toFixed(0)} spread</strong>`);
-  else if (a.avgPrice > 0) parts.push(`Prices cluster around <strong>$${avg}</strong>`);
+  const platforms = (a.platforms || [...new Set(results.map(r => r.platform))]).map(p => (PLATFORMS[p] || PLATFORMS['weidian']).label);
   const stats = a.avgPrice > 0 ? [
-    { label: 'Avg Price', value: `$${avg}`, sub: `¥${Math.round(a.avgPrice / EXCHANGE_RATES.USD)}`, class: 'accent' },
-    { label: 'Price Range', value: `$${min}-$${max}`, class: '' },
-    { label: 'Listings', value: `${a.totalResults}`, class: 'green' },
+    { label: 'Lowest', value: `$${min}`, class: 'green' },
+    { label: 'Typical', value: `$${avg}`, sub: 'avg shown', class: 'accent' },
+    { label: 'Range', value: `$${min}-$${max}`, class: '' },
+    { label: 'Sources', value: `${platforms.length}`, sub: platforms.join(', '), class: '' },
   ] : [{ label: 'Listings', value: `${a.totalResults}`, class: 'accent' }];
   const insights = [];
-  if (a.lowestPriceIdx >= 0 && a.avgPrice > 0) {
-    const p = results[a.lowestPriceIdx]; const price = parseFloat(p.priceUSD) || 0;
-    const pctBelow = Math.round((1 - price / a.avgPrice) * 100);
-    if (pctBelow > 5) insights.push({ type: 'deal', icon: '$', text: `<strong>Lowest price:</strong> ${escapeHtml(p.name)} at $${price.toFixed(2)} - ${pctBelow}% below the $${avg} average.` });
+  if (a.bestValueIdx >= 0) {
+    const p = results[a.bestValueIdx];
+    const price = parseFloat(p.priceUSD) || 0;
+    insights.push({ type: 'deal', icon: '$', text: `<strong>Low-price option:</strong> ${escapeHtml(p.name)} has a direct link, image, and one of the lowest shown prices at $${price.toFixed(2)}.` });
   }
-  if (a.priceSpread > 30 && a.totalResults >= 4) insights.push({ type: 'info', icon: 'i', text: `Big price gap ($${min} to $${max}). Higher price doesn't always mean better quality - do your own QC research.` });
-  return { verdict: parts.join('. ') + '.', stats, insights };
+  if (a.priceSpread > 50 && a.totalResults >= 4) insights.push({ type: 'info', icon: 'i', text: `Big price spread. Compare QC photos before assuming the most expensive listing is best.` });
+  return { verdict: `Found <strong>${results.length} ${escapeHtml(query)}</strong> listings across ${platforms.join(' and ')}. Lowest shown is <strong>$${min}</strong>; typical shown is about <strong>$${avg}</strong>.`, stats, insights };
 }
 
 function renderInsights(insights) {
