@@ -2415,23 +2415,19 @@ async function renderDataDrivenClarify(query, ai, container) {
     // Search our actual database for this query
     rawProducts = await searchProducts(query, 50);
 
-    // If no results, try the AI's suggested chips as fallback searches
-    if (rawProducts.length === 0 && ai.chips && ai.chips.length) {
-      for (const chip of ai.chips) {
-        // Don't use chip fallbacks for concept queries we don't have data for
-        if (detectSpecialIntent(chip)) continue;
-        const chipResults = await searchProducts(chip, 30);
-        if (chipResults.length > 0) {
-          rawProducts = chipResults;
-          break;
-        }
-      }
-    }
+    // Do not fall back to AI-suggested chips here. The webhook can suggest
+    // unrelated products, which made repfind claim nonsense queries had real
+    // matches. If the user's words do not match the database, show that plainly.
   }
 
-  // If still no results - show the AI's conversational reply
+  // If still no results, use the grounded empty-results renderer instead of
+  // the AI's conversational reply so we never imply unrelated products matched.
   if (rawProducts.length === 0) {
-    renderChatResponse(ai, container);
+    await renderSearchResponse({
+      action: 'search',
+      search_query: query,
+      reply: `Searching the product database directly for "${query}".`,
+    }, container);
     return;
   }
 
@@ -2537,16 +2533,36 @@ function renderChatResponse(ai, container) {
 // RENDER - SEARCH RESULTS (after AI confirms)
 // ════════════════════════════════════════════════
 async function renderSearchResponse(ai, container) {
-  // Prefer the AI's refined query for search, but fall back to the user's
-  // original input if the AI didn't provide one or it looks unreliable.
-  const userQuery = chatHistory[chatHistory.length - 2]?.content || '';
-  let query = ai.search_query || userQuery;
-  // If the AI's search_query is clearly different from what the user typed
-  // and looks like a hallucination, prefer the user's original words.
-  if (userQuery && query && query.toLowerCase() !== userQuery.toLowerCase()) {
-    // AI refined the query — use it for search but keep user's words for display
+  // Never let the AI silently replace what the user searched for.
+  // The webhook can suggest related searches, but results must be grounded in
+  // the user's words unless the refinement is a very close/safe synonym.
+  const userQuery = chatHistory[chatHistory.length - 2]?.content || ai.search_query || '';
+  const aiQuery = (ai.search_query || '').trim();
+  let query = userQuery;
+  const displayQuery = userQuery || aiQuery;
+
+  function normalizeSearchText(value) {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/['']/g, '')
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
-  const displayQuery = userQuery || query;
+
+  function isSafeAiRefinement(original, refined) {
+    const a = normalizeSearchText(original);
+    const b = normalizeSearchText(refined);
+    if (!a || !b || a === b) return true;
+
+    const originalWords = a.split(' ').filter(w => w.length > 2);
+    const refinedWords = b.split(' ').filter(w => w.length > 2);
+    if (!originalWords.length || !refinedWords.length) return false;
+
+    // Safe only when the refined query keeps at least one meaningful user word
+    // and is not jumping to an unrelated category like AirPods for gibberish.
+    return originalWords.some(w => refinedWords.includes(w) || b.includes(w));
+  }
 
   // Show loading state for results
   const resultsHeader = document.createElement('div');
@@ -2612,45 +2628,53 @@ async function renderSearchResponse(ai, container) {
     let rawProducts = [];
     let intentNote = '';
 
-    // Check for special intent (decor, apple electronics) before regular search
-    const intent = detectSpecialIntent(query);
-    const userQuery = chatHistory[chatHistory.length - 2]?.content || query;
+    // Ground search in the user's actual words first. AI refinements are only
+    // allowed as a fallback when they preserve the user's intent.
     const intentFromUser = detectSpecialIntent(userQuery);
+    const intentFromAi = detectSpecialIntent(aiQuery);
 
-    if (intent === 'decor' || intentFromUser === 'decor') {
+    if (intentFromUser === 'decor') {
       rawProducts = searchDecorProducts(24);
       intentNote = 'decor';
-    } else if (intent === 'apple_electronics' || intentFromUser === 'apple_electronics') {
+    } else if (intentFromUser === 'apple_electronics') {
       rawProducts = searchAppleElectronics(24);
       intentNote = 'apple_electronics';
     } else {
-      rawProducts = await searchProducts(query, 24);
+      rawProducts = await searchProducts(userQuery, 24);
 
-      // If AI query returned too few results, try broader fallbacks
-      if (rawProducts.length < 6) {
-        // Try with the original user query (not the AI-refined one)
-        if (userQuery && userQuery !== query) {
-          const fallback = await searchProducts(userQuery, 24);
-          if (fallback.length > rawProducts.length) {
-            rawProducts = fallback;
-          }
+      // Only use the AI's rewritten query if it is clearly related to the
+      // user's query. This prevents searches like "xyznotreal123" or
+      // "smartwatch" from being silently turned into AirPods cases.
+      if (rawProducts.length < 6 && aiQuery && isSafeAiRefinement(userQuery, aiQuery)) {
+        let aiResults = [];
+        if (intentFromAi === 'decor') {
+          aiResults = searchDecorProducts(24);
+          intentNote = 'decor';
+        } else if (intentFromAi === 'apple_electronics') {
+          aiResults = searchAppleElectronics(24);
+          intentNote = 'apple_electronics';
+        } else {
+          aiResults = await searchProducts(aiQuery, 24);
         }
+        if (aiResults.length > rawProducts.length) {
+          rawProducts = aiResults;
+          query = aiQuery;
+        }
+      }
 
-        // Still too few? Try each word individually
-        // BUT: only for fashion/sneaker queries - don't fall back to shoe results
-        // for concept queries like "room decor" that we don't have data for
-        if (rawProducts.length < 4 && !detectSpecialIntent(query) && !detectSpecialIntent(userQuery)) {
-          const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-          const bestWord = words.sort((a,b) => {
-            const ac = (PRODUCT_DB||[]).filter(p => (p.name||'').toLowerCase().includes(a)).length;
-            const bc = (PRODUCT_DB||[]).filter(p => (p.name||'').toLowerCase().includes(b)).length;
-            return bc - ac;
-          })[0];
-          if (bestWord) {
-            const wordResults = await searchProducts(bestWord, 24);
-            if (wordResults.length > rawProducts.length) {
-              rawProducts = wordResults;
-            }
+      // Still too few? Try each word individually, but only from the user's
+      // original query. Do not broaden with unrelated AI hallucinations.
+      if (rawProducts.length < 4 && !detectSpecialIntent(userQuery)) {
+        const words = normalizeSearchText(userQuery).split(/\s+/).filter(w => w.length > 2);
+        const bestWord = words.sort((a,b) => {
+          const ac = (PRODUCT_DB||[]).filter(p => (p.name||'').toLowerCase().includes(a)).length;
+          const bc = (PRODUCT_DB||[]).filter(p => (p.name||'').toLowerCase().includes(b)).length;
+          return bc - ac;
+        })[0];
+        if (bestWord) {
+          const wordResults = await searchProducts(bestWord, 24);
+          if (wordResults.length > rawProducts.length) {
+            rawProducts = wordResults;
           }
         }
       }
