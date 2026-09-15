@@ -83,6 +83,34 @@ def product_key(row: list) -> tuple[str, str] | None:
     return platform, item_id
 
 
+def product_quality(row: list) -> tuple[int, int, int, int]:
+    title = str(row[0] or "").strip() if len(row) > 0 else ""
+    try:
+        has_price = float(row[1]) > 0
+    except (TypeError, ValueError, IndexError):
+        has_price = False
+    category = str(row[2] or "").strip() if len(row) > 2 else ""
+    image = str(row[3] or "").strip() if len(row) > 3 else ""
+    has_image = image.startswith(("https://", "http://"))
+    return int(has_image), int(has_price), int(bool(category)), min(len(title), 180)
+
+
+def dedupe_products(rows: list) -> list:
+    """Keep the best snapshot per marketplace listing without changing IDs."""
+    best: dict[tuple[str, str], list] = {}
+    order: list[tuple[str, str]] = []
+    for row in rows:
+        row_key = product_key(row)
+        if row_key is None:
+            continue
+        if row_key not in best:
+            best[row_key] = row
+            order.append(row_key)
+        elif product_quality(row) > product_quality(best[row_key]):
+            best[row_key] = row
+    return [best[row_key] for row_key in order]
+
+
 def clean_title(title: str) -> str:
     title = re.sub(r"\s+", " ", title or "").strip()
     return title[:180]
@@ -182,7 +210,7 @@ def main() -> int:
     args = ap.parse_args()
 
     start = time.time()
-    products = load_products()
+    products = dedupe_products(load_products())
     existing = {product_key(row) for row in products if product_key(row)}
     cache = load_cache()
     keywords = [] if args.all else DEFAULT_KEYWORDS

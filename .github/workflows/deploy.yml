@@ -17,10 +17,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Validate product catalog
+        run: python3 scripts/validate_products.py
+      - name: Build minimal Pages artifact
+        run: |
+          mkdir -p _site/data
+          cp index.html privacy.html logo.svg logo-icon.svg CNAME _site/
+          cp data/products.json _site/data/products.json
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: _site
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

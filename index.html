@@ -4,22 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://xacehhtgvubcqdoltazg.supabase.co wss://xacehhtgvubcqdoltazg.supabase.co https://n8n.wildeautomations.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
   <title>repfind - find the best reps, fast</title>
-  <meta name="description" content="Search 70K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.">
+  <meta name="description" content="Search 23K+ unique replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.">
   <meta name="keywords" content="repfind, reps, replica, weidian, taobao, 1688, cnfans, kakobuy, oopbuy, travis scott, jordan, yeezy, nike">
   <meta name="author" content="repfind">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="repfind - find the best reps, fast">
-  <meta property="og:description" content="Search 70K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.">
+  <meta property="og:description" content="Search 23K+ unique replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.">
   <meta property="og:url" content="https://repfind.ca/">
   <meta property="og:site_name" content="repfind">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="repfind - find the best reps, fast">
-  <meta name="twitter:description" content="Search 70K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.">
+  <meta name="twitter:description" content="Search 23K+ unique replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.">
 
   <!-- Canonical -->
   <link rel="canonical" href="https://repfind.ca/">
@@ -32,16 +33,16 @@
     "@type": "WebApplication",
     "name": "repfind",
     "url": "https://repfind.ca/",
-    "description": "Search 70K+ replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.",
+    "description": "Search 23K+ unique replica products from Weidian, Taobao, and 1688. Direct links, real prices, no detours.",
     "applicationCategory": "ShoppingApplication",
     "operatingSystem": "Web",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
   }
   </script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800;900&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -595,7 +596,7 @@
       font-size: 0.72rem;
       font-weight: 600;
       letter-spacing: 0.01em;
-      color: var(--text-muted);
+      color: #9A9A9A;
       background: rgba(255,255,255,0.035);
       border: 1px solid var(--border);
       border-radius: var(--radius-pill);
@@ -683,6 +684,7 @@
       cursor: pointer;
       transition: all var(--transition);
       font-weight: 450;
+      font-family: inherit;
     }
     .suggestion:hover {
       background: var(--surface-2);
@@ -874,7 +876,7 @@
       border-radius: var(--radius-xs);
       border: none;
       background: transparent;
-      color: var(--text-dim);
+      color: var(--text-muted);
       cursor: pointer;
       transition: all var(--transition);
     }
@@ -1320,6 +1322,23 @@
       color: var(--text);
       transform: translateY(-1px);
     }
+    .empty-results { padding: 38px 18px; text-align: center; color: var(--text-muted); }
+    .empty-results-title { color: var(--text); font-weight: 650; margin-bottom: 7px; }
+    .empty-results-note { color: var(--text-dim); font-size: 0.84rem; line-height: 1.5; margin-bottom: 18px; }
+    .empty-results-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    button.follow-up-chip { font-family: inherit; }
+    :where(button, a, input, textarea, [tabindex]):focus-visible {
+      outline: 2px solid var(--accent-light);
+      outline-offset: 3px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
 
     /* ─── DOCKED INPUT ─── */
     .docked-input {
@@ -1393,13 +1412,12 @@
       }
       .result-card { padding: 7px; gap: 7px; }
       .result-img { width: 52px; height: 52px; border-radius: 6px; }
-      .result-name { font-size: 0.78rem; }
-      .result-seller { font-size: 0.68rem; }
-      .price-cad, .price-usd { font-size: 0.74rem; }
-      .buy-btn { font-size: 0.68rem; padding: 4px 8px; }
-      .add-to-cart-btn { font-size: 0.68rem; padding: 4px 6px; }
-      /* Mobile font size floor - nothing below 0.75rem (12px) */
-      .smart-badge, .verified-badge, .platform-badge { font-size: 0.7rem; }
+      .result-name { font-size: 0.84rem; }
+      .result-seller { font-size: 0.72rem; }
+      .price-cad, .price-usd { font-size: 0.78rem; }
+      .buy-btn { font-size: 0.74rem; padding: 6px 9px; min-height: 32px; }
+      .add-to-cart-btn { font-size: 0.74rem; padding: 6px 8px; min-height: 32px; }
+      .smart-badge, .verified-badge, .platform-badge { font-size: 0.72rem; }
       .stat-pill-label, .stat-pill-sub { font-size: 0.72rem; }
       .results-label, .follow-up-label { font-size: 0.72rem; }
       .price-cny { font-size: 0.72rem; }
@@ -1644,6 +1662,7 @@
       align-items: center;
       justify-content: center;
       width: 16px; height: 16px;
+      padding: 0;
       border-radius: 50%;
       background: var(--surface-2);
       border: 1px solid var(--border-light);
@@ -1825,22 +1844,15 @@
     .insight-row strong { color:var(--text); }
   </style>
 
-<!-- Commercial analytics: Microsoft Clarity -->
-<script>
-(function(c,l,a,r,i,t,y){
-  c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-  t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-  y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-})(window,document,"clarity","script","y3isf2gtkw");
-window.siteTrack=function(name){try{if(window.clarity&&name)window.clarity("event",name)}catch(e){}};
-</script>
+<!-- Product analytics are recorded through the first-party Supabase event logger below. -->
+<script>window.siteTrack=function(){};</script>
 </head>
 <body>
 
 <!-- ─── SIDEBAR ─── -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <span class="sidebar-logo"><img src="logo.svg" alt="repfind"></span>
+    <span class="sidebar-logo"><img src="logo.svg" width="150" height="40" alt="repfind"></span>
   </div>
   <button class="new-search-btn" onclick="newSearch()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -1859,7 +1871,7 @@ window.siteTrack=function(name){try{if(window.clarity&&name)window.clarity("even
       My Haul
       <span class="cart-badge" id="cartBadge">0</span>
     </button>
-
+    <a href="privacy.html" style="display:block;margin-top:10px;color:var(--text-muted);font-size:.78rem;text-align:center">Privacy &amp; data</a>
   </div>
 </aside>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
@@ -1868,16 +1880,16 @@ window.siteTrack=function(name){try{if(window.clarity&&name)window.clarity("even
 <div class="main">
   <!-- Mobile header -->
   <div class="mobile-header">
-    <button class="menu-btn" onclick="toggleSidebar()">
+    <button class="menu-btn" onclick="toggleSidebar()" aria-label="Open navigation">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
     </button>
-    <span class="topbar-logo"><img src="logo.svg" alt="repfind"></span>
+    <span class="topbar-logo"><img src="logo.svg" width="120" height="32" alt="repfind"></span>
     <div style="width:22px"></div>
   </div>
 
   <!-- Top bar -->
   <div class="topbar" id="topbar">
-    <span class="topbar-logo"><img src="logo.svg" alt="repfind"></span>
+    <span class="topbar-logo"><img src="logo.svg" width="120" height="32" alt="repfind"></span>
     <div class="topbar-right">
       <div class="currency-switcher" id="topbarCurrency">
         <button class="currency-btn" data-currency="USD" onclick="setCurrency('USD')">USD</button>
@@ -1893,8 +1905,8 @@ window.siteTrack=function(name){try{if(window.clarity&&name)window.clarity("even
 
   <!-- Welcome -->
   <div class="welcome" id="welcome">
-    <div class="welcome-logo"><img src="logo.svg" alt="repfind"></div>
-    <p class="welcome-tagline">Search 70K+ replica products. Direct links, real prices, faster checkout.</p>
+    <div class="welcome-logo"><img src="logo.svg" width="330" height="88" alt="repfind"></div>
+    <p class="welcome-tagline">Search 23K+ unique replica products. Direct links, real prices, faster checkout.</p>
     <div class="welcome-proof">
       <span>Direct marketplace links</span>
       <span>KakoBuy, CNFans, OopBuy</span>
@@ -1902,17 +1914,17 @@ window.siteTrack=function(name){try{if(window.clarity&&name)window.clarity("even
     </div>
     <div class="prompt-container">
       <div class="prompt-box">
-        <input type="text" id="searchInput" placeholder="Search reps: Jordan 4, Chrome Hearts, Patek, AirPods...">
-        <button class="send-btn" id="sendBtn" onclick="doSearch()" disabled>
+        <input type="search" id="searchInput" aria-label="Search replica products" autocomplete="off" placeholder="Search reps: Jordan 4, Chrome Hearts, Patek, AirPods...">
+        <button class="send-btn" id="sendBtn" onclick="doSearch()" aria-label="Search" disabled>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
       </div>
       <div class="suggestions">
-        <div class="suggestion" onclick="quickSearch('Jordan 4')">👟 Jordan 4</div>
-        <div class="suggestion" onclick="quickSearch('Chrome Hearts')">🕶️ Chrome Hearts</div>
-        <div class="suggestion" onclick="quickSearch('Patek Philippe')">⌚ Patek Philippe</div>
-        <div class="suggestion" onclick="quickSearch('AirPods')">🎧 AirPods</div>
-        <div class="suggestion" onclick="quickSearch('designer bags')">👜 Bags</div>
+        <button type="button" class="suggestion" onclick="quickSearch('Jordan 4')">Jordan 4</button>
+        <button type="button" class="suggestion" onclick="quickSearch('Chrome Hearts')">Chrome Hearts</button>
+        <button type="button" class="suggestion" onclick="quickSearch('Patek Philippe')">Patek Philippe</button>
+        <button type="button" class="suggestion" onclick="quickSearch('AirPods')">AirPods</button>
+        <button type="button" class="suggestion" onclick="quickSearch('designer bags')">Designer bags</button>
       </div>
     </div>
   </div>
@@ -1926,8 +1938,8 @@ window.siteTrack=function(name){try{if(window.clarity&&name)window.clarity("even
   <div class="docked-input" id="dockedInput">
     <div class="docked-input-inner">
       <div class="prompt-box">
-        <input type="text" id="dockedSearchInput" placeholder="Search another rep or paste a product name...">
-        <button class="send-btn" id="dockedSendBtn" onclick="doSearch(true)" disabled>
+        <input type="search" id="dockedSearchInput" aria-label="Search another replica product" autocomplete="off" placeholder="Search another rep or paste a product name...">
+        <button class="send-btn" id="dockedSendBtn" onclick="doSearch(true)" aria-label="Search" disabled>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
       </div>
@@ -1938,10 +1950,10 @@ window.siteTrack=function(name){try{if(window.clarity&&name)window.clarity("even
 
 <!-- Cart Panel -->
 <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
-<div class="cart-panel" id="cartPanel">
+<div class="cart-panel" id="cartPanel" role="dialog" aria-modal="true" aria-labelledby="cartTitle" aria-hidden="true">
   <div class="cart-header">
-    <span class="cart-title">My Haul</span>
-    <button class="cart-close" onclick="toggleCart()">&times;</button>
+    <span class="cart-title" id="cartTitle">My Haul</span>
+    <button class="cart-close" onclick="toggleCart()" aria-label="Close haul">&times;</button>
   </div>
   <div class="cart-items" id="cartItems"></div>
   <div class="cart-footer">
@@ -1956,14 +1968,14 @@ window.siteTrack=function(name){try{if(window.clarity&&name)window.clarity("even
 
 
 <!-- Auth Modal -->
-<div class="auth-modal" id="authModal">
-  <div class="auth-card">
+<div class="auth-modal" id="authModal" aria-hidden="true">
+  <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
     <div class="auth-card-header">
       <div>
-        <h2>Save your haul</h2>
+        <h2 id="authTitle">Save your haul</h2>
         <p>Your haul is saved on this device. Sign in to sync it across devices and come back later.</p>
       </div>
-      <button class="auth-close" onclick="hideAuthModal()">&times;</button>
+      <button class="auth-close" onclick="hideAuthModal()" aria-label="Close sign in">&times;</button>
     </div>
     <div class="auth-tabs">
       <button class="auth-tab active" id="loginTab" onclick="setAuthMode('login')">Log in</button>
@@ -1986,11 +1998,11 @@ window.siteTrack=function(name){try{if(window.clarity&&name)window.clarity("even
 
 
 <!-- Onboarding Modal -->
-<div class="onboard-overlay" id="onboardOverlay">
-  <div class="onboard-card">
-    <div class="onboard-logo"><img src="logo-icon.svg" alt="repfind"></div>
-    <div class="onboard-title">How repfind works</div>
-    <div class="onboard-sub">Search 70K+ products with direct links. Straight to the listing, no detours.</div>
+<div class="onboard-overlay" id="onboardOverlay" aria-hidden="true">
+  <div class="onboard-card" role="dialog" aria-modal="true" aria-labelledby="onboardTitle">
+    <div class="onboard-logo"><img src="logo-icon.svg" width="56" height="56" alt="repfind"></div>
+    <div class="onboard-title" id="onboardTitle">How repfind works</div>
+    <div class="onboard-sub">Search 23K+ unique products with direct links. Straight to the listing, no detours.</div>
     <div class="onboard-steps">
       <div class="onboard-step">
         <div class="onboard-step-num">1</div>
@@ -2013,11 +2025,11 @@ window.siteTrack=function(name){try{if(window.clarity&&name)window.clarity("even
 <div class="detail-overlay" id="checkoutOverlay2" onclick="closeCheckoutList()"></div>
 <div class="checkout-list" id="checkoutListModal"></div>
 <!-- Toast -->
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <!-- Product Detail Panel -->
 <div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
-<div class="detail-panel" id="detailPanel">
-  <button class="detail-close" onclick="closeDetail()">&times;</button>
+<div class="detail-panel" id="detailPanel" role="dialog" aria-modal="true" aria-label="Product details" aria-hidden="true">
+  <button class="detail-close" onclick="closeDetail()" aria-label="Close product details">&times;</button>
   <div class="detail-hero" id="detailHero"></div>
   <div class="detail-content" id="detailContent"></div>
 </div>
@@ -2039,9 +2051,21 @@ const AGENTS = {
   oopbuy:  { name: 'OopBuy',  color: '#E8843C', desc: 'Low service fee' },
 };
 
+function readStoredJson(storage, key, fallback) {
+  try {
+    const value = JSON.parse(storage.getItem(key) || 'null');
+    if (Array.isArray(fallback)) return Array.isArray(value) ? value : fallback;
+    return value && typeof value === 'object' ? value : fallback;
+  } catch (_) {
+    storage.removeItem(key);
+    return fallback;
+  }
+}
+
 // ─── Agent Selection (user picks which sites to buy from) ───
-let savedAgents = ['kakobuy', 'cnfans', 'oopbuy'];
-try { savedAgents = JSON.parse(localStorage.getItem('repfind_agents')) || ['kakobuy', 'cnfans', 'oopbuy']; } catch(e) {}
+let savedAgents = readStoredJson(localStorage, 'repfind_agents', ['kakobuy', 'cnfans', 'oopbuy'])
+  .filter(key => Object.prototype.hasOwnProperty.call(AGENTS, key));
+if (!savedAgents.length) savedAgents = ['kakobuy'];
 let selectedAgents = savedAgents;
 localStorage.setItem('repfind_agents', JSON.stringify(selectedAgents));
 
@@ -2062,7 +2086,12 @@ function toggleAgent(key) {
       baseResults.forEach((r, i) => {
         const card = document.createElement('div');
         card.className = 'result-card';
+        card.tabIndex = 0;
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-label', `View details for ${r.name}`);
         card.dataset.platform = r.platform;
+        card.onclick = (e) => { if (e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; openDetail(r.id); };
+        card.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(r.id); } };
         card.style.animationDelay = `${Math.min(i * 0.04, 0.3)}s`;
         card.innerHTML = renderCardHTML(r, i);
         list.appendChild(card);
@@ -2170,7 +2199,7 @@ const PLATFORMS = {
 // ─── Webhook config ───
 const WEBHOOK_URL = 'https://n8n.wildeautomations.com/webhook/repfind-chat';
 
-let searchHistory = JSON.parse(localStorage.getItem('repfind_history') || '[]');
+let searchHistory = readStoredJson(localStorage, 'repfind_history', []);
 let currentPlatform = 'all';
 let isSearching = false;
 let chatHistory = []; // conversation context for AI
@@ -2273,7 +2302,7 @@ async function doSearch(fromDocked) {
     'Let me dig through the stacks...',
     'Searching direct-link listings...',
     'Checking what we actually have...',
-    'Scanning 70K+ direct links...',
+    'Scanning 23K+ unique direct links...',
     'Checking prices and direct links...',
     'Hunting for matching direct links...',
   ];
@@ -2298,7 +2327,7 @@ async function doSearch(fromDocked) {
 
   // Progressive loading - show what's actually happening
   const stepTimers = [
-    setTimeout(() => updateLoadingStep(1, 'Querying 70K+ direct-link products...'), 1200),
+    setTimeout(() => updateLoadingStep(1, 'Querying 23K+ unique direct-link products...'), 1200),
     setTimeout(() => updateLoadingStep(2, 'Analyzing price spread and platforms...'), 2500),
   ];
 
@@ -2311,7 +2340,7 @@ async function doSearch(fromDocked) {
   // ─── Call the AI webhook ───
   try {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 8000);
+    const timer = setTimeout(() => ctrl.abort(), 5000);
     const response = await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2340,12 +2369,12 @@ async function doSearch(fromDocked) {
     if (ai.action === 'search' && ai.search_query) {
       // AI says search - show results with the refined query
       await renderSearchResponse(ai, inner);
-      const resultCount = document.querySelectorAll('#resultsList .product-card').length;
+      const resultCount = document.querySelectorAll('#resultsList .result-card').length;
       trackSearch(query, 'search', resultCount);
     } else if (ai.action === 'clarify') {
       // AI wants to clarify - search our DB first, offer data-driven narrowing
       await renderDataDrivenClarify(query, ai, inner);
-      const clarifyCount = document.querySelectorAll('#resultsList .product-card').length;
+      const clarifyCount = document.querySelectorAll('#resultsList .result-card').length;
       trackSearch(query, 'clarify', clarifyCount);
     } else {
       renderChatResponse(ai, inner);
@@ -2367,11 +2396,18 @@ async function doSearch(fromDocked) {
       chatHistory.push({ role: 'user', content: query });
       chatHistory.push({ role: 'assistant', content: `Showing local database results for ${query}.` });
     }
-    await renderSearchResponse({
-      action: 'search',
-      search_query: query,
-      reply: `Searching the product database directly for "${query}".`,
-    }, inner);
+    try {
+      await renderSearchResponse({
+        action: 'search',
+        search_query: query,
+        reply: `Searching the product database directly for "${query}".`,
+      }, inner);
+      const fallbackCount = document.querySelectorAll('#resultsList .result-card').length;
+      trackSearch(query, 'fallback', fallbackCount);
+    } catch (renderErr) {
+      console.error('Local search rendering failed:', renderErr);
+      inner.insertAdjacentHTML('beforeend', '<div class="empty-results"><div class="empty-results-title">Search could not load</div><div class="empty-results-note">Please try again. Your saved haul is unaffected.</div></div>');
+    }
     addHistory(query);
   }
 
@@ -2586,7 +2622,7 @@ async function renderSearchResponse(ai, container) {
 
     // Safe only when the refined query keeps at least one meaningful user word
     // and is not jumping to an unrelated category like AirPods for gibberish.
-    return originalWords.some(w => refinedWords.includes(w) || b.includes(w));
+    return originalWords.some(w => refinedWords.includes(w));
   }
 
   // Show loading state for results
@@ -2687,22 +2723,8 @@ async function renderSearchResponse(ai, container) {
         }
       }
 
-      // Still too few? Try each word individually, but only from the user's
-      // original query. Do not broaden with unrelated AI hallucinations.
-      if (rawProducts.length < 4 && !detectSpecialIntent(userQuery)) {
-        const words = normalizeSearchText(userQuery).split(/\s+/).filter(w => w.length > 2);
-        const bestWord = words.sort((a,b) => {
-          const ac = (PRODUCT_DB||[]).filter(p => (p.name||'').toLowerCase().includes(a)).length;
-          const bc = (PRODUCT_DB||[]).filter(p => (p.name||'').toLowerCase().includes(b)).length;
-          return bc - ac;
-        })[0];
-        if (bestWord) {
-          const wordResults = await searchProducts(bestWord, 24);
-          if (wordResults.length > rawProducts.length) {
-            rawProducts = wordResults;
-          }
-        }
-      }
+      // Do not broaden a failed multi-word query to one popular word. Precision
+      // matters more than filling the page with unrelated products.
     }
 
     const results = transformProducts(rawProducts);
@@ -2754,7 +2776,7 @@ async function renderSearchResponse(ai, container) {
       if (inlineFilters) inlineFilters.style.display = results.length > 0 ? 'flex' : 'none';
       if (results.length === 0) {
         const list = document.getElementById('resultsList');
-        if (list) list.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><div style="font-weight:600;margin-bottom:4px">Nothing found for "${escapeHtml(displayQuery)}"</div><div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">${intentNote ? 'Our database focuses on reps & fashion - try these instead' : 'Our database has 70K+ direct-link products - try a broader term'}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${['Patek Philippe','Designer Bags','Chrome Hearts','Jordan 4','Travis Scott'].map(s => `<span class="follow-up-chip" onclick="quickSearch('${s}')" style="cursor:pointer">${s}</span>`).join('')}</div></div>`;
+        if (list) list.innerHTML = `<div class="empty-results"><div class="empty-results-title">Nothing found for "${escapeHtml(displayQuery)}"</div><div class="empty-results-note">No strong matches in our 23K+ unique direct-link database. Try a brand, model, or broader product name.</div><div class="empty-results-actions">${['Patek Philippe','Designer Bags','Chrome Hearts','Jordan 4','AirPods'].map(s => `<button type="button" class="follow-up-chip" onclick="quickSearch('${s}')">${s}</button>`).join('')}</div></div>`;
       } else {
         renderResults(results, resultsHeader);
       }
@@ -2782,9 +2804,11 @@ async function renderSearchResponse(ai, container) {
 // ─── Stream text ───
 function streamText(el, html, callback) {
   if (!html) { if (callback) setTimeout(callback, 100); return; }
-  // Sanitize: only allow safe inline tags, strip everything else (XSS protection)
-  const safeHtml = String(html).replace(/<(?!\/?(strong|em|b|i|br|span)\b)[^>]*>/gi, '');
-  html = safeHtml;
+  // Escape all webhook HTML, then restore a tiny set of exact, attribute-free tags.
+  // A tag-name allowlist alone still permits event handlers such as onmouseover.
+  html = escapeHtml(String(html))
+    .replace(/&lt;(\/?)(strong|em|b|i)&gt;/gi, '<$1$2>')
+    .replace(/&lt;br\s*\/?&gt;/gi, '<br>');
   const tokens = [];
   let i = 0;
   while (i < html.length) {
@@ -2867,8 +2891,12 @@ function renderResults(results, scope) {
   results.forEach((r, i) => {
     const card = document.createElement('div');
     card.className = 'result-card';
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', `View details for ${r.name}`);
     card.dataset.platform = r.platform;
-    card.onclick = (e) => { if(e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; var c2 = card.querySelector('.add-to-cart-btn'); if(!c2) return; var oc = c2.getAttribute('onclick') || ''; var mt = oc.match(/addToCart..([^'"]+)/); if(mt) openDetail(mt[1]); };
+    card.onclick = (e) => { if (e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; openDetail(r.id); };
+    card.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(r.id); } };
     card.style.animationDelay = `${Math.min(i * 0.06, 0.4)}s`;
     card.innerHTML = renderCardHTML(r, i);
     list.appendChild(card);
@@ -2901,6 +2929,16 @@ function isDeadImage(url) {
   if (!url || !url.trim()) return true;
   try { return DEAD_IMAGE_DOMAINS.has(new URL(url).hostname); }
   catch { return true; }
+}
+
+function safeImageSrc(url) {
+  const value = String(url || '').trim();
+  if (value.startsWith('data:image/svg+xml,')) return escapeAttr(value);
+  try {
+    const parsed = new URL(value, location.href);
+    if (parsed.protocol === 'https:' || parsed.protocol === 'http:') return escapeAttr(parsed.href);
+  } catch (_) {}
+  return FALLBACK_SVG;
 }
 
 // Branded placeholder: gradient background + category icon + "repfind"
@@ -2961,7 +2999,7 @@ function openDetail(productId) {
     if (link === '#') return '';
     return `<a class="detail-link" href="${link}" target="_blank" rel="noopener noreferrer">Open in ${agent.name} <span class="detail-link-arrow">↗</span></a>`;
   }).filter(Boolean).join('');
-  document.getElementById('detailHero').innerHTML = `<img src="${p.img || FALLBACK_SVG}" alt="${escapeAttr(p.name)}" referrerpolicy="no-referrer" onerror="imgFallback(this)">`;
+  document.getElementById('detailHero').innerHTML = `<img src="${safeImageSrc(p.img)}" alt="${escapeAttr(p.name)}" referrerpolicy="no-referrer" onerror="imgFallback(this)">`;
   document.getElementById('detailContent').innerHTML = `
     <div class="detail-name">${escapeHtml(p.name)}</div>
     <div class="detail-meta">
@@ -2997,12 +3035,16 @@ function openDetail(productId) {
     </div>
   `;
   document.getElementById('detailOverlay').classList.add('show');
-  document.getElementById('detailPanel').classList.add('show');
+  const detailPanel = document.getElementById('detailPanel');
+  detailPanel.classList.add('show');
+  detailPanel.setAttribute('aria-hidden', 'false');
 }
 
 function closeDetail() {
   document.getElementById('detailOverlay').classList.remove('show');
-  document.getElementById('detailPanel').classList.remove('show');
+  const detailPanel = document.getElementById('detailPanel');
+  detailPanel.classList.remove('show');
+  detailPanel.setAttribute('aria-hidden', 'true');
 }
 
 // Close detail on Escape
@@ -3024,14 +3066,14 @@ function renderCardHTML(r, idx) {
     return `<a class="buy-btn" href="${link}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();trackClick('${r.id}')">Open in ${agent.name}</a>`;
   }).filter(Boolean).join(' ');
   const buyBtn = agentButtons || `<span class="buy-btn" style="opacity:0.4;cursor:not-allowed;pointer-events:none" aria-disabled="true">Link unavailable</span>`;
-  const infoIcon = `<span class="kakobuy-info" onclick="event.stopPropagation();this.classList.toggle('tapped')">?<span class="kakobuy-tooltip">Shipping agents buy from Chinese sellers on your behalf and ship worldwide. KakoBuy (fast, English UI), CNFans (popular, big warehouse), OopBuy (low fees). Use whichever you have an account with — links are pre-tagged with our referral.</span></span>`;
+  const infoIcon = `<button type="button" class="kakobuy-info" aria-label="About shopping agents" onclick="event.stopPropagation();this.classList.toggle('tapped')">?<span class="kakobuy-tooltip">Shipping agents buy from Chinese sellers on your behalf and ship worldwide. KakoBuy (fast, English UI), CNFans (popular, big warehouse), OopBuy (low fees). Use whichever you have an account with — links are pre-tagged with our referral.</span></button>`;
 
   // Add to cart button
   const cartBtn = `<button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart('${r.id}', this)">+ Haul</button>`;
 
   const fallbackImg = FALLBACK_SVG;
   return `
-    <img class="result-img" src="${r.img || fallbackImg}" alt="${escapeAttr(r.name)}" loading="${(idx||0) < 8 ? 'eager' : 'lazy'}" referrerpolicy="no-referrer" onerror="imgFallback(this)">
+    <img class="result-img" src="${safeImageSrc(r.img || fallbackImg)}" alt="${escapeAttr(r.name)}" loading="${(idx||0) < 8 ? 'eager' : 'lazy'}" referrerpolicy="no-referrer" onerror="imgFallback(this)">
     <div class="result-body">
       <div class="result-top">
         <div class="result-info">
@@ -3309,8 +3351,12 @@ async function renderCrossSell(query, results, container) {
   crossSellProducts.forEach((r, i) => {
     const card = document.createElement('div');
     card.className = 'result-card';
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', `View details for ${r.name}`);
     card.dataset.platform = r.platform;
-    card.onclick = (e) => { if(e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; var c2 = card.querySelector('.add-to-cart-btn'); if(!c2) return; var oc = c2.getAttribute('onclick') || ''; var mt = oc.match(/addToCart..([^'"]+)/); if(mt) openDetail(mt[1]); };
+    card.onclick = (e) => { if (e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; openDetail(r.id); };
+    card.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(r.id); } };
     card.style.animationDelay = `${i * 0.08}s`;
 
     // Store for cart/click lookup across searches
@@ -3419,7 +3465,7 @@ function escapeHtml(str) {
 function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
 
 // ════════════════════════════════════════════════
-// REAL PRODUCT DATABASE - 67,944 direct-link products from static JSON
+// REAL PRODUCT DATABASE - 23K+ unique direct marketplace listings from static JSON
 // ════════════════════════════════════════════════
 
 const SUPABASE_URL = 'https://xacehhtgvubcqdoltazg.supabase.co';
@@ -3442,11 +3488,17 @@ function setAuthMode(mode) {
   setAuthMessage('');
 }
 function showAuthModal(message = '') {
-  document.getElementById('authModal')?.classList.add('show');
+  const modal = document.getElementById('authModal');
+  modal?.classList.add('show');
+  modal?.setAttribute('aria-hidden', 'false');
   setAuthMessage(message);
   setTimeout(() => document.getElementById('authEmail')?.focus(), 50);
 }
-function hideAuthModal() { document.getElementById('authModal')?.classList.remove('show'); }
+function hideAuthModal() {
+  const modal = document.getElementById('authModal');
+  modal?.classList.remove('show');
+  modal?.setAttribute('aria-hidden', 'true');
+}
 function setAuthMessage(message, ok = false) {
   const el = document.getElementById('authMessage');
   if (!el) return;
@@ -3465,28 +3517,37 @@ async function submitAuth() {
   if (!email || !password) return setAuthMessage('Enter email and password.');
   if (authMode === 'signup' && password.length < 6) return setAuthMessage('Password must be at least 6 characters.');
   setAuthMessage(authMode === 'login' ? 'Logging in...' : 'Creating account...', true);
-  const res = authMode === 'login'
-    ? await supabaseClient.auth.signInWithPassword({ email, password })
-    : await supabaseClient.auth.signUp({ email, password, options: { emailRedirectTo: window.location.href.split('#')[0] } });
-  if (res.error) return setAuthMessage(normalizeAuthError(res.error));
-  hideAuthModal();
-  showToast('Signed in. Haul sync enabled.');
-  trackEvent(authMode === 'login' ? 'login' : 'signup', { method: 'password' });
+  try {
+    const res = authMode === 'login'
+      ? await supabaseClient.auth.signInWithPassword({ email, password })
+      : await supabaseClient.auth.signUp({ email, password, options: { emailRedirectTo: window.location.href.split('#')[0] } });
+    if (res.error) return setAuthMessage(normalizeAuthError(res.error));
+    hideAuthModal();
+    showToast('Signed in. Haul sync enabled.');
+    trackEvent(authMode === 'login' ? 'login' : 'signup', { method: 'password' });
+  } catch (err) {
+    setAuthMessage(normalizeAuthError(err));
+  }
 }
 async function sendMagicLink() {
   if (!supabaseClient) return setAuthMessage('Auth client failed to load.');
   const email = document.getElementById('authEmail')?.value.trim();
   if (!email) return setAuthMessage('Enter your email first.');
   setAuthMessage('Sending magic link...', true);
-  const { error } = await supabaseClient.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href.split('#')[0] } });
-  if (error) return setAuthMessage(normalizeAuthError(error));
-  setAuthMessage('Magic link sent. Check your email.', true);
+  try {
+    const { error } = await supabaseClient.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href.split('#')[0] } });
+    if (error) return setAuthMessage(normalizeAuthError(error));
+    setAuthMessage('Magic link sent. Check your email.', true);
+  } catch (err) {
+    setAuthMessage(normalizeAuthError(err));
+  }
 }
 async function signOut() {
   if (!supabaseClient) return;
-  await supabaseClient.auth.signOut();
+  try { await supabaseClient.auth.signOut(); }
+  catch (err) { showToast(normalizeAuthError(err)); return; }
   currentUser = null;
-  cart = JSON.parse(localStorage.getItem('repfind_cart') || '[]');
+  cart = readStoredJson(localStorage, 'repfind_cart', []);
   updateAuthUI(); updateCartBadge(); renderCart();
   showToast('Signed out');
 }
@@ -3516,7 +3577,7 @@ async function loadServerCart() {
 }
 async function syncLocalCartToServer() {
   if (!currentUser || !supabaseClient || isSyncingCart) return;
-  const localCart = JSON.parse(localStorage.getItem('repfind_cart') || '[]');
+  const localCart = readStoredJson(localStorage, 'repfind_cart', []);
   if (!localCart.length) { await loadServerCart(); return; }
   isSyncingCart = true;
   try {
@@ -3544,7 +3605,7 @@ async function initAuth() {
     authReady = true;
     updateAuthUI();
     if (currentUser) await syncLocalCartToServer();
-    else { cart = JSON.parse(localStorage.getItem('repfind_cart') || '[]'); updateCartBadge(); renderCart(); }
+    else { cart = readStoredJson(localStorage, 'repfind_cart', []); updateCartBadge(); renderCart(); }
   });
 }
 
@@ -3603,26 +3664,35 @@ async function loadProductDB() {
     try {
       const resp = await fetch('data/products.json');
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const raw = await resp.json();
-      // raw is array of: [name, price_usd, category, image, platform, itemID]
-      // Deduplicate: assign synthetic IDs to products sharing an itemID
-      const seenIds = new Map();
-      PRODUCT_DB = raw.map(p => {
-        let id = String(p[5] || '');
-        if (seenIds.has(id)) { id = id + '_' + seenIds.get(id); seenIds.set(p[5], seenIds.get(p[5]) + 1); }
-        else seenIds.set(id, 1);
-        return {
+      const downloaded = await resp.json();
+      // raw is array of: [name, price_usd, category, image, platform, itemID].
+      // The feed contains repeated snapshots of the same marketplace listing.
+      // Keep the most complete snapshot per marketplace + ID instead of creating
+      // fake suffixed IDs that cannot resolve to a real checkout URL.
+      const uniqueByListing = new Map();
+      const rowQuality = p => (String(p[0] || '').trim() ? 2 : 0)
+        + (Number(p[1]) > 0 ? 2 : 0)
+        + (!isDeadImage(p[3]) ? 4 : 0)
+        + (String(p[2] || '').trim() ? 1 : 0);
+      for (const p of downloaded) {
+        if (!Array.isArray(p) || p.length < 6 || !String(p[0] || '').trim() || !String(p[5] || '').trim() || !(Number(p[1]) > 0)) continue;
+        const key = `${p[4] || 'weidian'}:${p[5]}`;
+        const current = uniqueByListing.get(key);
+        if (!current || rowQuality(p) > rowQuality(current)) uniqueByListing.set(key, p);
+      }
+      const raw = [...uniqueByListing.values()];
+      PRODUCT_DB = raw.map(p => ({
           name: cleanProductName(p[0]),
-          price: p[1] ? `$${p[1]}` : '',
+          price: `$${p[1]}`,
           category: p[2] || '',
           image: isDeadImage(p[3]) ? '' : (p[3] || ''),
           platform: p[4] || 'weidian',
-          itemID: id,
-          _priceUSD: p[1] || 0,
-          _priceCNY: p[1] ? Math.round(parseFloat(p[1]) / EXCHANGE_RATES.USD) : 0,
-        };
-      });
-      console.log(`Loaded ${PRODUCT_DB.length} products`);
+          itemID: String(p[5]),
+          _priceUSD: p[1],
+          // Preserve precision so USD cards, summaries, and saved-haul totals agree.
+          _priceCNY: parseFloat(p[1]) / EXCHANGE_RATES.USD,
+        }));
+      console.log(`Loaded ${PRODUCT_DB.length} unique marketplace listings`);
       return PRODUCT_DB;
     } catch (err) {
       console.error('Product DB load error:', err);
@@ -3636,6 +3706,17 @@ async function loadProductDB() {
 // ════════════════════════════════════════════════
 // TWO-PHASE SEARCH: Recall (find candidates) → Rank (sort by relevance)
 // ════════════════════════════════════════════════
+// Match English phrases at token boundaries so "lamp" never matches
+// "Lamborghini"/"lambskin" and "room" never matches "showroom".
+function containsSearchPhrase(text, phrase) {
+  const value = String(text || '').toLowerCase();
+  const needle = String(phrase || '').toLowerCase().trim();
+  if (!needle) return false;
+  if (/[^\x00-\x7f]/.test(needle)) return value.includes(needle);
+  const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+  return new RegExp('(^|[^a-z0-9])' + escaped + '([^a-z0-9]|$)').test(value);
+}
+
 async function searchProducts(query, limit = 12) {
   // Ensure DB is loaded — if first search fires before preload finishes,
   // wait for it here instead of returning empty results.
@@ -3650,9 +3731,10 @@ async function searchProducts(query, limit = 12) {
     .replace(/\?/g, '')
     .replace(/\s+/g, ' ');
   if (!term) return [];
+  const requestedDesigner = /\bdesigner\b/.test(term);
 
   let words = term.split(/\s+/).filter(w => w.length > 0);
-  const STOPWORDS = new Set(['product','products','item','items','stuff','things','please','pls','want','wants','looking','look','for','show','me','some','like','id','i',"i'd",'im',"i'm",'the','a','an']);
+  const STOPWORDS = new Set(['product','products','item','items','stuff','things','please','pls','want','wants','looking','look','for','show','me','some','like','id','i',"i'd",'im',"i'm",'the','a','an','cheap','cheapest','budget','affordable','best','designer']);
   const contentWords = words.filter(w => !STOPWORDS.has(w));
   if (contentWords.length > 0) {
     words = contentWords;
@@ -3680,6 +3762,8 @@ async function searchProducts(query, limit = 12) {
     'shorts': ['shorts', '短裤'],
     'jersey': ['jerseys', '球衣'],
     'jordan': ['jordan', '乔丹'],
+    'bag': ['bag', 'bags', '手提包', '单肩包', '双肩包', '信封包'],
+    'bags': ['bag', 'bags', '手提包', '单肩包', '双肩包', '信封包'],
     // Electronics & tech
     'electronics': ['electronics', '电子产品'],
     'tech': ['electronics', '电子产品'],
@@ -3713,6 +3797,8 @@ async function searchProducts(query, limit = 12) {
     'sleepwear': ['sleepwear', '睡衣家居服'],
     'pyjamas': ['sleepwear', '睡衣家居服'],
     'pajamas': ['sleepwear', '睡衣家居服'],
+    'sofa': ['sofa', 'furniture', '沙发'],
+    'furniture': ['furniture', 'sofa', 'chair', 'table', '家具', '沙发'],
   };
 
   // ─── Rep keyword synonyms ───
@@ -3758,7 +3844,7 @@ async function searchProducts(query, limit = 12) {
   // Expand query with synonyms
   const expandedTerms = new Set([term]);
   for (const [key, syns] of Object.entries(SYNONYMS)) {
-    if (term === key || words.includes(key)) {
+    if (term === key || containsSearchPhrase(term, key)) {
       syns.forEach(s => expandedTerms.add(s));
     }
   }
@@ -3768,12 +3854,13 @@ async function searchProducts(query, limit = 12) {
   function fuzzyMatch(text, word) {
     const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     if (new RegExp('(^|[^a-z0-9])' + escaped + '([^a-z0-9]|$)').test(text)) return 'exact';
-    // Prefix match (e.g. "jord" matches "jordan")
-    const prefix = word.slice(0, Math.max(3, word.length - 1));
-    if (prefix.length >= 3 && text.match(new RegExp('\\b' + prefix))) return 'prefix';
-    // Levenshtein-lite for short query words (typos)
-    if (word.length >= 4) {
-      const threshold = word.length <= 5 ? 1 : 2;
+    // Prefix match (e.g. "jord" matches "jordan"). Never remove the last
+    // character: that turned "lamp" into "lam" and matched Lamborghini.
+    if (word.length >= 4 && text.match(new RegExp('\\b' + escaped))) return 'prefix';
+    // Bounded typo tolerance. Four-letter words are excluded because a single
+    // substitution turns "sofa" into "soft" and destroys home-search precision.
+    if (word.length >= 5) {
+      const threshold = word.length <= 6 ? 1 : 2;
       const wordsInText = text.split(/[^a-z0-9]+/);
       for (const w of wordsInText) {
         if (w.length < 3) continue;
@@ -3818,27 +3905,48 @@ async function searchProducts(query, limit = 12) {
     for (const w of words) {
       if (matchTypes[w]) continue;
       for (const [key, syns] of Object.entries(SYNONYMS)) {
-        if (w === key || words.includes(key)) {
+        if (w === key) {
           for (const syn of syns) {
-            if (name.includes(syn)) { matchedWords++; matchTypes[w] = 'synonym'; break; }
+            if (containsSearchPhrase(name, syn)) { matchedWords++; matchTypes[w] = 'synonym'; break; }
           }
         }
       }
     }
 
+    // Category aliases participate in recall, including Chinese source categories.
+    for (const w of words) {
+      if (matchTypes[w]) continue;
+      const aliases = CATEGORY_HINTS[w] || [];
+      if (aliases.some(alias => containsSearchPhrase(name, alias) || containsSearchPhrase(cat, alias))) {
+        matchedWords++;
+        matchTypes[w] = 'category_alias';
+      }
+    }
+
+    // Multi-word aliases must still activate when a query has a modifier.
+    for (const [key, syns] of Object.entries(SYNONYMS)) {
+      if (!containsSearchPhrase(term, key)) continue;
+      if (syns.some(syn => containsSearchPhrase(name, syn) || containsSearchPhrase(cat, syn))) {
+        matchedWords = Math.max(matchedWords, words.length);
+        matchTypes.__phraseAlias = 'synonym';
+      }
+    }
+
     // Accept if full term or any synonym phrase appears in name (even if word-by-word missed)
     if (matchedWords === 0) {
-      if (name.includes(term)) matchedWords = 1;
+      if (containsSearchPhrase(name, term)) matchedWords = 1;
       else {
         for (const st of searchTermList) {
-          if (st !== term && name.includes(st)) { matchedWords = 1; break; }
+          if (st !== term && containsSearchPhrase(name, st)) { matchedWords = 1; break; }
         }
       }
     }
 
-    // Relaxed threshold: at least 1 match for short queries, 40% for long queries
-    const minMatch = words.length <= 2 ? 1 : Math.max(1, Math.ceil(words.length * 0.4));
+    // Two-word searches need both words; longer searches may omit one modifier.
+    const minMatch = words.length <= 1 ? 1 : Math.max(2, Math.ceil(words.length * 0.67));
     if (matchedWords < minMatch) continue;
+    if (/\b(sofa|furniture)\b/.test(term)
+        && /\b(hat|cap|shirt|hoodie|jacket|sneaker|slipper|bra|bag)\b/.test(name)) continue;
 
     candidates.push({ ...p, _matchedWords: matchedWords, _totalWords: words.length, _matchTypes: matchTypes });
   }
@@ -3876,15 +3984,16 @@ async function searchProducts(query, limit = 12) {
       else if (t === 'synonym') score += 60;
       else if (t === 'cat_exact') score += 25;
       else if (t === 'cat_prefix') score += 15;
+      else if (t === 'category_alias') score += 45;
     }
 
     // ── TIER 2: Phrase / exact match (the strongest relevance signals) ──
     if (name === term) score += 400;                    // name IS the query
     else if (name.startsWith(term)) score += 250;       // name starts with query
-    else if (name.includes(term)) score += 200;         // query is a substring of name
+    else if (containsSearchPhrase(name, term)) score += 200;
 
     for (const st of searchTermList) {
-      if (st !== term && name.includes(st)) score += 150; // synonym phrase match
+      if (st !== term && containsSearchPhrase(name, st)) score += 150;
     }
 
     // ── TIER 3: Completeness (did all query words match?) ──
@@ -3901,6 +4010,7 @@ async function searchProducts(query, limit = 12) {
 
     // ── TIER 5: Quality signals ──
     if (BRANDS.some(b => name.includes(b))) score += 50;    // recognized brand
+    if (requestedDesigner && /\b(louis vuitton|dior|chanel|fendi|celine|gucci|prada|balenciaga|miumiu|burberry|versace|givenchy)\b/.test(name)) score += 120;
     if (p.image && !p.image.includes('picsum')) score += 35; // has real image
     else score -= 40;                                        // no image — demote so image results surface first
     if (/^\d+$/.test(p.itemID)) score += 50;                 // has working buy link (not a synthetic dedup ID)
@@ -3910,6 +4020,10 @@ async function searchProducts(query, limit = 12) {
 
     // ── TIER 6: Demotions ──
     if (/bs\d{3,}|cnfans spreadsheet|best quality/i.test(name)) score -= 25; // SEO stuffing
+    if (/\bairpods?\b/.test(term) && !/\b(case|cover|accessory|accessories)\b/.test(term)
+        && /\b(case|cover|protector|holder)\b/.test(name)) score -= 240;
+    if (/\b(sofa|furniture)\b/.test(term)
+        && /\b(hat|cap|shirt|hoodie|jacket|sneaker|slipper|bra|bag)\b/.test(name)) score -= 300;
 
     // ── Broad category boost (single-word searches) ──
     if (words.length === 1 && CATEGORY_HINTS[term]?.some(c => cat.includes(c))) score += 80;
@@ -3927,12 +4041,14 @@ async function searchProducts(query, limit = 12) {
     return (a.name || '').length - (b.name || '').length;
   });
 
-  // Deduplicate by itemID (keep highest scoring)
+  // Deduplicate by marketplace + item ID (keep highest scoring). IDs can
+  // legitimately overlap across Weidian, Taobao, and 1688.
   const seen = new Set();
   const results = [];
   for (const p of scored) {
-    if (!seen.has(p.itemID)) {
-      seen.add(p.itemID);
+    const listingKey = `${p.platform}:${p.itemID}`;
+    if (!seen.has(listingKey)) {
+      seen.add(listingKey);
       results.push(p);
       if (results.length >= limit) break;
     }
@@ -3978,15 +4094,15 @@ function searchDecorProducts(limit = 24) {
     if (!name || !p.itemID) continue;
     let score = 0;
     for (const k of include) {
-      if (text.includes(k)) score += strong.includes(k) ? 80 : 45;
+      if (containsSearchPhrase(text, k)) score += strong.includes(k) ? 80 : 45;
     }
     // "Poster" only counts if it's an actual wall poster, not printed on clothing
-    const hasPoster = text.includes('poster');
-    const isPosterOnShirt = posterOnClothing.some(k => text.includes(k));
+    const hasPoster = containsSearchPhrase(text, 'poster');
+    const isPosterOnShirt = posterOnClothing.some(k => containsSearchPhrase(text, k));
     if (hasPoster && isPosterOnShirt) score -= 60; // remove the poster bonus
     // Keep fashion products out unless they are explicitly home/decor objects like rugs/pillows/lamps.
-    const hasStrongHomeSignal = strong.some(k => text.includes(k));
-    if (apparelNeg.some(k => text.includes(k)) && !hasStrongHomeSignal) score -= 180;
+    const hasStrongHomeSignal = strong.some(k => containsSearchPhrase(text, k));
+    if (apparelNeg.some(k => containsSearchPhrase(text, k)) && !hasStrongHomeSignal) score -= 180;
     // Hard-exclude any product in a fashion/sneaker category
     if (fashionCats.some(k => cat.includes(k))) score -= 200;
     if (/\b(trophy room|showroom|mushroom|bedroom athletics|living room best quality)\b/.test(text)) score -= 160;
@@ -4103,7 +4219,7 @@ function analyzeResults(results) {
 }
 
 function generateSmartVerdict(query, results, a) {
-  if (!results || results.length === 0) return { verdict: `No exact matches for <strong>"${escapeHtml(query)}"</strong> in our 70K+ direct-link product database. Try <strong>Jordan 4</strong>, <strong>Chrome Hearts</strong>, <strong>Patek Philippe</strong>, or <strong>AirPods</strong>.`, stats: [], insights: [] };
+  if (!results || results.length === 0) return { verdict: `No exact matches for <strong>"${escapeHtml(query)}"</strong> in our 23K+ unique direct-link product database. Try <strong>Jordan 4</strong>, <strong>Chrome Hearts</strong>, <strong>Patek Philippe</strong>, or <strong>AirPods</strong>.`, stats: [], insights: [] };
   if (!a) {
     const platforms = [...new Set(results.map(r => r.platform))];
     const platNames = platforms.map(p => (PLATFORMS[p] || PLATFORMS['weidian']).label);
@@ -4121,7 +4237,7 @@ function generateSmartVerdict(query, results, a) {
   if (a.bestValueIdx >= 0) {
     const p = results[a.bestValueIdx];
     const price = parseFloat(p.priceUSD) || 0;
-    insights.push({ type: 'deal', icon: '$', text: `<strong>Low-price option:</strong> ${escapeHtml(p.name)} has a direct link, image, and one of the lowest shown prices at $${price.toFixed(2)}.` });
+    insights.push({ type: 'deal', icon: '$', text: `<strong>Complete listing:</strong> ${escapeHtml(p.name)} includes a direct link and product image at $${price.toFixed(2)}.` });
   }
   if (a.priceSpread > 50 && a.totalResults >= 4) insights.push({ type: 'info', icon: 'i', text: `Big price spread. Compare QC photos before assuming the most expensive listing is best.` });
   return { verdict: `Found <strong>${results.length} ${escapeHtml(query)}</strong> listings across ${platforms.join(' and ')}. Lowest shown is <strong>$${min}</strong>; typical shown is about <strong>$${avg}</strong>.`, stats, insights };
@@ -4161,8 +4277,12 @@ function refineResults(mode) {
     const origIdx = baseResults.indexOf(r);
     const card = document.createElement('div');
     card.className = 'result-card';
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', `View details for ${r.name}`);
     card.dataset.platform = r.platform;
-    card.onclick = (e) => { if(e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; var c2 = card.querySelector('.add-to-cart-btn'); if(!c2) return; var oc = c2.getAttribute('onclick') || ''; var mt = oc.match(/addToCart..([^'"]+)/); if(mt) openDetail(mt[1]); };
+    card.onclick = (e) => { if (e.target.closest('a,.buy-btn,.add-to-cart-btn,button')) return; openDetail(r.id); };
+    card.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(r.id); } };
     card.style.animationDelay = `${Math.min(i * 0.04, 0.3)}s`;
     card.innerHTML = renderCardHTML(r, origIdx);
     list.appendChild(card);
@@ -4193,7 +4313,7 @@ if (initialQuery) {
 // CART / HAUL SYSTEM
 // ════════════════════════════════════════════════
 
-let cart = JSON.parse(localStorage.getItem('repfind_cart') || '[]');
+let cart = readStoredJson(localStorage, 'repfind_cart', []);
 
 function saveCart() { localStorage.setItem('repfind_cart', JSON.stringify(cart)); }
 
@@ -4277,12 +4397,12 @@ function renderCart() {
 
   const itemRows = cart.map(item => `
     <div class="cart-item" onclick="openDetail('${item.id}')">
-      <img class="cart-item-img" src="${item.image || FALLBACK_SVG}" alt="" referrerpolicy="no-referrer" onerror="imgFallback(this)">
+      <img class="cart-item-img" src="${safeImageSrc(item.image || FALLBACK_SVG)}" alt="" referrerpolicy="no-referrer" onerror="imgFallback(this)">
       <div class="cart-item-info">
         <div class="cart-item-name" title="${escapeAttr(item.name)}">${escapeHtml(item.name)}</div>
         <div class="cart-item-price">${formatPrice(item.priceCNY || 0, currentCurrency)}</div>
       </div>
-      <button class="cart-item-remove" onclick="event.stopPropagation(); removeFromCart('${item.id}')">&times;</button>
+      <button class="cart-item-remove" aria-label="Remove ${escapeAttr(item.name)} from haul" onclick="event.stopPropagation(); removeFromCart('${item.id}')">&times;</button>
     </div>`).join('');
   const guestNotice = !currentUser ? `<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px;font-size:0.82rem;color:var(--text-dim)">${cart.length >= GUEST_HAUL_LIMIT ? `<strong style="color:var(--accent-light)">Free saves limit reached.</strong> ` : ''}Sign up for unlimited saves + sync across devices. <button style="background:none;border:none;color:var(--accent-light);cursor:pointer;font-size:0.82rem;padding:0;text-decoration:underline" onclick="showAuthModal('Sign up for unlimited saves.')">Sign up</button></div>` : '';
   itemsEl.innerHTML = `${itemRows}${guestNotice}`;
@@ -4299,6 +4419,7 @@ function toggleCart() {
   const overlay = document.getElementById('cartOverlay');
   panel.classList.toggle('show');
   overlay.classList.toggle('show');
+  panel.setAttribute('aria-hidden', panel.classList.contains('show') ? 'false' : 'true');
   if (panel.classList.contains('show')) renderCart();
 }
 
@@ -4358,10 +4479,14 @@ function openFirstAndCopy() {
 
 // ─── Onboarding ───
 function showOnboarding() {
-  document.getElementById('onboardOverlay').classList.add('show');
+  const modal = document.getElementById('onboardOverlay');
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
 }
 function closeOnboarding() {
-  document.getElementById('onboardOverlay').classList.remove('show');
+  const modal = document.getElementById('onboardOverlay');
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden', 'true');
   localStorage.setItem('repfind_onboarded', '1');
 }
 // Show onboarding for first-time visitors
@@ -4377,23 +4502,21 @@ function closeCheckoutList() {
 
 // Init auth + cart badge on load
 // ════════════════════════════════════════════════
-// ANALYTICS — Supabase-backed, no external deps
+// ANALYTICS — disabled until the analytics tables deny anonymous reads.
+// Authentication and signed-in haul sync remain enabled.
 // ════════════════════════════════════════════════
-const ANALYTICS_SESSION = (function() {
-  let s = sessionStorage.getItem('rf_sid');
-  if (!s) { s = Date.now().toString(36) + Math.random().toString(36).slice(2, 8); sessionStorage.setItem('rf_sid', s); }
-  return s;
-})();
+const ANALYTICS_ENABLED = false;
+try {
+  sessionStorage.removeItem('rf_sid');
+  sessionStorage.removeItem('rf_utm');
+  localStorage.removeItem('rf_vid');
+} catch (_) {}
+const ANALYTICS_SESSION = '';
+const ANALYTICS_VISITOR = '';
 const ANALYTICS_DEVICE = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : (/iPad|Tablet/i.test(navigator.userAgent) ? 'tablet' : 'desktop');
 
-// Analytics: page_views → repfind_page_views, events → repfind_events,
-// searches → repfind_searches. Each table now has permissive INSERT RLS.
-// Use localStorage for persistent visitor ID (survives browser restarts).
-const ANALYTICS_VISITOR = (function() {
-  let v = localStorage.getItem('rf_vid');
-  if (!v) { v = 'v_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); localStorage.setItem('rf_vid', v); }
-  return v;
-})();
+// Analytics tables may only be re-enabled after the RLS migration that grants
+// anonymous INSERT but blocks anonymous SELECT, UPDATE, and DELETE.
 
 function _sanitizeQuery(q) {
   if (typeof q === 'object') { try { q = JSON.stringify(q); } catch(e) { q = String(q); } }
@@ -4407,7 +4530,7 @@ function _analyticsMeta() {
 }
 
 async function trackPageView() {
-  if (!supabaseClient) return;
+  if (!ANALYTICS_ENABLED || !supabaseClient) return;
   const utm = JSON.parse(sessionStorage.getItem('rf_utm') || '{}');
   try {
     await supabaseClient.from('repfind_page_views').insert({
@@ -4429,7 +4552,7 @@ async function trackPageView() {
 }
 
 async function trackSearch(query, action, resultCount) {
-  if (!supabaseClient) return;
+  if (!ANALYTICS_ENABLED || !supabaseClient) return;
   // Ensure query is always a clean string — not an object or undefined
   if (typeof query === 'object') { try { query = JSON.stringify(query); } catch(e) { query = String(query); } }
   if (!query || typeof query !== 'string') query = '';
@@ -4445,7 +4568,7 @@ async function trackSearch(query, action, resultCount) {
 }
 
 async function trackEvent(type, data) {
-  if (!supabaseClient) return;
+  if (!ANALYTICS_ENABLED || !supabaseClient) return;
   // Insert into the proper events table
   try {
     await supabaseClient.from('repfind_events').insert({
@@ -4467,6 +4590,7 @@ async function trackEvent(type, data) {
 
 // Track page view on load — capture UTM params for source attribution
 (function() {
+  if (!ANALYTICS_ENABLED) return;
   const params = new URLSearchParams(location.search);
   const utm = {};
   for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']) {

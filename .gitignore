@@ -6,7 +6,14 @@ data/product_embeddings.bin
 scripts/output/
 
 # Node modules
+node_modules/
 carousel_assets/node_modules/
+
+# Local/generated media and logs
+.DS_Store
+output/
+recordings/raw/
+*.log
 
 # API keys — stored in ~/jsw/keys/
 *.env
