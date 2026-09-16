@@ -4376,7 +4376,7 @@ async function deleteCartItemFromServer(productId) {
   if (error) { console.error('Haul delete error:', error); showToast('Removed locally. Server haul needs setup.'); }
 }
 
-const GUEST_HAUL_LIMIT = 3;
+const GUEST_HAUL_LIMIT = 1;
 
 async function addToCart(productId, btn) {
   // Guests can build a haul — it saves to localStorage.
@@ -4398,11 +4398,14 @@ async function addToCart(productId, btn) {
   if (btn) { btn.textContent = 'Added'; btn.classList.add('added'); setTimeout(() => { btn.textContent = '+ Haul'; btn.classList.remove('added'); }, 1200); }
 
   if (!currentUser) {
-    const remaining = GUEST_HAUL_LIMIT - cart.length;
-    if (remaining > 0) {
-      showToast(`Saved! ${remaining} free save${remaining === 1 ? '' : 's'} left — sign up for unlimited`);
+    // Let visitors experience one real saved item, then make the cross-device
+    // value concrete while the intent is highest. They can dismiss this; only
+    // the second save is gated.
+    if (cart.length === GUEST_HAUL_LIMIT) {
+      showAuthModal('Your first item is saved on this device. Create your free account to keep this haul, save unlimited finds, and access it from any device.', 'signup');
     } else {
-      showToast(`That's your ${GUEST_HAUL_LIMIT} free saves! Sign up for unlimited`);
+      const remaining = GUEST_HAUL_LIMIT - cart.length;
+      showToast(`Saved! ${remaining} free save${remaining === 1 ? '' : 's'} left — create a free account for unlimited`);
     }
   } else {
     showToast(`Saved to your haul (${cart.length} items)`);
@@ -4430,9 +4433,9 @@ function renderCart() {
   if (!itemsEl) return;
 
   const authTeaser = !currentUser ? `<div class="cart-auth-teaser">
-    <h3>${cart.length >= GUEST_HAUL_LIMIT ? 'Free saves used up!' : 'Save your haul'}</h3>
-    <p>${cart.length >= GUEST_HAUL_LIMIT ? `You've used all ${GUEST_HAUL_LIMIT} free saves. Sign up to save unlimited products and sync across devices.` : `You can save ${GUEST_HAUL_LIMIT - cart.length} more product${GUEST_HAUL_LIMIT - cart.length === 1 ? '' : 's'} for free. Sign up for unlimited saves and sync across devices.`}</p>
-    <button class="cart-checkout-btn" onclick="showAuthModal('Sign up for unlimited saves.')">Sign up — it's free</button>
+    <h3>${cart.length >= GUEST_HAUL_LIMIT ? 'Keep this haul' : 'Save your haul'}</h3>
+    <p>${cart.length >= GUEST_HAUL_LIMIT ? 'Your first saved item lives only on this device. Create a free account to keep it, add unlimited finds, and open this haul from any device.' : 'Create a free account to save unlimited products and sync your haul across devices.'}</p>
+    <button class="cart-checkout-btn" onclick="showAuthModal('Create your free account to keep this haul across devices.', 'signup')">Create free account</button>
   </div>` : '';
 
   if (cart.length === 0) {
@@ -4451,7 +4454,7 @@ function renderCart() {
       </div>
       <button type="button" class="cart-item-remove" aria-label="Remove ${escapeAttr(item.name)} from haul" data-cart-index="${index}">&times;</button>
     </div>`).join('');
-  const guestNotice = !currentUser ? `<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px;font-size:0.82rem;color:var(--text-dim)">${cart.length >= GUEST_HAUL_LIMIT ? `<strong style="color:var(--accent-light)">Free saves limit reached.</strong> ` : ''}Sign up for unlimited saves + sync across devices. <button style="background:none;border:none;color:var(--accent-light);cursor:pointer;font-size:0.82rem;padding:0;text-decoration:underline" onclick="showAuthModal('Sign up for unlimited saves.')">Sign up</button></div>` : '';
+  const guestNotice = !currentUser ? `<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px;font-size:0.82rem;color:var(--text-dim)">${cart.length >= GUEST_HAUL_LIMIT ? `<strong style="color:var(--accent-light)">Keep this haul across devices.</strong> ` : ''}Create a free account for unlimited finds + synced haul. <button style="background:none;border:none;color:var(--accent-light);cursor:pointer;font-size:0.82rem;padding:0;text-decoration:underline" onclick="showAuthModal('Create your free account to keep this haul across devices.', 'signup')">Create account</button></div>` : '';
   itemsEl.innerHTML = `${itemRows}${guestNotice}`;
   itemsEl.querySelectorAll('.cart-item').forEach(row => {
     row.addEventListener('click', event => {
