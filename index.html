@@ -1910,7 +1910,7 @@
     <div class="welcome-proof">
       <span>Direct marketplace links</span>
       <span>KakoBuy, CNFans, OopBuy</span>
-      <span>No account needed to search</span>
+      <span>Free account: save &amp; sync your haul</span>
     </div>
     <div class="prompt-container">
       <div class="prompt-box">
@@ -1972,25 +1972,25 @@
   <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
     <div class="auth-card-header">
       <div>
-        <h2 id="authTitle">Save your haul</h2>
-        <p>Your haul is saved on this device. Sign in to sync it across devices and come back later.</p>
+        <h2 id="authTitle">Create your free account</h2>
+        <p id="authSubtitle">Save your haul, keep your links, and pick up from any device.</p>
       </div>
       <button class="auth-close" onclick="hideAuthModal()" aria-label="Close sign in">&times;</button>
     </div>
     <div class="auth-tabs">
-      <button class="auth-tab active" id="loginTab" onclick="setAuthMode('login')">Log in</button>
-      <button class="auth-tab" id="signupTab" onclick="setAuthMode('signup')">Sign up</button>
+      <button class="auth-tab" id="loginTab" onclick="setAuthMode('login')">Log in</button>
+      <button class="auth-tab active" id="signupTab" onclick="setAuthMode('signup')">Create account</button>
     </div>
     <div class="auth-field">
       <label for="authEmail">Email</label>
       <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email">
     </div>
-    <div class="auth-field" id="passwordField">
+    <div class="auth-field" id="passwordField" hidden>
       <label for="authPassword">Password</label>
-      <input id="authPassword" type="password" placeholder="At least 6 characters" autocomplete="current-password">
+      <input id="authPassword" type="password" placeholder="At least 6 characters" autocomplete="new-password">
     </div>
-    <button class="auth-primary" id="authSubmitBtn" onclick="submitAuth()">Log in</button>
-    <button class="auth-secondary" onclick="sendMagicLink()">Email me a magic link</button>
+    <button class="auth-primary" id="authSubmitBtn" onclick="submitAuth()">Continue with email</button>
+    <button class="auth-secondary" id="magicLinkBtn" onclick="setAuthMode('login')">Log in with a password</button>
     <div class="auth-error" id="authMessage"></div>
     <div class="auth-note">Guest hauls stay on this device only. Signed-in hauls sync to your repfind account.</div>
   </div>
@@ -3499,15 +3499,31 @@ let isSyncingCart = false;
 
 function setAuthMode(mode) {
   authMode = mode;
-  document.getElementById('loginTab')?.classList.toggle('active', mode === 'login');
-  document.getElementById('signupTab')?.classList.toggle('active', mode === 'signup');
+  const isSignup = mode === 'signup';
+  document.getElementById('loginTab')?.classList.toggle('active', !isSignup);
+  document.getElementById('signupTab')?.classList.toggle('active', isSignup);
   const btn = document.getElementById('authSubmitBtn');
-  if (btn) btn.textContent = mode === 'login' ? 'Log in' : 'Create account';
+  if (btn) btn.textContent = isSignup ? 'Continue with email' : 'Log in';
+  const passwordField = document.getElementById('passwordField');
+  if (passwordField) passwordField.hidden = isSignup;
   const password = document.getElementById('authPassword');
-  if (password) password.autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+  if (password) password.autocomplete = isSignup ? 'new-password' : 'current-password';
+  const title = document.getElementById('authTitle');
+  const subtitle = document.getElementById('authSubtitle');
+  if (title) title.textContent = isSignup ? 'Create your free account' : 'Welcome back';
+  if (subtitle) subtitle.textContent = isSignup
+    ? 'Save your haul, keep your links, and pick up from any device.'
+    : 'Log in to sync your saved haul across devices.';
+  const magic = document.getElementById('magicLinkBtn');
+  if (magic) magic.textContent = isSignup ? 'Log in with a password' : 'Email me a sign-in link';
+  magic?.setAttribute('onclick', isSignup ? "setAuthMode('login')" : 'sendMagicLink()');
   setAuthMessage('');
 }
-function showAuthModal(message = '') {
+function showAuthModal(message = '', mode = 'signup') {
+  // Account conversion must never open behind first-run onboarding.
+  const onboarding = document.getElementById('onboardOverlay');
+  if (onboarding?.classList.contains('show')) closeOnboarding();
+  setAuthMode(mode);
   const modal = document.getElementById('authModal');
   modal?.classList.add('show');
   modal?.setAttribute('aria-hidden', 'false');
@@ -3534,30 +3550,36 @@ async function submitAuth() {
   if (!supabaseClient) return setAuthMessage('Auth client failed to load.');
   const email = document.getElementById('authEmail')?.value.trim();
   const password = document.getElementById('authPassword')?.value || '';
-  if (!email || !password) return setAuthMessage('Enter email and password.');
-  if (authMode === 'signup' && password.length < 6) return setAuthMessage('Password must be at least 6 characters.');
-  setAuthMessage(authMode === 'login' ? 'Logging in...' : 'Creating account...', true);
+  if (!email) return setAuthMessage('Enter your email.');
+  // Passwordless creation is the fastest path: Supabase creates the account
+  // and sends one verification link, with no password to abandon or forget.
+  if (authMode === 'signup') return sendMagicLink(true);
+  if (!password) return setAuthMessage('Enter your password, or use an email sign-in link.');
+  setAuthMessage('Logging in...', true);
   try {
-    const res = authMode === 'login'
-      ? await supabaseClient.auth.signInWithPassword({ email, password })
-      : await supabaseClient.auth.signUp({ email, password, options: { emailRedirectTo: window.location.href.split('#')[0] } });
+    const res = await supabaseClient.auth.signInWithPassword({ email, password });
     if (res.error) return setAuthMessage(normalizeAuthError(res.error));
     hideAuthModal();
     showToast('Signed in. Haul sync enabled.');
-    trackEvent(authMode === 'login' ? 'login' : 'signup', { method: 'password' });
+    trackEvent('login', { method: 'password' });
   } catch (err) {
     setAuthMessage(normalizeAuthError(err));
   }
 }
-async function sendMagicLink() {
+async function sendMagicLink(isSignup = authMode === 'signup') {
   if (!supabaseClient) return setAuthMessage('Auth client failed to load.');
   const email = document.getElementById('authEmail')?.value.trim();
   if (!email) return setAuthMessage('Enter your email first.');
-  setAuthMessage('Sending magic link...', true);
+  setAuthMessage(isSignup ? 'Creating your account...' : 'Sending sign-in link...', true);
   try {
-    const { error } = await supabaseClient.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href.split('#')[0] } });
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href.split('#')[0], shouldCreateUser: true },
+    });
     if (error) return setAuthMessage(normalizeAuthError(error));
-    setAuthMessage('Magic link sent. Check your email.', true);
+    setAuthMessage(isSignup
+      ? 'Check your email — your account link is on its way. Open it to save and sync this haul.'
+      : 'Check your email for your sign-in link.', true);
   } catch (err) {
     setAuthMessage(normalizeAuthError(err));
   }
@@ -3578,7 +3600,7 @@ function updateAuthUI() {
     const email = currentUser.email || 'Account';
     el.innerHTML = `<strong title="${escapeAttr(email)}">${escapeHtml(email.length > 22 ? email.slice(0, 19) + '...' : email)}</strong><button onclick="signOut()">Sign out</button>`;
   } else {
-    el.innerHTML = '<strong>Guest</strong><button onclick="showAuthModal()">Sign in</button>';
+    el.innerHTML = '<strong>Guest</strong><button onclick="showAuthModal()">Create free account</button>';
   }
 }
 function dbItemToCart(row) {
