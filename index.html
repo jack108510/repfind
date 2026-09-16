@@ -2526,15 +2526,14 @@ async function renderDataDrivenClarify(query, ai, container) {
   const responseDiv = document.createElement('div');
   responseDiv.className = 'ai-response';
 
-  // Build narrowing chips from real categories
-  const chipsHTML = sortedCats.slice(0, 6).map(([cat, count]) => {
-    const label = cat.length > 30 ? cat.substring(0, 28) + '...' : cat;
-    const searchTerm = `${query} ${cat}`;
-    return `<div class="follow-up-chip" onclick="quickSearch('${escapeAttr(searchTerm)}')">${escapeHtml(label)} <span style="opacity:0.5;font-size:0.75em">${count}</span></div>`;
-  }).join('');
-
-  // Also offer "show all" option
-  const showAllHTML = `<div class="follow-up-chip" onclick="forceSearch('${escapeAttr(query)}')" style="border-color:var(--accent);color:var(--accent-light)">Show all ${rawProducts.length} results</div>`;
+  // Build narrowing choices from real categories. These stay as data until
+  // converted into button nodes below — never interpolate user/catalog strings
+  // into executable inline handlers.
+  const narrowingChoices = sortedCats.slice(0, 6).map(([cat, count]) => ({
+    label: cat.length > 30 ? cat.substring(0, 28) + '...' : cat,
+    searchTerm: `${query} ${cat}`,
+    count,
+  }));
 
   responseDiv.innerHTML = `
     <div class="verdict-header">
@@ -2542,13 +2541,15 @@ async function renderDataDrivenClarify(query, ai, container) {
     </div>
     <div class="verdict-text" style="margin-bottom:4px">Found <strong>${rawProducts.length} matches</strong> for "${escapeHtml(query)}" across <strong>${sortedCats.length} categories</strong>. What are you looking for?</div>
     <div class="follow-ups" style="display:block;margin-top:12px;padding-left:0">
-      <div class="follow-up-chips" style="gap:6px">
-        ${chipsHTML}
-        ${showAllHTML}
-      </div>
+      <div class="follow-up-chips" id="narrowingChips" style="gap:6px"></div>
     </div>
   `;
   container.appendChild(responseDiv);
+  const chipRoot = responseDiv.querySelector('#narrowingChips');
+  narrowingChoices.forEach(({ label, searchTerm, count }) => {
+    chipRoot.appendChild(createFollowUpChip(label, () => quickSearch(searchTerm), { count }));
+  });
+  chipRoot.appendChild(createFollowUpChip(`Show all ${rawProducts.length} results`, () => forceSearch(query), { accent: true }));
   scrollToBottom();
 }
 
@@ -2566,12 +2567,8 @@ function renderChatResponse(ai, container) {
   const responseDiv = document.createElement('div');
   responseDiv.className = 'ai-response';
 
-  const chipsHTML = (ai.chips && ai.chips.length)
-    ? `<div class="follow-ups" style="display:block;margin-top:12px">
-         <div class="follow-up-chips" id="chatChips-${Date.now()}">
-           ${ai.chips.map(c => `<div class="follow-up-chip" onclick="quickSearch('${escapeAttr(c)}')">${escapeHtml(c)}</div>`).join('')}
-         </div>
-       </div>`
+  const chipContainer = (ai.chips && ai.chips.length)
+    ? `<div class="follow-ups" style="display:block;margin-top:12px"><div class="follow-up-chips" id="chatChips-${Date.now()}"></div></div>`
     : '';
 
   responseDiv.innerHTML = `
@@ -2580,9 +2577,16 @@ function renderChatResponse(ai, container) {
       <span class="bot-name">repfind <span class="badge">AI</span></span>
     </div>
     <div class="verdict-text" id="verdictText-${Date.now()}"></div>
-    ${chipsHTML}
+    ${chipContainer}
   `;
   container.appendChild(responseDiv);
+  const chatChips = responseDiv.querySelector('.follow-up-chips');
+  if (chatChips) {
+    ai.chips.slice(0, 8).forEach(chip => {
+      const label = String(chip || '').trim().slice(0, 80);
+      if (label) chatChips.appendChild(createFollowUpChip(label, () => quickSearch(label)));
+    });
+  }
 
   // Stream the reply text
   const textEl = responseDiv.querySelector('.verdict-text');
@@ -3404,9 +3408,7 @@ function renderFollowUps(query, scope) {
     .filter((s, idx, arr) => arr.findIndex(x => x.toLowerCase() === s.toLowerCase()) === idx)
     .slice(0, 4);
 
-  el.innerHTML = suggestions.map(s =>
-    `<div class="follow-up-chip" onclick="quickSearch('${escapeAttr(s)}')">${escapeHtml(s)}</div>`
-  ).join('');
+  el.replaceChildren(...suggestions.map(s => createFollowUpChip(s, () => quickSearch(s))));
   section.style.display = suggestions.length ? 'block' : 'none';
 }
 
@@ -3453,6 +3455,24 @@ function renderHistory() {
 }
 
 // ─── Utils ───
+function createFollowUpChip(label, onSelect, options = {}) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'follow-up-chip';
+  button.textContent = String(label || '');
+  if (options.count != null) {
+    const count = document.createElement('span');
+    count.style.cssText = 'opacity:0.5;font-size:0.75em';
+    count.textContent = String(options.count);
+    button.append(' ', count);
+  }
+  if (options.accent) {
+    button.style.borderColor = 'var(--accent)';
+    button.style.color = 'var(--accent-light)';
+  }
+  button.addEventListener('click', onSelect);
+  return button;
+}
 function scrollToBottom() {
   const area = document.getElementById('chatArea');
   if (area) area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
@@ -3923,12 +3943,17 @@ async function searchProducts(query, limit = 12) {
       }
     }
 
-    // Multi-word aliases must still activate when a query has a modifier.
+    // A phrase alias may satisfy only the query words it actually covers.
+    // Do not credit unrelated modifiers (e.g. "banana dunk lows") as matches.
     for (const [key, syns] of Object.entries(SYNONYMS)) {
       if (!containsSearchPhrase(term, key)) continue;
       if (syns.some(syn => containsSearchPhrase(name, syn) || containsSearchPhrase(cat, syn))) {
-        matchedWords = Math.max(matchedWords, words.length);
-        matchTypes.__phraseAlias = 'synonym';
+        for (const aliasWord of key.split(/\s+/)) {
+          if (words.includes(aliasWord) && !matchTypes[aliasWord]) {
+            matchedWords++;
+            matchTypes[aliasWord] = 'synonym';
+          }
+        }
       }
     }
 
@@ -4395,17 +4420,31 @@ function renderCart() {
     return;
   }
 
-  const itemRows = cart.map(item => `
-    <div class="cart-item" onclick="openDetail('${item.id}')">
+  const itemRows = cart.map((item, index) => `
+    <div class="cart-item" data-cart-index="${index}">
       <img class="cart-item-img" src="${safeImageSrc(item.image || FALLBACK_SVG)}" alt="" referrerpolicy="no-referrer" onerror="imgFallback(this)">
       <div class="cart-item-info">
         <div class="cart-item-name" title="${escapeAttr(item.name)}">${escapeHtml(item.name)}</div>
         <div class="cart-item-price">${formatPrice(item.priceCNY || 0, currentCurrency)}</div>
       </div>
-      <button class="cart-item-remove" aria-label="Remove ${escapeAttr(item.name)} from haul" onclick="event.stopPropagation(); removeFromCart('${item.id}')">&times;</button>
+      <button type="button" class="cart-item-remove" aria-label="Remove ${escapeAttr(item.name)} from haul" data-cart-index="${index}">&times;</button>
     </div>`).join('');
   const guestNotice = !currentUser ? `<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px;font-size:0.82rem;color:var(--text-dim)">${cart.length >= GUEST_HAUL_LIMIT ? `<strong style="color:var(--accent-light)">Free saves limit reached.</strong> ` : ''}Sign up for unlimited saves + sync across devices. <button style="background:none;border:none;color:var(--accent-light);cursor:pointer;font-size:0.82rem;padding:0;text-decoration:underline" onclick="showAuthModal('Sign up for unlimited saves.')">Sign up</button></div>` : '';
   itemsEl.innerHTML = `${itemRows}${guestNotice}`;
+  itemsEl.querySelectorAll('.cart-item').forEach(row => {
+    row.addEventListener('click', event => {
+      if (event.target.closest('.cart-item-remove')) return;
+      const item = cart[Number(row.dataset.cartIndex)];
+      if (item?.id) openDetail(item.id);
+    });
+  });
+  itemsEl.querySelectorAll('.cart-item-remove').forEach(button => {
+    button.addEventListener('click', event => {
+      event.stopPropagation();
+      const item = cart[Number(button.dataset.cartIndex)];
+      if (item?.id) removeFromCart(item.id);
+    });
+  });
   const total = cart.reduce((sum, item) => sum + (item.priceCNY || 0), 0);
   totalEl.textContent = formatPrice(total, currentCurrency);
   if (checkoutBtn) {
